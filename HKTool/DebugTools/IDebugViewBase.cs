@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Mono.Cecil;
 
-namespace HKTool.Core
+namespace HKTool.DebugTools
 {
-    public class Convert
+    public interface IDebugViewBase
     {
+        void OnDebugDraw();
+        string GetModName();
     }
 }

@@ -1,0 +1,16 @@
+﻿
+HKTool.Settings.DeveloperMode=开发者模式
+HKTool.Settings.DeveloperMode.Desc=开启/关闭开发者模式，重启游戏后生效
+HKTool.Settings.On=开启
+HKTool.Settings.Off=关闭
+HKTool.Settings.LoadSettings=重新加载设置
+
+HKTool.Debug.TopTitle={0} ({1}/{2}) Tab键切换
+HKTool.Debug.EnableHitBox=显示碰撞箱
+HKTool.Debug.DisableHitBox=隐藏碰撞箱
+
+HKTool.Debug.EnableDebugDraw=显示Debug Line
+HKTool.Debug.DisableDebugDraw=隐藏Debug Line
+
+HKTool.DebugMenu.Back=返回
+

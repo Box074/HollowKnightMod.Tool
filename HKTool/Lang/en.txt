@@ -1,0 +1,15 @@
+﻿
+HKTool.Settings.DeveloperMode=Developer mode
+HKTool.Settings.DeveloperMode.Desc=Turn on/off developer mode, it will take effect after restarting the game
+HKTool.Settings.On=On
+HKTool.Settings.Off=Off
+HKTool.Settings.LoadSettings=Reload Settings
+
+HKTool.Debug.TopTitle={0} ({1}/{2}) Press Tab to switch
+HKTool.Debug.EnableHitBox=Show HitBox
+HKTool.Debug.DisableHitBox=Hide HitBox
+
+HKTool.Debug.EnableDebugDraw=Show Debug Line
+HKTool.Debug.DisableDebugDraw=Hide Debug Line
+
+HKTool.DebugMenu.Back=Back
