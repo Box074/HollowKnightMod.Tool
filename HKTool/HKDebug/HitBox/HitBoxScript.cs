@@ -77,7 +77,6 @@ namespace HKDebug.HitBox
                 GameObject go = new GameObject("Hit Box");
                 go.transform.parent = lg.transform;
                 go.transform.position = transform.position;
-                go.transform.SetPositionZ(0.01f);
                 LineRenderer lr = go.AddComponent<LineRenderer>();
                 lr.sharedMaterial = m;
                 lr.startWidth = 0.05f;

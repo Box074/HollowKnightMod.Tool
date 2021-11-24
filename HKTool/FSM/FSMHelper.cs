@@ -12,6 +12,14 @@ namespace HKTool.FSM
     public delegate FsmTransition ForEachFsmTransitionDelegate(FsmTransition transition);
     public static class FSMHelper
     {
+        public static Fsm[] FindFsms(string name)
+        {
+            return PlayMakerFSM.FsmList.Select(x => x.Fsm).Where(x => x.Name == name).ToArray();
+        }
+        public static Fsm FindFsm(string name)
+        {
+            return PlayMakerFSM.FsmList.FirstOrDefault(x => x.Fsm.Name == name)?.Fsm;
+        }
         public static T[] GetFSMStateActionsOnState<T>(this FsmState state) where T : FsmStateAction
         {
             return state.Actions.Where(x => typeof(T).IsAssignableFrom(x.GetType())).Cast<T>().ToArray();

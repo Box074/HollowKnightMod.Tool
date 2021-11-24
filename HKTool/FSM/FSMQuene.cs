@@ -26,6 +26,7 @@ namespace HKTool.FSM
             TargetFSM = fsm;
             States = fsm.States.ToList();
             EditState(fsm.StartState);
+            Modding.Logger.Log($"State Count:  {States.Count} Name: { fsm.GameObject.name }");
             return this;
         }
         ~FSMQuene()
@@ -50,6 +51,7 @@ namespace HKTool.FSM
             }
             return this;
         }
+
         public FSMQuene FlushFsm()
         {
             TestIsClose();
@@ -73,11 +75,13 @@ namespace HKTool.FSM
         public FSMQuene EditState(string name)
         {
             TestIsClose();
+            Modding.Logger.Log("Try Edit State: " + name);
             if (CurrentState != null)
             {
                 FlushState();
             }
             CurrentState = States.FirstOrDefault(x => x.Name == name);
+            if (CurrentState == null) throw new InvalidOperationException();
             if(Transitions == null) Transitions = CurrentState.Transitions.ToList();
             else
             {
@@ -110,6 +114,21 @@ namespace HKTool.FSM
         {
             TestIsClose();
             func(Transitions.FirstOrDefault(x => x.EventName == name));
+            return this;
+        }
+        public FsmState FindState(string name)
+        {
+            TestIsClose();
+            return States.FirstOrDefault(x => x.Name == name);
+        }
+        public FSMQuene AppendTransition(string name, string toState)
+        {
+            TestIsClose();
+            FsmTransition ft = new FsmTransition();
+            Transitions.Add(ft);
+            ft.FsmEvent = FsmEvent.GetFsmEvent(name);
+            ft.ToState = toState;
+            ft.ToFsmState = FindState(toState);
             return this;
         }
 
