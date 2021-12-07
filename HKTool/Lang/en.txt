@@ -4,6 +4,8 @@ HKTool.Settings.DeveloperMode.Desc=Turn on/off developer mode, it will take effe
 HKTool.Settings.On=On
 HKTool.Settings.Off=Off
 HKTool.Settings.LoadSettings=Reload Settings
+HKTool.Settings.DebugView=Debug View
+HKTool.Settings.DebugView.Desc=Turn on/off Debug View[Home]
 
 HKTool.Debug.TopTitle={0} ({1}/{2}) Press Tab to switch
 HKTool.Debug.EnableHitBox=Show HitBox

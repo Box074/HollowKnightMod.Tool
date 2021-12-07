@@ -17,7 +17,28 @@ namespace HKTool
         {
             Instances.Add(this);
         }
-        public bool ChangeLang(LanguageCode code)
+        public bool UseLanguageHook
+        {
+            set
+            {
+                Modding.ModHooks.LanguageGetHook -= ModHooks_LanguageGetHook;
+                if (value)
+                {
+                    Modding.ModHooks.LanguageGetHook += ModHooks_LanguageGetHook;
+                }
+            }
+        }
+
+        private string ModHooks_LanguageGetHook(string key, string sheetTitle, string orig)
+        {
+            if(TryGet(key, out var s))
+            {
+                return s;
+            }
+            return orig;
+        }
+
+        public bool ChangeLanguage(LanguageCode code)
         {
             if(Languages.TryGetValue(code,out var v))
             {
@@ -31,7 +52,7 @@ namespace HKTool
                     var n = l2.Substring(0, s);
                     var val = l2.Substring(s + 1);
                     Current.Add(n, val);
-                    Modding.Logger.Log($"Parse Lang: {n} = {val}");
+                    Modding.Logger.Log($"I18n: {n} = {val}");
                 }
                 return true;
             }
@@ -42,43 +63,47 @@ namespace HKTool
             if (Current.TryGetValue(key, out var v)) return v;
             return key;
         }
+        public bool TryGet(string key, out string val)
+        {
+            return Current.TryGetValue(key, out val);
+        }
         
         public static string GlobalGet(string key)
         {
             foreach(var v in Instances)
             {
-                if(v.Current.TryGetValue(key,out var s))
+                if(v.TryGet(key,out var s))
                 {
                     return s;
                 }
             }
             return key;
         }
-        public void AddLang(LanguageCode code,string data)
+        public void AddLanguage(LanguageCode code,string data)
         {
             Languages[code] = data;
         }
-        public void AddLang(LanguageCode code, Stream stream)
+        public void AddLanguage(LanguageCode code, Stream stream, bool closeStream = true)
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
             byte[] b = new byte[stream.Length];
             stream.Read(b, 0, (int)stream.Length);
-            stream.Close();
-            AddLang(code, Encoding.UTF8.GetString(b));
+            if (closeStream) stream.Close();
+            AddLanguage(code, Encoding.UTF8.GetString(b));
         }
 
-        public void AddLang(LanguageCode src,LanguageCode dst)
+        public void AddLanguage(LanguageCode src,LanguageCode dst)
         {
             if(Languages.TryGetValue(src,out var v))
             {
                 Languages[dst] = v;
             }
         }
-        public void ChangeToDefault(LanguageCode defaultCode = LanguageCode.EN)
+        public void UseGameLanguage(LanguageCode defaultCode = LanguageCode.EN)
         {
-            if (!ChangeLang(Language.Language.CurrentLanguage()))
+            if (!ChangeLanguage(Language.Language.CurrentLanguage()))
             {
-                ChangeLang(defaultCode);
+                ChangeLanguage(defaultCode);
             }
         }
     }

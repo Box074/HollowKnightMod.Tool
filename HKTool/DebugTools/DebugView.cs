@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -20,9 +21,13 @@ namespace HKTool.DebugTools
                 return _instance;
             }
         }
+        public static Vector2 vpos = new Vector2(45, 72);
+        public static Vector2 vsize = new Vector2(Screen.width * 0.3f, Screen.height - 90);
+        public static Rect wrect = new Rect(vpos, vsize);
         private static DebugView _instance;
         public static bool IsEnable { get; set; } = false;
         public static readonly List<IDebugViewBase> debugViews = new List<IDebugViewBase>();
+        
         public static int select = 0;
         public Vector2 s0 = Vector2.zero;
         public static void Init()
@@ -69,25 +74,13 @@ namespace HKTool.DebugTools
                 }
             }
         }
-        private void Awake()
+        private void WindowDraw(int id)
         {
-            background = new Texture2D(1, 1);
-            background.SetPixel(0, 0, new Color(1, 1, 1, 0.5f));
-        }
-        private Texture2D background = null;
-        private void OnGUI()
-        {
-            if (!IsEnable || debugViews.Count == 0) return;
-            if (select >= debugViews.Count) select = 0;
-            var d = debugViews[select];
-            var size = new Rect(45, 45, Screen.width * 0.3f, Screen.height - 90);
             
-            GUI.DrawTexture(size, background);
-            GUI.color = Color.black;
-            GUILayout.BeginArea(size);
+            var d = debugViews[select];
             GUILayout.BeginVertical();
 
-            if (GUILayout.Button(string.Format("HKTool.Debug.TopTitle".Get(), d.GetModName(), select + 1, debugViews.Count)))
+            if (GUILayout.Button(string.Format("HKTool.Debug.TopTitle".Get(), d.GetViewName(), select + 1, debugViews.Count)))
             {
                 s0 = Vector2.zero;
                 select++;
@@ -109,7 +102,24 @@ namespace HKTool.DebugTools
 
             GUILayout.EndVertical();
 
-            GUILayout.EndArea();
+            GUI.DragWindow();
+        }
+        private void OnGUI()
+        {
+            if (!IsEnable || debugViews.Count == 0) return;
+            if (select >= debugViews.Count) select = 0;
+            var d = debugViews[select];
+            GUI.color = Color.white;
+
+            bool fullScreen = d.FullScreen;
+            if (fullScreen)
+            {
+                d.OnDebugDraw();
+            }
+            else
+            {
+                wrect = GUILayout.Window(1, wrect, WindowDraw, "");
+            }
         }
     }
 }

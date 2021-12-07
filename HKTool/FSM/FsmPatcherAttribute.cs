@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 namespace HKTool.FSM
 {
     [AttributeUsage(AttributeTargets.Method)]
-    public class FsmPatchAttribute : Attribute
+    public class FsmPatcherAttribute : Attribute
     {
         public string sceneName = "";
         public string objName = "";
         public string fsmName = "";
-        public FsmPatchAttribute(string sceneName = "", string objName = "", string fsmName = "")
+        public FsmPatcherAttribute(string sceneName = "", string objName = "", string fsmName = "")
         {
             this.sceneName = sceneName;
             this.objName = objName;

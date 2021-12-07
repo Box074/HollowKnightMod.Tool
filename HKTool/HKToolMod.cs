@@ -11,23 +11,25 @@ namespace HKTool
     class HKToolMod : Mod , IGlobalSettings<HKToolSettings> , IMenuMod
     {
         public static I18n I18N { get; } = new I18n();
+        public static bool IsDebugMode { get; private set; }
+        static int olds = 0;
         public HKToolMod() : base("HKTool")
         {
             var ass = Assembly.GetExecutingAssembly();
-            I18N.AddLang(Language.LanguageCode.EN, ass.GetManifestResourceStream("HKTool.Lang.en.txt"));
-            I18N.AddLang(Language.LanguageCode.ZH, ass.GetManifestResourceStream("HKTool.Lang.zh-cn.txt"));
+            I18N.AddLanguage(Language.LanguageCode.EN, ass.GetManifestResourceStream("HKTool.Lang.en.txt"));
+            I18N.AddLanguage(Language.LanguageCode.ZH, ass.GetManifestResourceStream("HKTool.Lang.zh-cn.txt"));
 
-            I18N.ChangeToDefault();
+            I18N.UseGameLanguage();
 
             FSM.FsmManager.Init();
-
+            IsDebugMode = settings.DevMode;
             if (settings.DevMode)
             {
                 DebugTools.DebugManager.Init();
 
-                if(settings.DebugConfig.ExternMods?.Count > 0)
+                if(settings.DebugConfig.DebugMods?.Count > 0)
                 {
-                    ExternModsLoader.LoadMods(settings.DebugConfig.ExternMods);
+                    ExternModsLoader.LoadMods(settings.DebugConfig.DebugMods);
                 }
             }
         }
@@ -57,11 +59,26 @@ namespace HKTool
                     Name = "HKTool.Settings.LoadSettings".Get(),
                     Saver = (val) =>
                     {
-                        GetType().GetMethod("LoadGlobalSettings", BindingFlags.NonPublic | BindingFlags.Instance)
-                         .Invoke(this, Array.Empty<object>());
+                        GetType().GetMethod("LoadGlobalSettings", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                         .Invoke(this, null);
                     },
                     Loader = () => 0,
-                    Values = new string[] { "" }
+                    Values = new string[] { "" , "" }
+                });
+                list.Add(new IMenuMod.MenuEntry()
+                {
+                    Name = "HKTool.Settings.DebugView".Get(),
+                    Saver = (val) =>
+                    {
+                        if (val != olds)
+                        {
+                            olds = val;
+                            DebugTools.DebugView.IsEnable = !DebugTools.DebugView.IsEnable;
+                        }
+                    },
+                    Loader = () => olds,
+                    Values = new string[] { "", "" },
+                    Description = "HKTool.Settings.DebugView.Desc".Get()
                 });
             }
             return list;
@@ -69,7 +86,7 @@ namespace HKTool
 
         public override string GetVersion()
         {
-            return Assembly.GetExecutingAssembly().GetName().Version.ToString() + (settings.DevMode ? "DevMode" : "");
+            return Assembly.GetExecutingAssembly().GetName().Version.ToString() + (settings.DevMode ? "-DevMode" : "");
         }
 
         public void OnLoadGlobal(HKToolSettings s) => settings = s;

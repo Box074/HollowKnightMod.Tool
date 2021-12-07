@@ -4,13 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
-namespace HKTool.DebugTools
+namespace HKTool.UnityTools
 {
-    public interface IDebugViewBase
+    public class SceneTools
     {
-        void OnDebugDraw();
-        string GetViewName();
-        bool FullScreen { get; }
+        static SceneTools()
+        {
+            
+        }
     }
 }

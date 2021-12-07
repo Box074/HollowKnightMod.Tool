@@ -16,7 +16,7 @@ namespace HKTool
     [Serializable]
     class HKToolDebugConfig
     {
-        public List<string> ExternMods { get; set; } = new List<string>();
+        public List<string> DebugMods { get; set; } = new List<string>();
         public HitBoxConfig HitBoxConfig { get; set; } = null;
     }
 }

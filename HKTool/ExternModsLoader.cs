@@ -11,6 +11,7 @@ namespace HKTool
 {
     class ExternModsLoader
     {
+        public static List<Mod> DebugMods { get; } = new List<Mod>();
         public static Type TModLoader = typeof(Mod).Assembly.GetType("Modding.ModLoader");
         public static MethodInfo MAddModInstance = TModLoader.GetMethod("AddModInstance", BindingFlags.Static | BindingFlags.NonPublic);
         public static Type TModInstance = TModLoader.GetNestedType("ModInstance");
@@ -50,6 +51,7 @@ namespace HKTool
 						ConstructorInfo constructor = type.GetConstructor(new Type[0]);
                         if ((constructor?.Invoke(new object[0])) is Mod mod)
                         {
+                            DebugMods.Add(mod);
                             AddModInstance(type, mod, false, null, mod.GetName());
                         }
                     }

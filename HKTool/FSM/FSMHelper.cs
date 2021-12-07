@@ -70,9 +70,9 @@ namespace HKTool.FSM
             }
             state.Actions = l.ToArray();
         }
-        public static FSMQuene CreateQuene(this Fsm fsm)
+        public static FSMPatch CreatePatch(this Fsm fsm)
         {
-            return new FSMQuene().Init(fsm);
+            return new FSMPatch().Init(fsm);
         }
         public static FsmState InsertFSMState(this Fsm fsm, FsmState state)
         {
@@ -129,6 +129,10 @@ namespace HKTool.FSM
         public static FsmStateAction CreateMethodAction(Action<FsmStateAction> action)
         {
             return new MethodFSMStateAction(action);
+        }
+        public static void RegisterFSMPatcher(FsmFilter filter, FsmPatchHandler patcher)
+        {
+            FsmManager.RegisterPatcher(filter, patcher);
         }
         class MethodFSMStateAction : FsmStateAction
         {

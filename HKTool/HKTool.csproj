@@ -107,28 +107,33 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DebugManager.cs" />
     <Compile Include="DebugTools\DebugManager.cs" />
     <Compile Include="DebugTools\DebugView.cs" />
+    <Compile Include="DebugTools\DebugViewBase.cs" />
     <Compile Include="DebugTools\IDebugViewBase.cs" />
     <Compile Include="ExternModsLoader.cs" />
-    <Compile Include="FSM\FsmPatchAttribute.cs" />
+    <Compile Include="FSM\FsmFilter.cs" />
+    <Compile Include="FSM\FsmPatcherAttribute.cs" />
     <Compile Include="FSM\FSMHelper.cs" />
     <Compile Include="FSM\FsmManager.cs" />
-    <Compile Include="FSM\FSMQuene.cs" />
+    <Compile Include="FSM\FSMPatch.cs" />
     <Compile Include="HKDebug\FakeDebug.cs" />
     <Compile Include="HKDebug\HitBox\HitBoxConfig.cs" />
     <Compile Include="HKDebug\HitBox\HitBoxCore.cs" />
     <Compile Include="HKDebug\HitBox\HitBoxScript.cs" />
     <Compile Include="HKDebug\Menu\MenuManager.cs" />
-    <Compile Include="HKDebug\Menu\MenuShow.cs" />
+    <Compile Include="HKDebug\Menu\MenuView.cs" />
     <Compile Include="HKDebug\Tool.cs" />
-    <Compile Include="HKDebug\UnityExplorer.cs" />
     <Compile Include="HKToolMod.cs" />
     <Compile Include="HKToolSettings.cs" />
     <Compile Include="I18n.cs" />
     <Compile Include="I18nHelper.cs" />
     <Compile Include="ModBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Reflection\ReflectionHelper.cs" />
+    <Compile Include="Reflection\ReflectionObject.cs" />
+    <Compile Include="UnityTools\SceneTools.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -137,5 +142,6 @@
     <EmbeddedResource Include="Lang\en.txt" />
     <EmbeddedResource Include="Lang\zh-cn.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

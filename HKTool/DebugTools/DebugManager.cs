@@ -11,11 +11,15 @@ namespace HKTool.DebugTools
         public static void Init()
         {
             DebugView.Init();
-            DebugView.debugViews.Add(new HKDebug.Menu.MenuShow());
-            HKDebug.UnityExplorer.Init();
+            AddDebugView(new HKDebug.Menu.MenuShow());
             HKDebug.Tool.Init();
             HKDebug.FakeDebug.Init();
             HKDebug.HitBox.HitBoxCore.Init();
+        }
+
+        public static void AddDebugView(IDebugViewBase view)
+        {
+            DebugView.debugViews.Add(view);
         }
     }
 }

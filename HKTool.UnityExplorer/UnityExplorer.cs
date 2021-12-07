@@ -9,32 +9,45 @@ using UnityEngine;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using MonoMod.RuntimeDetour.HookGen;
+using UnityExplorer;
 
-namespace HKDebug
+namespace HKTool.UnityExplorer
 {
-    public static class UnityExplorer
+    public static class UnityExplorerLoader
     {
-        public static dynamic Instance { get; private set; } = null;
+        public static ExplorerStandalone Instance { get; private set; } = null;
         public static Assembly ass = null;
         public static void Init()
         {
 
             try
             {
-                ass = Assembly.Load("UnityExplorer.STANDALONE.Mono, Version=4.1.11.0, Culture=neutral, PublicKeyToken=null");
-                if (ass == null)
-                {
-                    Modding.Logger.LogWarn("Not find UnityExplorer");
-                    return;
-                }
+                Instance = ExplorerStandalone.CreateInstance(OnLog);
+                ass = typeof(ExplorerStandalone).Assembly;
                 TInspectUnderMouse = ass.GetType("UnityExplorer.Inspectors.InspectUnderMouse");
-                /*Instance = ass.GetType("UnityExplorer.ExplorerStandalone").InvokeMember("CreateInstance",
-                    BindingFlags.Public | BindingFlags.Static, null, null, Array.Empty<object>());*/
                 FixColliderTest();
             }
             catch (Exception e)
             {
                 Modding.Logger.Log(e);
+            }
+        }
+        private static void OnLog(string msg, LogType type)
+        {
+            switch (type)
+            {
+                case LogType.Assert:
+                case LogType.Exception:
+                case LogType.Error:
+                    Modding.Logger.LogError(msg);
+                    break;
+                case LogType.Warning:
+                    Modding.Logger.LogWarn(msg);
+                    break;
+                case LogType.Log:
+                default:
+                    Modding.Logger.Log(msg);
+                    break;
             }
         }
         public static Type TInspectUnderMouse = null;

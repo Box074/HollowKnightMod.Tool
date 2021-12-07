@@ -9,14 +9,14 @@ using HKTool;
 
 namespace HKDebug.Menu
 {
-    class MenuShow : IDebugViewBase
+    class MenuShow : DebugViewBase
     {
 
-        public string GetModName() => "Default Debug Tools";
+        public override string GetViewName() => "Default Debug Tools";
 
         
 
-        public void OnDebugDraw()
+        public override void OnDebugDraw()
         {
             if (!MenuManager.HasButton) return;
             List<ButtonInfo> buttons = MenuManager.Buttons;

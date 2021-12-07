@@ -1,0 +1,4 @@
+﻿
+HKTool.UE.EditPlayerData=编辑PlayerData
+HKTool.UE.EditHeroController=编辑HeroController
+HKTool.UE.EditBossSceneController=编辑BossSceneController
