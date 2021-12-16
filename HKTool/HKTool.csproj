@@ -116,8 +116,9 @@
     <Compile Include="FSM\FsmFilter.cs" />
     <Compile Include="FSM\FsmPatcherAttribute.cs" />
     <Compile Include="FSM\FSMHelper.cs" />
-    <Compile Include="FSM\FsmManager.cs" />
+    <Compile Include="FSM\FsmWatcher.cs" />
     <Compile Include="FSM\FSMPatch.cs" />
+    <Compile Include="FSM\IFsmFilter.cs" />
     <Compile Include="HKDebug\FakeDebug.cs" />
     <Compile Include="HKDebug\HitBox\HitBoxConfig.cs" />
     <Compile Include="HKDebug\HitBox\HitBoxCore.cs" />
@@ -131,9 +132,15 @@
     <Compile Include="I18nHelper.cs" />
     <Compile Include="ModBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Reflection\FastReflection.cs" />
     <Compile Include="Reflection\ReflectionHelper.cs" />
     <Compile Include="Reflection\ReflectionObject.cs" />
-    <Compile Include="UnityTools\SceneTools.cs" />
+    <Compile Include="Reflection\RedirectDelegates.cs" />
+    <Compile Include="IPatch.cs" />
+    <Compile Include="Utils\GameObjectFilter.cs" />
+    <Compile Include="Utils\GameObjectHelper.cs" />
+    <Compile Include="Utils\GameObjectWatcher.cs" />
+    <Compile Include="Utils\IGameObjectFilter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

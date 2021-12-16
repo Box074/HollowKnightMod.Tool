@@ -7,9 +7,10 @@ using System.Threading.Tasks;
 using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
 
+
 namespace HKTool.FSM
 {
-    public class FSMPatch
+    public class FSMPatch : IPatch
     {
         internal FSMPatch()
         {
@@ -50,6 +51,7 @@ namespace HKTool.FSM
             {
                 CurrentState.Actions = Actions.ToArray();
                 CurrentState.Transitions = Transitions.ToArray();
+                CurrentState.SaveActions();
             }
             return this;
         }
@@ -69,11 +71,16 @@ namespace HKTool.FSM
             TargetFSM.States = States.ToArray();
             return this;
         }
-        public FSMPatch DelyBindTransition(FsmTransition transition, string stateName)
+        public FSMPatch DelayBindTransition(FsmTransition transition, string stateName)
         {
             if (transition == null) throw new ArgumentNullException(nameof(transition));
             if (string.IsNullOrEmpty(stateName)) throw new ArgumentException();
             DelyBindTransitions.Add((transition, stateName));
+            return this;
+        }
+        public FSMPatch DelayBindTransition(string eventName, string stateName)
+        {
+            FindTransition(eventName, t => DelayBindTransition(t, stateName));
             return this;
         }
         public void EndFSMEdit()
@@ -275,6 +282,11 @@ namespace HKTool.FSM
             States.Add(s);
             EditState(name);
             return this;
+        }
+
+        void IDisposable.Dispose()
+        {
+            EndFSMEdit();
         }
     }
 }

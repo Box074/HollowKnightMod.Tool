@@ -11,72 +11,7 @@ namespace HKTool.Reflection
 {
     public class ReflectionObject
     {
-        public static Dictionary<FieldInfo, Action<object, object>> fsetter = new Dictionary<FieldInfo, Action<object, object>>();
-        public static Dictionary<FieldInfo, Func<object, object>> fgetter = new Dictionary<FieldInfo, Func<object, object>>();
-        public static Dictionary<MethodInfo, FastReflectionDelegate> mcaller = 
-            new Dictionary<MethodInfo, FastReflectionDelegate>();
-
-        internal static object CallMethod(object @this, MethodInfo method, object[] args)
-        {
-            if(!mcaller.TryGetValue(method,out var caller))
-            {
-                caller = method.CreateFastDelegate(true);
-                mcaller[method] = caller;
-            }
-            return caller(@this, args);
-        }
-        internal static object GetField(object @this,FieldInfo field)
-        {
-            if(!fgetter.TryGetValue(field,out var getter))
-            {
-                DynamicMethod dm = new DynamicMethod("", MethodAttributes.Static | MethodAttributes.Public,
-                    CallingConventions.Standard, typeof(object), new Type[]{
-                        typeof(object)
-                        }, field.DeclaringType, true);
-                var il = dm.GetILGenerator();
-                
-                if (field.IsStatic)
-                {
-                    il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Ldfld, field);
-                }
-                else
-                {
-                    il.Emit(OpCodes.Ldsfld, field);
-                }
-                il.Emit(OpCodes.Ret);
-                getter = (Func<object, object>)dm.CreateDelegate(typeof(Func<object, object>));
-            }
-            return getter(@this);
-        }
-        internal static void SetField(object @this, FieldInfo field, object val)
-        {
-            if (!fsetter.TryGetValue(field, out var setter))
-            {
-                DynamicMethod dm = new DynamicMethod("", MethodAttributes.Static | MethodAttributes.Public,
-                    CallingConventions.Standard, typeof(object), new Type[]{
-                        typeof(object),
-                        typeof(object)
-                        }, field.DeclaringType, true);
-                var il = dm.GetILGenerator();
-                
-                if (field.IsStatic)
-                {
-                    il.Emit(OpCodes.Ldarg_1);
-                    il.Emit(OpCodes.Stsfld, field);
-                }
-                else
-                {
-                    il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Ldarg_1);
-                    il.Emit(OpCodes.Stfld, field);
-                }
-                il.Emit(OpCodes.Ret);
-                setter = (Action<object, object>)dm.CreateDelegate(typeof(Action<object, object>));
-                fsetter[field] = setter;
-            }
-            setter(@this, val);
-        }
+      
         public Type objType = null;
         public object obj = null;
         public bool HasValue => !(obj is null);
@@ -108,12 +43,12 @@ namespace HKTool.Reflection
             FieldInfo f = objType.GetRuntimeField(name);
             if (f != null)
             {
-                return (T)GetField(obj, f);
+                return (T)f.FastGet(obj);
             }
             PropertyInfo p = objType.GetRuntimeProperty(name);
             if (p != null)
             {
-                return (T)CallMethod(obj, p.GetMethod, null);
+                return (T)p.GetMethod.FastInvoke(obj, null);
             }
             throw new MissingMemberException(objType.FullName, name);
         }
@@ -141,12 +76,12 @@ namespace HKTool.Reflection
             var m = FindMethod(name, args);
             if (m.ReturnType == typeof(void))
             {
-                CallMethod(obj, m, args);
+                m.FastInvoke(obj, args);
                 return default;
             }
             else
             {
-                return (T)CallMethod(obj, m, args);
+                return (T)m.FastInvoke(obj, args);
             }
         }
 
@@ -155,15 +90,13 @@ namespace HKTool.Reflection
             FieldInfo f = objType.GetRuntimeField(name);
             if (f != null)
             {
-                SetField(obj, f, data);
+                f.FastSet(obj, data);
                 return;
             }
             PropertyInfo p = objType.GetRuntimeProperty(name);
             if (p != null)
             {
-                CallMethod(obj, p.SetMethod, new object[]{
-                    data
-                    });
+                p.SetMethod.FastInvoke(obj, data);
                 return;
             }
             throw new MissingMemberException(objType.FullName, name);
@@ -194,7 +127,7 @@ namespace HKTool.Reflection
         public object InvokeMethod(string name, Type[] genTypes, params object[] args)
         {
             var m = FindMethod(name, args).MakeGenericMethod(genTypes);
-            return CallMethod(obj, m, args);
+            return m.FastInvoke(obj, args);
         }
         public T InvokeMethod<T>(string name, Type[] genTypes, params object[] args)
         {

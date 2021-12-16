@@ -21,7 +21,7 @@ namespace HKTool
 
             I18N.UseGameLanguage();
 
-            FSM.FsmManager.Init();
+            FSM.FsmWatcher.Init();
             IsDebugMode = settings.DevMode;
             if (settings.DevMode)
             {

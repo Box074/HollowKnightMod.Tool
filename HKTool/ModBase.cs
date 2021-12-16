@@ -29,33 +29,35 @@ namespace HKTool
         public virtual I18n I18n => _i18n.Value;
         public ModBase(string name = null) : base(name)
         {
-            if(this is IDebugViewBase @base && ShowDebugView)
+            if (this is IDebugViewBase @base && ShowDebugView)
             {
                 DebugView.debugViews.Add(@base);
             }
-            foreach(var v in GetType().GetRuntimeMethods())
+            foreach (var v in GetType().GetRuntimeMethods())
             {
                 if (v.ReturnType != typeof(void) || !v.IsStatic
                     || v.GetParameters().Length != 1 || v.GetParameters().FirstOrDefault()?.ParameterType != typeof(FSMPatch)) continue;
 
                 var d = (FsmPatchHandler)v.CreateDelegate(typeof(FsmPatchHandler));
-                foreach (var attr in v.GetCustomAttributes<FsmPatcherAttribute>()) {
-                    FsmManager.RegisterPatcher(CreateFilter(attr), d);
+                foreach (var attr in v.GetCustomAttributes<FsmPatcherAttribute>())
+                {
+                    new FsmWatcher(CreateFilter(attr), d);
                 }
             }
             var l = Languages;
             if (l != null)
             {
                 Assembly ass = GetType().Assembly;
-                foreach(var v in l)
+                foreach (var v in l)
                 {
                     try
                     {
-                        using(Stream stream = ass.GetManifestResourceStream(v.Item2))
+                        using (Stream stream = ass.GetManifestResourceStream(v.Item2))
                         {
                             I18n.AddLanguage(v.Item1, stream, false);
                         }
-                    }catch(Exception e)
+                    }
+                    catch (Exception e)
                     {
                         LogError(e);
                     }

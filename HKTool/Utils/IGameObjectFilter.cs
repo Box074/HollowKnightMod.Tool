@@ -4,15 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
-namespace HKTool.UnityTools
+namespace HKTool.Utils
 {
-    public class SceneTools
+    public interface IGameObjectFilter
     {
-        static SceneTools()
-        {
-            
-        }
+        bool Filter(GameObject go);
     }
 }

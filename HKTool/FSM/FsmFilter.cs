@@ -8,7 +8,7 @@ using HutongGames.PlayMaker;
 
 namespace HKTool.FSM
 {
-    public abstract class FsmFilter
+    public abstract class FsmFilter : IFsmFilter
     {
         public abstract bool Filter(PlayMakerFSM pm);
     }

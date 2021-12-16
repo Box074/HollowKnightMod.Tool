@@ -130,9 +130,10 @@ namespace HKTool.FSM
         {
             return new MethodFSMStateAction(action);
         }
-        public static void RegisterFSMPatcher(FsmFilter filter, FsmPatchHandler patcher)
+        [Obsolete("Please use 'new FsmWatcher(IFsmFilter filter, FsmPatchHandler handler)'")]
+        public static void RegisterFSMPatcher(IFsmFilter filter, FsmPatchHandler patcher)
         {
-            FsmManager.RegisterPatcher(filter, patcher);
+            new FsmWatcher(filter, patcher);
         }
         class MethodFSMStateAction : FsmStateAction
         {
