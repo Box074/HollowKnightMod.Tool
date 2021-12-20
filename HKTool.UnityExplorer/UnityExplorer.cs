@@ -16,6 +16,7 @@ namespace HKTool.UnityExplorer
     public static class UnityExplorerLoader
     {
         public static ExplorerStandalone Instance { get; private set; } = null;
+        public static Modding.SimpleLogger Logger { get; } = new Modding.SimpleLogger("UnityExplorer");
         public static Assembly ass = null;
         public static void Init()
         {
@@ -39,14 +40,14 @@ namespace HKTool.UnityExplorer
                 case LogType.Assert:
                 case LogType.Exception:
                 case LogType.Error:
-                    Modding.Logger.LogError(msg);
+                    Logger.LogError(msg);
                     break;
                 case LogType.Warning:
-                    Modding.Logger.LogWarn(msg);
+                    Logger.LogWarn(msg);
                     break;
                 case LogType.Log:
                 default:
-                    Modding.Logger.Log(msg);
+                    Logger.Log(msg);
                     break;
             }
         }

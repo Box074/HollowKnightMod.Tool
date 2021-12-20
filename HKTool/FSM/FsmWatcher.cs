@@ -7,48 +7,25 @@ using HutongGames.PlayMaker;
 
 namespace HKTool.FSM
 {
-    public delegate void FsmPatchHandler(FSMPatch fsm);
     
-    public class FsmWatcher : IWatcher<PlayMakerFSM>
+    public class FsmWatcher : WatcherBase<FsmWatcher, PlayMakerFSM, FSMPatch>
     {
-        private readonly static List<FsmWatcher> watchers = new List<FsmWatcher>();
         static FsmWatcher()
         {
             On.PlayMakerFSM.Start += PlayMakerFSM_Start;
         }
-        public IFsmFilter Filter { get; set; }
-        public FsmPatchHandler Handler { get; set; }
-        public FsmWatcher(IFsmFilter filter, FsmPatchHandler handler)
+        public FsmWatcher(IFilter<PlayMakerFSM> filter, WatchHandler<FSMPatch> handler) : base(filter, handler)
         {
-            Filter = filter;
-            Handler = handler;
-            watchers.Add(this);
+
         }
-        public void RemoveWatcher()
+        protected override void CallHandler(PlayMakerFSM pm)
         {
-            watchers.Remove(this);
-        }
-        public void Try(PlayMakerFSM pm)
-        {
-            if (Handler == null || Filter == null) return;
-            try
-            {
-                if (Filter.Filter(pm))
-                {
-                    using (var p = pm.Fsm.CreatePatch()) Handler(p);
-                }
-            }catch(Exception e)
-            {
-                Modding.Logger.LogError(e);
-            }
+            using (var p = pm.Fsm.CreatePatch()) Handler(p);
         }
         private static void PlayMakerFSM_Start(On.PlayMakerFSM.orig_Start orig, PlayMakerFSM self)
         {
             orig(self);
-            foreach(var v in watchers)
-            {
-                v.Try(self);
-            }
+            Test(self);
         }
     }
 }

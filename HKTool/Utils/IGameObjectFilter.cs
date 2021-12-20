@@ -7,8 +7,7 @@ using UnityEngine;
 
 namespace HKTool.Utils
 {
-    public interface IGameObjectFilter
+    public interface IGameObjectFilter : IFilter<GameObject>
     {
-        bool Filter(GameObject go);
     }
 }

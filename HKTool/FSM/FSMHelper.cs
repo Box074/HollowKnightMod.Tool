@@ -20,6 +20,15 @@ namespace HKTool.FSM
         {
             return PlayMakerFSM.FsmList.FirstOrDefault(x => x.Fsm.Name == name)?.Fsm;
         }
+        public static FsmState FindState(this GameObject go, string name)
+        {
+            foreach(var v in go.GetComponents<PlayMakerFSM>())
+            {
+                var s = v.Fsm.GetState(name);
+                if (s != null) return s;
+            }
+            return null;
+        }
         public static T[] GetFSMStateActionsOnState<T>(this FsmState state) where T : FsmStateAction
         {
             return state.Actions.Where(x => typeof(T).IsAssignableFrom(x.GetType())).Cast<T>().ToArray();
@@ -129,11 +138,6 @@ namespace HKTool.FSM
         public static FsmStateAction CreateMethodAction(Action<FsmStateAction> action)
         {
             return new MethodFSMStateAction(action);
-        }
-        [Obsolete("Please use 'new FsmWatcher(IFsmFilter filter, FsmPatchHandler handler)'")]
-        public static void RegisterFSMPatcher(IFsmFilter filter, FsmPatchHandler patcher)
-        {
-            new FsmWatcher(filter, patcher);
         }
         class MethodFSMStateAction : FsmStateAction
         {

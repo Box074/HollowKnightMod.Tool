@@ -38,7 +38,7 @@ namespace HKTool
                 if (v.ReturnType != typeof(void) || !v.IsStatic
                     || v.GetParameters().Length != 1 || v.GetParameters().FirstOrDefault()?.ParameterType != typeof(FSMPatch)) continue;
 
-                var d = (FsmPatchHandler)v.CreateDelegate(typeof(FsmPatchHandler));
+                var d = (WatchHandler<FSMPatch>)v.CreateDelegate(typeof(WatchHandler<FSMPatch>));
                 foreach (var attr in v.GetCustomAttributes<FsmPatcherAttribute>())
                 {
                     new FsmWatcher(CreateFilter(attr), d);

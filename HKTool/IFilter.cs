@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HKTool.FSM
+namespace HKTool
 {
-    public interface IFsmFilter : IFilter<PlayMakerFSM>
+    public interface IFilter<T>
     {
+        bool Filter(T obj);
     }
 }
