@@ -16,35 +16,32 @@ namespace HKToolUtils
     {
         static void Main(string[] args)
         {
-            if (args.Length < 1) return;
+            if (args.Length < 2) return;
             var cmd = args[0];
-            if (cmd.Equals("NewProject", StringComparison.OrdinalIgnoreCase))
+            if (cmd.Equals("NewProject", StringComparison.OrdinalIgnoreCase) && args.Length == 3)
             {
                 using (var gitignoreS = new StreamReader(
                     Assembly.GetExecutingAssembly().GetManifestResourceStream("HKToolUtils.gitignoreTemplate.txt")))
                 {
                     File.WriteAllText(".gitignore", gitignoreS.ReadToEnd());
                 }
-                var pd = new ProjectData();
-                pd.Guid = Guid.NewGuid().ToString();
-                File.WriteAllText("ModProject.json", JsonConvert.SerializeObject(pd, Formatting.Indented));
-                Main(new string[] { "RefreshMSProject" });
+                var name = args[2];
+                var p = ModProjectFactory.CreateModProject(name, Path.GetFullPath(args[1]));
+                p.CreateMSProject();
             }else if(cmd.Equals("RefreshMSProject", StringComparison.OrdinalIgnoreCase))
             {
-                ProjectData pd = JsonConvert.DeserializeObject<ProjectData>(File.ReadAllText("ModProject.json"));
-                var mg = new ModProjectManager(pd, Path.GetDirectoryName(Path.GetFullPath("ModProject.json")));
-                mg.CreateMSProject();
+                var p = ModProjectFactory.OpenModProject(Path.GetFullPath(args[1]));
+                p.CreateMSProject();
             }else if(cmd.Equals("Build", StringComparison.OrdinalIgnoreCase))
             {
-                ProjectData pd = JsonConvert.DeserializeObject<ProjectData>(File.ReadAllText("ModProject.json"));
-                var mg = new ModProjectManager(pd, Path.GetDirectoryName(Path.GetFullPath("ModProject.json")));
-                mg.Build();
-            }else if (cmd.Equals("DownloadDependencies"))
+                var p = ModProjectFactory.OpenModProject(Path.GetFullPath(args[1]));
+                p.Build();
+            }
+            else if (cmd.Equals("DownloadDependencies"))
             {
-                ProjectData pd = JsonConvert.DeserializeObject<ProjectData>(File.ReadAllText("ModProject.json"));
-                var mg = new ModProjectManager(pd, Path.GetDirectoryName(Path.GetFullPath("ModProject.json")));
-                mg.DownloadDependencies(true);
-                mg.DownloadModdingAPI(true);
+                var p = ModProjectFactory.OpenModProject(Path.GetFullPath(args[1]));
+                p.DownloadDependencies(true);
+                p.DownloadModdingAPI(true);
             }
         }
     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml;
+using System.Reflection;
 using System.IO;
 using System.IO.Compression;
 using System.Diagnostics;
@@ -20,6 +21,23 @@ namespace HKTool.ProjectManager
 {
     public class ModProjectManager
     {
+        private static string _slnTemplate = null;
+        public static string SlnTemplate
+        {
+            get
+            {
+                if (_slnTemplate == null)
+                {
+                    using (TextReader tr = new StreamReader(
+                        Assembly.GetExecutingAssembly().GetManifestResourceStream("HKTool.ProjectManager.template.sln.txt"))
+                        )
+                    {
+                        _slnTemplate = tr.ReadToEnd();
+                    }
+                }
+                return _slnTemplate;
+            }
+        }
         public ProjectData ProjectData { get; private set; } = null;
         public string ProjectBaseDirectory { get; private set; } = "";
         public string ModdingAPIPath
@@ -114,27 +132,51 @@ namespace HKTool.ProjectManager
             ProjectData = project;
             ProjectBaseDirectory = directory;
         }
-        public void DownloadDependency(Uri uri, string orig, WebDependenciesInfo info)
+        public bool DownloadDependency(Uri uri, string orig, WebDependenciesInfo info)
         {
-            var name = $"{Guid.NewGuid()}{Path.GetExtension(uri.LocalPath)}";
+            var name = Path.GetFileName(uri.LocalPath);
 
             var dp = Path.Combine(WebDependenciesPath, name);
-            if(uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+            if (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
             {
-                var client = new WebClient();
-                var data = client.DownloadData(uri);
-                File.WriteAllBytes(dp, data);
-                if(Path.GetExtension(dp).Equals(".zip", StringComparison.OrdinalIgnoreCase))
+
+                using (var client = new WebClient())
                 {
-                    ZipFile.ExtractToDirectory(dp, Path.Combine(WebDependenciesPath, Path.GetFileNameWithoutExtension(name)));
+                    var data = client.DownloadData(uri);
+
+                    if (Path.GetExtension(dp).Equals(".zip", StringComparison.OrdinalIgnoreCase))
+                    {
+                        dp = Path.GetTempFileName();
+                        File.WriteAllBytes(dp, data);
+                        using (var zip = ZipFile.OpenRead(dp))
+                        {
+                            StringBuilder sb = new StringBuilder();
+                            foreach (var v in zip.Entries)
+                            {
+                                string p = Path.Combine(WebDependenciesPath, v.Name);
+                                sb.Append(v.FullName);
+                                sb.Append(";");
+                                v.ExtractToFile(p, true);
+                            }
+
+                            info.Files[orig] = sb.ToString();
+                        }
+                        File.Delete(dp);
+                    }
+                    else
+                    {
+                        File.WriteAllBytes(dp, data);
+                        info.Files[orig] = name;
+                    }
+
                 }
-                info.Files[orig] = name;
-                return;
+                return true;
             }
+            return true;
         }
-        public void DownloadModdingAPI(bool forceDownload = false)
+        public bool DownloadModdingAPI(bool forceDownload = false)
         {
-            if (File.Exists(Path.Combine(ModdingAPIPath, "Assembly-CSharp.dll")) && !forceDownload) return;
+            if (File.Exists(Path.Combine(ModdingAPIPath, "Assembly-CSharp.dll")) && !forceDownload) return true;
             if (forceDownload)
             {
                 if (Directory.Exists(ModdingAPIPath)) Directory.Delete(ModdingAPIPath, true);
@@ -143,7 +185,7 @@ namespace HKTool.ProjectManager
             {
                 using (WebClient client = new WebClient())
                 {
-                    Console.WriteLine("Downloading UnityEngine API");
+                    Console.WriteLine("Downloading HKTool Libraries");
                     //UnityEngine
                     var uetmp = Path.GetTempFileName();
                     client.DownloadFile(@"https://github.com/HKLab/HKToolLibraries/archive/refs/heads/master.zip", uetmp);
@@ -156,38 +198,43 @@ namespace HKTool.ProjectManager
                         $@"https://github.com/hk-modding/api/releases/download/{ProjectData.ModdingAPIVersion}/ModdingApiWin.zip", matmp);
                     ZipFile.ExtractToDirectory(matmp, ModdingAPIPath);
                     Console.WriteLine("Finished!");
+                    return true;
                 }
-            }catch(Exception e)
+            } catch (Exception e)
             {
                 Console.Error.WriteLine(e);
                 Console.WriteLine("Failed!");
+                return false;
             }
         }
-        public void DownloadDependencies(bool forceDownload = false)
+        public bool DownloadDependencies(bool forceDownload = false)
         {
             WebDependenciesInfo info = forceDownload ? new WebDependenciesInfo() : WebDependenciesInfo;
+            bool s = true;
             if (forceDownload)
             {
                 ClearWebDependencies();
             }
-            foreach(var v in ProjectData.WebDependencies)
+            foreach (var v in ProjectData.WebDependencies)
             {
                 try
                 {
-                    if(info.Files.TryGetValue(v, out var p))
+                    if (info.Files.TryGetValue(v, out var p))
                     {
-                        if (File.Exists(Path.Combine(WebDependenciesPath, p))) continue;
+                        if (p.Split(';').All(x => string.IsNullOrWhiteSpace(x) || File.Exists(Path.Combine(WebDependenciesPath, x)))) continue;
                     }
                     Uri uri = new Uri(v);
                     Console.WriteLine($"Downloading dependency from '{uri}'");
-                    DownloadDependency(uri, v, info);
+                    s = DownloadDependency(uri, v, info) && s;
                     Console.WriteLine("Finished");
-                }catch(Exception e)
+                } catch (Exception e)
                 {
+                    s = false;
                     Console.Error.WriteLine(e);
                 }
             }
             WebDependenciesInfo = info;
+            return s;
         }
         public void ClearWebDependencies()
         {
@@ -228,7 +275,7 @@ namespace HKTool.ProjectManager
                 $"<ItemGroup>\n");
             #region Reference
             DownloadModdingAPI();
-            foreach(var v in Directory.EnumerateFiles(ModdingAPIPath, "*.dll", SearchOption.AllDirectories))
+            foreach (var v in Directory.EnumerateFiles(ModdingAPIPath, "*.dll", SearchOption.AllDirectories))
             {
                 msprojBuilder.AppendLine($"<Reference Include=\"{Path.GetFileNameWithoutExtension(v)}\">");
                 msprojBuilder.AppendLine($"<HintPath>{v}</HintPath>");
@@ -257,7 +304,7 @@ namespace HKTool.ProjectManager
             }
             #endregion
             #region EmbeddedResource
-            foreach(var v in ProjectData.EmbeddedResource)
+            foreach (var v in ProjectData.EmbeddedResource)
             {
                 var rp = Path.Combine(EmbeddedResourcePath, v.Key);
                 if (File.Exists(rp))
@@ -271,44 +318,43 @@ namespace HKTool.ProjectManager
             msprojBuilder.AppendLine("</Project>");
 
             File.WriteAllText(msprojPath, msprojBuilder.ToString(), Encoding.UTF8);
-            
+
             string slnName = ProjectData.ProjectName + ".sln";
             string slnPath = Path.Combine(ProjectBaseDirectory, slnName);
             if (!File.Exists(slnPath))
             {
-                string slnTmp = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-                string slnTmpP = Path.Combine(slnTmp, slnName);
-                if (File.Exists(slnPath)) File.Delete(slnPath);
-                Process.Start("dotnet.exe", $" new sln -n {ProjectData.ProjectName} -o \"{slnTmp}\" ").WaitForExit();
-                File.Copy(slnTmpP, slnPath, true);
-                if (Directory.Exists(slnTmp)) Directory.Delete(slnTmp, true);
-                Process.Start("dotnet.exe", $" sln {slnPath} add \"{msprojPath}\"").WaitForExit();
+                File.WriteAllText(slnPath, string.Format(SlnTemplate, ProjectData.ProjectName, ProjectData.Guid));
             }
         }
-        public void Build()
+        public bool Build()
         {
-            DownloadDependencies();
-            DownloadModdingAPI();
-            var compiler = CSharpCompilation.Create(ProjectData.ProjectName)
-                .WithOptions(new CSharpCompilationOptions(
-                OutputKind.DynamicallyLinkedLibrary,
-                true, ProjectData.ProjectName, null, null,
-                null, OptimizationLevel.Release, true, true, null,null, default,null,
-                Platform.AnyCpu, ReportDiagnostic.Default, 4, null, true, false, null, 
-                null
-                )
-                );
+            if (!DownloadDependencies() || !DownloadModdingAPI())
+            {
+                return false;
+            }
 
             var metadataReference = new List<MetadataReference>();
             foreach (var v in Directory.EnumerateFiles(WebDependenciesPath, "*.dll", SearchOption.AllDirectories)
-                .Concat(Directory.EnumerateFiles(ModdingAPIPath, "*.dll", SearchOption.AllDirectories))
                 .Concat(Directory.EnumerateFiles(DependenciesPath, "*.dll", SearchOption.AllDirectories))
                 )
             {
                 try
                 {
                     metadataReference.Add(MetadataReference.CreateFromFile(v));
-                }catch(Exception e)
+                    File.Copy(v, Path.Combine(OutputPath, Path.GetFileName(v)), true);
+                }
+                catch (Exception e)
+                {
+                    Console.Error.WriteLine(e);
+                }
+            }
+            foreach (var v in Directory.EnumerateFiles(ModdingAPIPath, "*.dll", SearchOption.AllDirectories))
+            {
+                try
+                {
+                    metadataReference.Add(MetadataReference.CreateFromFile(v));
+                }
+                catch (Exception e)
                 {
                     Console.Error.WriteLine(e);
                 }
@@ -316,23 +362,22 @@ namespace HKTool.ProjectManager
             var syntaxTree = new List<SyntaxTree>();
             syntaxTree.Add(CSharpSyntaxTree.ParseText($"[assembly: System.Runtime.InteropServices.Guid(\"{ProjectData.Guid}\")]\n" +
                 $"[assembly: System.Reflection.AssemblyVersion(\"{ProjectData.ModVersion}\")]\n"));
-            foreach(var v in Directory.EnumerateFiles(CodePath, "*.cs", SearchOption.AllDirectories))
+            foreach (var v in Directory.EnumerateFiles(CodePath, "*.cs", SearchOption.AllDirectories))
             {
                 try
                 {
                     syntaxTree.Add(CSharpSyntaxTree.ParseText(
                         File.ReadAllText(v), CSharpParseOptions.Default, v, Encoding.UTF8, default
                         ));
-                }catch(Exception e)
+                }
+                catch (Exception e)
                 {
                     Console.Error.WriteLine(e);
                 }
             }
-            compiler = compiler.AddSyntaxTrees(syntaxTree)
-                .AddReferences(metadataReference);
 
             List<ResourceDescription> ers = new List<ResourceDescription>();
-            foreach(var v in ProjectData.EmbeddedResource)
+            foreach (var v in ProjectData.EmbeddedResource)
             {
                 var fp = Path.Combine(EmbeddedResourcePath, v.Key);
                 if (File.Exists(fp))
@@ -341,22 +386,56 @@ namespace HKTool.ProjectManager
                     ers.Add(r0);
                 }
             }
-            
-            var r = compiler.Emit(Path.Combine(OutputPath, $"{ProjectData.ProjectName}.dll"),
+            var r = CSharpCompilation.Create(ProjectData.ProjectName)
+                .WithOptions(new CSharpCompilationOptions(
+                OutputKind.DynamicallyLinkedLibrary,
+                true, ProjectData.ProjectName, null, null,
+                null, OptimizationLevel.Release, true, true, null, null, default, null,
+                Platform.AnyCpu, ReportDiagnostic.Default, 4, null, true, false, null,
+                null
+                )
+                ).AddSyntaxTrees(syntaxTree)
+                .AddReferences(metadataReference)
+                .Emit(Path.Combine(OutputPath, $"{ProjectData.ProjectName}.dll"),
                 Path.Combine(OutputPath, $"{ProjectData.ProjectName}.pdb"),
                 Path.Combine(OutputPath, $"{ProjectData.ProjectName}.xml"),
                 null, ers, default);
             if (!r.Success)
             {
-                foreach(var v in r.Diagnostics)
+                foreach (var v in r.Diagnostics)
                 {
-                    Console.Error.WriteLine(v.ToString());
+                    switch (v.WarningLevel)
+                    {
+                        case (int)DiagnosticSeverity.Error:
+                            Console.Error.WriteLine(v.ToString());
+                            break;
+                        case (int)DiagnosticSeverity.Warning:
+                        case (int)DiagnosticSeverity.Info:
+                            Console.WriteLine(v.ToString());
+                            break;
+                    }
                 }
                 Console.Error.WriteLine("Failed!");
+                return false;
             }
             else
             {
+                foreach (var v in r.Diagnostics)
+                {
+                    switch (v.WarningLevel)
+                    {
+                        case (int)DiagnosticSeverity.Error:
+                            Console.Error.WriteLine(v.ToString());
+                            break;
+                        case (int)DiagnosticSeverity.Warning:
+                        case (int)DiagnosticSeverity.Info:
+                        default:
+                            Console.WriteLine(v.ToString());
+                            break;
+                    }
+                }
                 Console.WriteLine("Success!");
+                return true;
             }
         }
     }

@@ -16,7 +16,7 @@ namespace HKTool.ProjectManager
     {
         public string ProjectName { get; set; } = "UNKNOW";
         public string ModVersion { get; set; } = "0.0.0.0";
-        public string CSharpVersion { get; set; } = "9.0";
+        public string CSharpVersion { get; set; } = "latest";
         public string CodeDir { get; set; } = @".\Scripts\";
         public string EmbeddedResourceDir { get; set; } = @".\EmbeddedResource\";
         public Dictionary<string, string> EmbeddedResource { get; set; } = new Dictionary<string, string>();
