@@ -26,7 +26,7 @@ namespace HKTool.Reflection
                         }, field.DeclaringType, true);
                 var il = dm.GetILGenerator();
 
-                if (field.IsStatic)
+                if (!field.IsStatic)
                 {
                     il.Emit(OpCodes.Ldarg_0);
                     il.Emit(OpCodes.Ldfld, field);
@@ -45,7 +45,7 @@ namespace HKTool.Reflection
             if (!fsetter.TryGetValue(field, out var setter))
             {
                 DynamicMethod dm = new DynamicMethod("", MethodAttributes.Static | MethodAttributes.Public,
-                    CallingConventions.Standard, typeof(object), new Type[]{
+                    CallingConventions.Standard, typeof(void), new Type[]{
                         typeof(object),
                         typeof(object)
                         }, field.DeclaringType, true);

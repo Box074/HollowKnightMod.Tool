@@ -63,7 +63,7 @@ namespace HKDebug
             });
             group.AddButton(new ButtonInfo()
             {
-                label= "Enter Scene From Gate",
+                label= "从Gate进入当前场景",
                 submit = (_) => EnterSceneFormGate()
             });
             group.AddButton(new ButtonInfo()

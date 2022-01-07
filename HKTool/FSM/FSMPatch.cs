@@ -21,7 +21,7 @@ namespace HKTool.FSM
         public List<FsmState> States { get; private set; }
         public List<FsmTransition> Transitions { get; private set; }
         public List<FsmStateAction> Actions { get; private set; }
-        public List<(FsmTransition, string)> DelyBindTransitions { get; private set; } = new List<(FsmTransition, string)>();
+        public List<(FsmTransition, string)> DelayBindTransitions { get; private set; } = new List<(FsmTransition, string)>();
         public FsmStateAction LastOperationAction { get; private set; }
         private bool isClose = false;
         internal FSMPatch Init(Fsm fsm)
@@ -59,14 +59,14 @@ namespace HKTool.FSM
         public FSMPatch FlushFsm()
         {
             TestIsClose();
-            foreach(var v in DelyBindTransitions)
+            foreach(var v in DelayBindTransitions)
             {
                 var s = FindState(v.Item2);
                 if (s == null) throw new InvalidOperationException();
                 v.Item1.ToState = s.Name;
                 v.Item1.ToFsmState = s;
             }
-            DelyBindTransitions.Clear();
+            DelayBindTransitions.Clear();
             FlushState();
             TargetFSM.States = States.ToArray();
             return this;
@@ -75,7 +75,7 @@ namespace HKTool.FSM
         {
             if (transition == null) throw new ArgumentNullException(nameof(transition));
             if (string.IsNullOrEmpty(stateName)) throw new ArgumentException();
-            DelyBindTransitions.Add((transition, stateName));
+            DelayBindTransitions.Add((transition, stateName));
             return this;
         }
         public FSMPatch DelayBindTransition(string eventName, string stateName)
