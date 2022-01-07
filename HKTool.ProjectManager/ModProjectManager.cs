@@ -7,6 +7,7 @@ using System.Reflection;
 using System.IO;
 using System.IO.Compression;
 using System.Diagnostics;
+using System.Security.Cryptography;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -22,6 +23,7 @@ namespace HKTool.ProjectManager
     public class ModProjectManager
     {
         private static string _slnTemplate = null;
+        private static readonly MD5 md5 = MD5.Create();
         public static string SlnTemplate
         {
             get
@@ -47,6 +49,29 @@ namespace HKTool.ProjectManager
                 string p = Path.Combine(LibraryPath, "ModdingAPI");
                 if (!Directory.Exists(p)) Directory.CreateDirectory(p);
                 return p;
+            }
+        }
+        public WebDependenciesInfo ModdingAPIInfo
+        {
+            get
+            {
+                string p = Path.Combine(LibraryPath, "ModdingAPICache.json");
+                WebDependenciesInfo info;
+                if (!File.Exists(p))
+                {
+                    info = new WebDependenciesInfo();
+                    ModdingAPIInfo = info;
+                    info.savePath = ModdingAPIPath;
+                    return info;
+                }
+                info = JsonConvert.DeserializeObject<WebDependenciesInfo>(File.ReadAllText(p));
+                info.savePath = ModdingAPIPath;
+                return info;
+            }
+            set
+            {
+                string p = Path.Combine(LibraryPath, "ModdingAPICache.json");
+                File.WriteAllText(p, JsonConvert.SerializeObject(value, Newtonsoft.Json.Formatting.Indented));
             }
         }
         public string OutputPath
@@ -90,7 +115,7 @@ namespace HKTool.ProjectManager
         {
             get
             {
-                string p = Path.Combine(ProjectBaseDirectory, "WebDependenciesCache.json");
+                string p = Path.Combine(LibraryPath, "WebDependenciesCache.json");
                 WebDependenciesInfo info;
                 if (!File.Exists(p))
                 {
@@ -103,7 +128,7 @@ namespace HKTool.ProjectManager
             }
             set
             {
-                string p = Path.Combine(ProjectBaseDirectory, "WebDependenciesCache.json");
+                string p = Path.Combine(LibraryPath, "WebDependenciesCache.json");
                 File.WriteAllText(p, JsonConvert.SerializeObject(value, Newtonsoft.Json.Formatting.Indented));
             }
         }
@@ -136,37 +161,43 @@ namespace HKTool.ProjectManager
         {
             var name = Path.GetFileName(uri.LocalPath);
 
-            var dp = Path.Combine(WebDependenciesPath, name);
+            var dp = Path.Combine(info.savePath, name);
             if (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
             {
 
                 using (var client = new WebClient())
                 {
                     var data = client.DownloadData(uri);
-
+                    var finfo = new WebDependencyFileInfo();
                     if (Path.GetExtension(dp).Equals(".zip", StringComparison.OrdinalIgnoreCase))
                     {
                         dp = Path.GetTempFileName();
                         File.WriteAllBytes(dp, data);
                         using (var zip = ZipFile.OpenRead(dp))
                         {
-                            StringBuilder sb = new StringBuilder();
                             foreach (var v in zip.Entries)
                             {
-                                string p = Path.Combine(WebDependenciesPath, v.Name);
-                                sb.Append(v.FullName);
-                                sb.Append(";");
-                                v.ExtractToFile(p, true);
+                                if (string.IsNullOrWhiteSpace(v.Name)) continue;
+                                string lp = Path.Combine(Path.GetFileNameWithoutExtension(name), v.FullName);
+                                string p = Path.Combine(info.savePath, lp);
+                                string dir = Path.GetDirectoryName(p);
+                                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                                byte[] fdata = null;
+                                using (var stream = new BinaryReader(v.Open())) fdata = stream.ReadBytes((int)v.Length);
+                                Console.WriteLine(p);
+                                File.WriteAllBytes(p, fdata);
+                                finfo.Files[lp] = md5.ComputeHash(fdata);
                             }
 
-                            info.Files[orig] = sb.ToString();
+                            info.Files[orig] = finfo;
                         }
                         File.Delete(dp);
                     }
                     else
                     {
                         File.WriteAllBytes(dp, data);
-                        info.Files[orig] = name;
+                        finfo.Files[name] = md5.ComputeHash(File.ReadAllBytes(dp));
+                        info.Files[orig] = finfo;
                     }
 
                 }
@@ -176,52 +207,73 @@ namespace HKTool.ProjectManager
         }
         public bool DownloadModdingAPI(bool forceDownload = false)
         {
-            if (File.Exists(Path.Combine(ModdingAPIPath, "Assembly-CSharp.dll")) && !forceDownload) return true;
-            if (forceDownload)
-            {
-                if (Directory.Exists(ModdingAPIPath)) Directory.Delete(ModdingAPIPath, true);
-            }
-            try
-            {
-                using (WebClient client = new WebClient())
-                {
-                    Console.WriteLine("Downloading HKTool Libraries");
-                    //UnityEngine
-                    var uetmp = Path.GetTempFileName();
-                    client.DownloadFile(@"https://github.com/HKLab/HKToolLibraries/archive/refs/heads/master.zip", uetmp);
-                    ZipFile.ExtractToDirectory(uetmp, ModdingAPIPath);
-                    Console.WriteLine("Finished!");
-                    //ModdingAPI
-                    Console.WriteLine("Downloading Modding API");
-                    var matmp = Path.GetTempFileName();
-                    client.DownloadFile(
-                        $@"https://github.com/hk-modding/api/releases/download/{ProjectData.ModdingAPIVersion}/ModdingApiWin.zip", matmp);
-                    ZipFile.ExtractToDirectory(matmp, ModdingAPIPath);
-                    Console.WriteLine("Finished!");
-                    return true;
-                }
-            } catch (Exception e)
-            {
-                Console.Error.WriteLine(e);
-                Console.WriteLine("Failed!");
-                return false;
-            }
+            var info = ModdingAPIInfo;
+            var r = DownloadDependencies(forceDownload, new string[]{
+                @"https://github.com/HKLab/HKToolLibraries/archive/refs/heads/master.zip",
+                $@"https://github.com/hk-modding/api/releases/download/{ProjectData.ModdingAPIVersion}/ModdingApiWin.zip"
+            }, info);
+            ModdingAPIInfo = info;
+            return r;
         }
-        public bool DownloadDependencies(bool forceDownload = false)
+        public bool DownloadDependenciesDefault(bool forceDownload = false)
         {
-            WebDependenciesInfo info = forceDownload ? new WebDependenciesInfo() : WebDependenciesInfo;
-            bool s = true;
+            var webd = WebDependenciesInfo;
+            var r = DownloadDependencies(forceDownload, null, webd);
+            WebDependenciesInfo = webd;
+            return r;
+        }
+        public bool DownloadDependencies(bool forceDownload = false,IEnumerable<string> dependenciesList = null, 
+            WebDependenciesInfo info = null)
+        {
+            info = forceDownload ? new WebDependenciesInfo() : info ?? WebDependenciesInfo;
+            if (string.IsNullOrEmpty(info.savePath)) info.savePath = WebDependenciesPath;
             if (forceDownload)
             {
-                ClearWebDependencies();
+                ClearWebDependencies(info);
             }
-            foreach (var v in ProjectData.WebDependencies)
+            dependenciesList = dependenciesList ?? ProjectData.WebDependencies;
+
+            bool s = true;
+            
+            foreach (var v in dependenciesList)
             {
                 try
                 {
                     if (info.Files.TryGetValue(v, out var p))
                     {
-                        if (p.Split(';').All(x => string.IsNullOrWhiteSpace(x) || File.Exists(Path.Combine(WebDependenciesPath, x)))) continue;
+                        bool hasTemp = true;
+                        foreach(var f0 in p.Files)
+                        {
+                            var p0 = Path.Combine(info.savePath, f0.Key);
+                            if (!File.Exists(p0))
+                            {
+                                Console.WriteLine($"Missing File: {p0}");
+                                hasTemp = false;
+                                break;
+                            }
+                            var m = md5.ComputeHash(File.ReadAllBytes(p0));
+                            var same = true;
+                            for(int i = 0; i < m.Length; i++)
+                            {
+                                if(f0.Value.Length <= i)
+                                {
+                                    same = false;
+                                    break;
+                                }
+                                if(f0.Value[i] != m[i])
+                                {
+                                    same = false;
+                                    break;
+                                }
+                            }
+                            if(!same)
+                            {
+                                Console.WriteLine($"Broken File: {p0}");
+                                hasTemp = false;
+                                break;
+                            }
+                        }
+                        if (hasTemp) continue;
                     }
                     Uri uri = new Uri(v);
                     Console.WriteLine($"Downloading dependency from '{uri}'");
@@ -233,12 +285,12 @@ namespace HKTool.ProjectManager
                     Console.Error.WriteLine(e);
                 }
             }
-            WebDependenciesInfo = info;
             return s;
         }
-        public void ClearWebDependencies()
+        public void ClearWebDependencies(WebDependenciesInfo info)
         {
-            Directory.Delete(WebDependenciesPath, true);
+            Directory.Delete(info.savePath, true);
+            Directory.CreateDirectory(info.savePath);
         }
         public void CreateMSProject()
         {
@@ -282,7 +334,7 @@ namespace HKTool.ProjectManager
                 msprojBuilder.AppendLine("<Private>False</Private>");
                 msprojBuilder.AppendLine("</Reference>");
             }
-            DownloadDependencies();
+            DownloadDependenciesDefault();
             foreach (var v in Directory.EnumerateFiles(WebDependenciesPath, "*.dll", SearchOption.AllDirectories))
             {
                 msprojBuilder.AppendLine($"<Reference Include=\"{Path.GetFileNameWithoutExtension(v)}\">");
@@ -292,7 +344,7 @@ namespace HKTool.ProjectManager
             foreach (var v in Directory.GetFiles(DependenciesPath, "*.dll", SearchOption.AllDirectories)) ;
             #endregion
             #region CompileFiles
-            var codeDir = new DirectoryInfo(CodePath);
+            /*var codeDir = new DirectoryInfo(CodePath);
             if (codeDir.Exists)
             {
                 foreach (var v in codeDir.EnumerateFiles(
@@ -301,7 +353,8 @@ namespace HKTool.ProjectManager
                 {
                     msprojBuilder.AppendLine($"<Compile Include=\"{v.FullName}\" />");
                 }
-            }
+            }*/
+            msprojBuilder.AppendLine($"<Compile Include=\"{CodePath}\\*.cs\" />");
             #endregion
             #region EmbeddedResource
             foreach (var v in ProjectData.EmbeddedResource)
@@ -328,7 +381,7 @@ namespace HKTool.ProjectManager
         }
         public bool Build()
         {
-            if (!DownloadDependencies() || !DownloadModdingAPI())
+            if (!DownloadDependenciesDefault() || !DownloadModdingAPI())
             {
                 return false;
             }
@@ -391,7 +444,7 @@ namespace HKTool.ProjectManager
                 OutputKind.DynamicallyLinkedLibrary,
                 true, ProjectData.ProjectName, null, null,
                 null, OptimizationLevel.Release, true, true, null, null, default, null,
-                Platform.AnyCpu, ReportDiagnostic.Default, 4, null, true, false, null,
+                Platform.AnyCpu, ReportDiagnostic.Warn, 4, null, true, false, null,
                 null
                 )
                 ).AddSyntaxTrees(syntaxTree)
@@ -404,13 +457,14 @@ namespace HKTool.ProjectManager
             {
                 foreach (var v in r.Diagnostics)
                 {
-                    switch (v.WarningLevel)
+                    if (v.Id == "CS8019" || v.Id == "CS1701") continue;
+                    switch (v.Severity)
                     {
-                        case (int)DiagnosticSeverity.Error:
+                        case DiagnosticSeverity.Error:
                             Console.Error.WriteLine(v.ToString());
                             break;
-                        case (int)DiagnosticSeverity.Warning:
-                        case (int)DiagnosticSeverity.Info:
+                        case DiagnosticSeverity.Warning:
+                        case DiagnosticSeverity.Info:
                             Console.WriteLine(v.ToString());
                             break;
                     }
@@ -422,14 +476,14 @@ namespace HKTool.ProjectManager
             {
                 foreach (var v in r.Diagnostics)
                 {
-                    switch (v.WarningLevel)
+                    if (v.Id == "CS8019" || v.Id == "CS1701") continue;
+                    switch (v.Severity)
                     {
-                        case (int)DiagnosticSeverity.Error:
+                        case DiagnosticSeverity.Error:
                             Console.Error.WriteLine(v.ToString());
                             break;
-                        case (int)DiagnosticSeverity.Warning:
-                        case (int)DiagnosticSeverity.Info:
-                        default:
+                        case DiagnosticSeverity.Warning:
+                        case DiagnosticSeverity.Info:
                             Console.WriteLine(v.ToString());
                             break;
                     }

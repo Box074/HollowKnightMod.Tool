@@ -40,7 +40,7 @@ namespace HKToolUtils
             else if (cmd.Equals("DownloadDependencies"))
             {
                 var p = ModProjectFactory.OpenModProject(Path.GetFullPath(args[1]));
-                p.DownloadDependencies(true);
+                p.DownloadDependenciesDefault(true);
                 p.DownloadModdingAPI(true);
             }
         }

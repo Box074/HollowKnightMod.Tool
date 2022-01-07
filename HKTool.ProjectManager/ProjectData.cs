@@ -7,9 +7,16 @@ using System.Threading.Tasks;
 namespace HKTool.ProjectManager
 {
     [Serializable]
+    public class WebDependencyFileInfo
+    {
+        public Dictionary<string, byte[]> Files { get; set; } = new Dictionary<string, byte[]>();
+    }
+    [Serializable]
     public class WebDependenciesInfo
     {
-        public Dictionary<string, string> Files { get; set; } = new Dictionary<string, string>();
+        [NonSerialized]
+        public string savePath = "";
+        public Dictionary<string, WebDependencyFileInfo> Files { get; set; } = new Dictionary<string, WebDependencyFileInfo>();
     }
     [Serializable]
     public class ProjectData

@@ -10,6 +10,7 @@ using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using MonoMod.RuntimeDetour.HookGen;
 using UnityExplorer;
+using HKTool.Reflection;
 
 namespace HKTool.UnityExplorer
 {
@@ -25,7 +26,7 @@ namespace HKTool.UnityExplorer
             {
                 Instance = ExplorerStandalone.CreateInstance(OnLog);
                 ass = typeof(ExplorerStandalone).Assembly;
-                TInspectUnderMouse = ass.GetType("UnityExplorer.Inspectors.InspectUnderMouse");
+                TInspectUnderMouse = ass.GetType("UnityExplorer.Inspectors.MouseInspectors.WorldInspector");
                 FixColliderTest();
             }
             catch (Exception e)
@@ -72,22 +73,22 @@ namespace HKTool.UnityExplorer
                 {
                     //if (lastGO == col.gameObject) return;
                     lastGO = col.gameObject;
-                    MOnHitGameObject.Invoke(self, new object[] { col.gameObject });
+                    MOnHitGameObject.FastInvoke(self, col.gameObject);
                     return;
                 }
             }
             if (lastGO != null)
             {
                 lastGO = null;
-                MClearHitData.Invoke(null, null);
+                MClearHitData.FastInvoke(null, null);
             }
 
         }
         private static void FixColliderTest()
         {
-            MOnHitGameObject = TInspectUnderMouse.GetMethod("OnHitGameObject", BindingFlags.NonPublic | BindingFlags.Instance);
-            MClearHitData = TInspectUnderMouse.GetMethod("ClearHitData", BindingFlags.NonPublic | BindingFlags.Instance);
-            HookEndpointManager.Add(TInspectUnderMouse.GetMethod("RaycastWorld", BindingFlags.NonPublic | BindingFlags.Instance),
+            MOnHitGameObject = TInspectUnderMouse.GetMethod("OnHitGameObject", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+            MClearHitData = TInspectUnderMouse.GetMethod("ClearHitData", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+            HookEndpointManager.Add(TInspectUnderMouse.GetMethod("UpdateMouseInspect", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance),
                new Action<Action<object, Vector2>, object, Vector2>(HookRaycastWorld)
                 );
         }
