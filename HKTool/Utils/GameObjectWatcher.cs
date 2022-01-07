@@ -12,13 +12,13 @@ namespace HKTool.Utils
     {
         static GameObjectWatcher()
         {
-            UnityEngine.SceneManagement.SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+            UnityEngine.SceneManagement.SceneManager.activeSceneChanged += SceneManager_sceneLoaded;
         }
 
-        private static void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
+        private static void SceneManager_sceneLoaded(Scene arg0, Scene arg1)
         {
             if (watchers.Count == 0) return;
-            foreach(var v in arg0.ForEachGameObjects())
+            foreach(var v in arg1.ForEachGameObjects())
             {
                 foreach(var v2 in watchers)
                 {

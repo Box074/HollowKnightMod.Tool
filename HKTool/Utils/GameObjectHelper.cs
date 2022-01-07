@@ -13,14 +13,11 @@ namespace HKTool.Utils
         public static IEnumerable<GameObject> ForEachChildren(this GameObject parent)
         {
             if (parent == null) throw new ArgumentNullException(nameof(parent));
-            var t = parent.transform;
-            var cc = t.childCount;
-            for(int i = 0; i< cc; i++)
-            {
-                var c = t.GetChild(i).gameObject;
-                yield return c;
-                foreach (var v in c.ForEachChildren()) yield return v;
-            }
+            foreach (var v in parent.GetComponentsInChildren<Transform>()) yield return v.gameObject;
+        }
+        public static GameObject FindChild(this GameObject parent, string name)
+        {
+            return parent.ForEachChildren().FirstOrDefault(x => x.name == name);
         }
         public static IEnumerable<GameObject> ForEachGameObjects(this Scene scene)
         {
@@ -29,6 +26,27 @@ namespace HKTool.Utils
                 yield return v;
                 foreach (var v2 in v.ForEachChildren()) yield return v2;
             }
+        }
+        public static GameObject FindGameObject(this Scene scene, string name)
+        {
+            return scene.ForEachGameObjects().FirstOrDefault(
+                x => x.name.Equals(name, StringComparison.Ordinal) || x.GetPath().Equals(name, StringComparison.Ordinal));
+        }
+        public static string GetPath(this GameObject go)
+        {
+            StringBuilder sb = new StringBuilder();
+            bool first = true;
+            while(go != null)
+            {
+                if (!first)
+                {
+                    sb.Append('/');
+                }
+                sb.Append(go.name);
+                go = go.transform.parent?.gameObject;
+                first = false;
+            }
+            return sb.ToString();
         }
     }
 }

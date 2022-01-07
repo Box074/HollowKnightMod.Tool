@@ -28,7 +28,7 @@ namespace HKTool
 
                 if(settings.DebugConfig.DebugMods?.Count > 0)
                 {
-                    ExternModsLoader.LoadMods(settings.DebugConfig.DebugMods);
+                    DebugModsLoader.LoadMods(settings.DebugConfig.DebugMods);
                 }
             }
         }

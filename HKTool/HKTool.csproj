@@ -12,6 +12,7 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,6 +31,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
@@ -112,13 +115,14 @@
     <Compile Include="DebugTools\DebugView.cs" />
     <Compile Include="DebugTools\DebugViewBase.cs" />
     <Compile Include="DebugTools\IDebugViewBase.cs" />
-    <Compile Include="ExternModsLoader.cs" />
+    <Compile Include="DebugModsLoader.cs" />
     <Compile Include="FSM\FsmFilter.cs" />
     <Compile Include="FSM\FsmPatcherAttribute.cs" />
     <Compile Include="FSM\FSMHelper.cs" />
     <Compile Include="FSM\FsmWatcher.cs" />
     <Compile Include="FSM\FSMPatch.cs" />
     <Compile Include="FSM\IFsmFilter.cs" />
+    <Compile Include="CoroutineHelper.cs" />
     <Compile Include="HKDebug\FakeDebug.cs" />
     <Compile Include="HKDebug\HitBox\HitBoxConfig.cs" />
     <Compile Include="HKDebug\HitBox\HitBoxCore.cs" />
@@ -139,6 +143,7 @@
     <Compile Include="Reflection\ReflectionObject.cs" />
     <Compile Include="Reflection\RedirectDelegates.cs" />
     <Compile Include="IPatch.cs" />
+    <Compile Include="SingleMonoBegaviour.cs" />
     <Compile Include="Utils\GameObjectFilter.cs" />
     <Compile Include="Utils\GameObjectHelper.cs" />
     <Compile Include="Utils\GameObjectWatcher.cs" />
