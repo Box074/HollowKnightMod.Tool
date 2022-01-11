@@ -38,7 +38,7 @@ namespace HKTool
     public static class CoroutineHelper
     {
         public static CoroutineInfo CurrentCoroutine { get; private set; } = null;
-        private class CoroutineHandler : SingleMonoBegaviour<CoroutineHandler>
+        private class CoroutineHandler : SingleMonoBehaviour<CoroutineHandler>
         {
             public readonly static List<CoroutineInfo> coroutines = new();
             public readonly static List<CoroutineInfo> wait = new();

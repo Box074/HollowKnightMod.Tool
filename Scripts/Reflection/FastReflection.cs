@@ -23,7 +23,7 @@ namespace HKTool.Reflection
                 DynamicMethod dm = new DynamicMethod("", MethodAttributes.Static | MethodAttributes.Public,
                     CallingConventions.Standard, typeof(object), new Type[]{
                         typeof(object)
-                        }, field.DeclaringType, true);
+                        }, (Type)null, true);
                 var il = dm.GetILGenerator();
 
                 if (!field.IsStatic)
@@ -37,6 +37,7 @@ namespace HKTool.Reflection
                 }
                 il.Emit(OpCodes.Ret);
                 getter = (RD_GetField)dm.CreateDelegate(typeof(RD_GetField));
+                fgetter[field] = getter;
             }
             return getter;
         }
@@ -48,7 +49,7 @@ namespace HKTool.Reflection
                     CallingConventions.Standard, typeof(void), new Type[]{
                         typeof(object),
                         typeof(object)
-                        }, field.DeclaringType, true);
+                        }, (Type)null, true);
                 var il = dm.GetILGenerator();
 
                 if (field.IsStatic)

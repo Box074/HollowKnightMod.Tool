@@ -11,7 +11,7 @@ namespace HKTool.Reflection
 {
     public class ReflectionObject
     {
-      
+
         public Type objType = null;
         public object obj = null;
         public bool HasValue => !(obj is null);
@@ -20,7 +20,7 @@ namespace HKTool.Reflection
             if (o is null) throw new ArgumentNullException(nameof(o));
             objType = o.GetType();
             obj = o;
-            
+
         }
         public ReflectionObject(Type t)
         {
@@ -112,6 +112,17 @@ namespace HKTool.Reflection
             SetMemberData(name, data?.GetObject());
         }
 
+        public ReflectionObject this[string name]
+        {
+            get
+            {
+                return GetMemberData(name);
+            }
+            set
+            {
+                SetMemberData(name, value);
+            }
+        }
         public ReflectionObject InvokeMethod(string name, params object[] args)
         {
             var r = InvokeMethod<object>(name, args);

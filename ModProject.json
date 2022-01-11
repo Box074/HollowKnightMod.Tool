@@ -1,0 +1,17 @@
+{
+  "ProjectName": "HKTool",
+  "ModVersion": "0.0.0.0",
+  "CSharpVersion": "latest",
+  "CodeDir": ".\\Scripts\\",
+  "EmbeddedResourceDir": ".\\EmbeddedResource\\",
+  "EmbeddedResource": {
+    "Languages\\en.txt": "HKTool.Languages.en.txt",
+    "Languages\\zh-cn.txt": "HKTool.Languages.zh-cn.txt"
+  },
+  "Guid": "593a44ac-8fc9-4543-8be1-8b2dcc4af8ba",
+  "DefaultNamespace": "",
+  "DependenciesDir": ".\\Dependencies\\",
+  "ModdingAPIVersion": "1.5.78.11833-68",
+  "IgnoreDlls": [ "HKTool.dll" ],
+  "WebDependencies": []
+}

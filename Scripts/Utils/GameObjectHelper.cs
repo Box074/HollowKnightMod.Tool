@@ -40,9 +40,9 @@ namespace HKTool.Utils
             {
                 if (!first)
                 {
-                    sb.Append('/');
+                    sb.Insert(0, '/');
                 }
-                sb.Append(go.name);
+                sb.Insert(0, go.name);
                 go = go.transform.parent?.gameObject;
                 first = false;
             }

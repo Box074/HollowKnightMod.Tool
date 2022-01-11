@@ -7,12 +7,10 @@ using UnityEngine;
 
 namespace HKTool
 {
-    public class SingleMonoBegaviour<T> : MonoBehaviour where T : SingleMonoBegaviour<T>
+    public class SingleMonoBehaviour<T> : MonoBehaviour where T : SingleMonoBehaviour<T>
     {
         private static T _instance;
-        /// <summary>
-        /// 获取对象实例，不存在则创造
-        /// </summary>
+
         public static T Instance
         {
             get

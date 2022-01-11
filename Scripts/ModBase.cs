@@ -15,11 +15,18 @@ namespace HKTool
 {
     public abstract class ModBase : Mod
     {
-        private static FsmNameFilterRegex CreateFilter(FsmPatcherAttribute attr)
+        private static FsmFilter CreateFilter(FsmPatcherAttribute attr)
         {
+			if(attr.useRegex)
+			{
             return new FsmNameFilterRegex(string.IsNullOrEmpty(attr.sceneName) ? null : new Regex(attr.sceneName),
             string.IsNullOrEmpty(attr.objName) ? null : new Regex(attr.objName),
             string.IsNullOrEmpty(attr.fsmName) ? null : new Regex(attr.fsmName));
+			}
+			else
+			{
+				return new FsmNameFilter(attr.sceneName, attr.objName, attr.fsmName);
+			}
         }
         protected virtual bool ShowDebugView => true;
         public override string GetVersion()

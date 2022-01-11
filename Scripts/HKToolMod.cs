@@ -8,7 +8,7 @@ using Modding;
 
 namespace HKTool
 {
-    class HKToolMod : Mod , IGlobalSettings<HKToolSettings> , IMenuMod
+    class HKToolMod : ModBase , IGlobalSettings<HKToolSettings> , IMenuMod
     {
         public static I18n I18N { get; } = new I18n();
         public static bool IsDebugMode { get; private set; }
@@ -16,8 +16,8 @@ namespace HKTool
         public HKToolMod() : base("HKTool")
         {
             var ass = Assembly.GetExecutingAssembly();
-            I18N.AddLanguage(Language.LanguageCode.EN, ass.GetManifestResourceStream("HKTool.Lang.en.txt"));
-            I18N.AddLanguage(Language.LanguageCode.ZH, ass.GetManifestResourceStream("HKTool.Lang.zh-cn.txt"));
+            I18N.AddLanguage(Language.LanguageCode.EN, ass.GetManifestResourceStream("HKTool.Languages.en.txt"));
+            I18N.AddLanguage(Language.LanguageCode.ZH, ass.GetManifestResourceStream("HKTool.Languages.zh-cn.txt"));
 
             I18N.UseGameLanguage();
 
