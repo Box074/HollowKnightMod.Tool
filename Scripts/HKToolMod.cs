@@ -8,7 +8,7 @@ using Modding;
 
 namespace HKTool
 {
-    class HKToolMod : ModBase , IGlobalSettings<HKToolSettings> , IMenuMod
+    class HKToolMod : Mod , IGlobalSettings<HKToolSettings> , IMenuMod
     {
         public static I18n I18N { get; } = new I18n();
         public static bool IsDebugMode { get; private set; }

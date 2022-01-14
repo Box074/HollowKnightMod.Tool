@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿
 using System.IO;
-using System.Reflection;
-using System.Threading.Tasks;
 using Modding;
 using HKTool.Reflection;
 using Mono;
 using Mono.Cecil;
+using static Modding.Logger;
 
 namespace HKTool
 {
@@ -79,7 +75,7 @@ namespace HKTool
                     }
 					catch (Exception e)
 					{
-                        Logger.LogError(e);
+                        LogError(e);
                         AddModInstance(type, null, false, "Construct", type.Name);
 					}
 				}
@@ -99,7 +95,7 @@ namespace HKTool
                 }
                 catch (Exception e)
                 {
-                    Logger.LogError(e);
+                    LogError(e);
                 }
             }
             foreach(var v in ass)
