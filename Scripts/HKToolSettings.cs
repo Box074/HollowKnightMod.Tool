@@ -12,14 +12,7 @@ namespace HKTool
     [Serializable]
     class HKToolDebugConfig
     {
-        public HKToolRemoteDebugConfig RemoteDebugConfig { get; set; } = new HKToolRemoteDebugConfig();
         public List<string> DebugMods { get; set; } = new List<string>();
         public HitBoxConfig HitBoxConfig { get; set; } = null;
-    }
-    [Serializable]
-    class HKToolRemoteDebugConfig
-    {
-        public int Port { get; set; } = 8800;
-        public bool InternalConsole { get; set; } = false;
     }
 }

@@ -8,13 +8,16 @@ using Modding;
 
 namespace HKTool
 {
-    class HKToolMod : Mod , IGlobalSettings<HKToolSettings> , IMenuMod
+    class HKToolMod : Mod, IGlobalSettings<HKToolSettings>, ICustomMenuMod
     {
+        public static HKToolMod instance { get; private set; }
+
         public static I18n I18N { get; } = new I18n();
         public static bool IsDebugMode { get; private set; }
         static int olds = 0;
         public HKToolMod() : base("HKTool")
         {
+            instance = this;
             var ass = Assembly.GetExecutingAssembly();
             I18N.AddLanguage(Language.LanguageCode.EN, ass.GetManifestResourceStream("HKTool.Languages.en.txt"));
             I18N.AddLanguage(Language.LanguageCode.ZH, ass.GetManifestResourceStream("HKTool.Languages.zh-cn.txt"));
@@ -26,7 +29,7 @@ namespace HKTool
             {
                 DebugTools.DebugManager.Init();
 
-                if(settings.DebugConfig.DebugMods?.Count > 0)
+                if (settings.DebugConfig.DebugMods?.Count > 0)
                 {
                     DebugModsLoader.LoadMods(settings.DebugConfig.DebugMods);
                 }
@@ -35,14 +38,15 @@ namespace HKTool
 
         public static HKToolSettings settings = new HKToolSettings();
         public bool ToggleButtonInsideMenu => true;
-
+        public static HKToolSettingsMenu SettingsMenu;
+        public void SaveSettings() => SaveGlobalSettings();
         public List<IMenuMod.MenuEntry> GetMenuData(IMenuMod.MenuEntry? toggleButtonEntry)
         {
             var list = new List<IMenuMod.MenuEntry>();
             list.Add(new IMenuMod.MenuEntry()
             {
                 Name = "HKTool.Settings.DeveloperMode".Get(),
-                Values = new string[] { "HKTool.Settings.Off".Get() , "HKTool.Settings.On".Get() },
+                Values = new string[] { "HKTool.Settings.Off".Get(), "HKTool.Settings.On".Get() },
                 Description = "HKTool.Settings.DeveloperMode.Desc".Get(),
                 Loader = () => settings.DevMode ? 1 : 0,
                 Saver = (val) =>
@@ -62,7 +66,7 @@ namespace HKTool
                          .Invoke(this, null);
                     },
                     Loader = () => 0,
-                    Values = new string[] { "" , "" }
+                    Values = new string[] { "", "" }
                 });
                 list.Add(new IMenuMod.MenuEntry()
                 {
@@ -83,6 +87,11 @@ namespace HKTool
             return list;
         }
 
+        public MenuScreen GetMenuScreen(MenuScreen modListMenu, ModToggleDelegates? toggleDelegates)
+        {
+            SettingsMenu = new(modListMenu);
+            return SettingsMenu.menuScreen;
+        }
         public override string GetVersion()
         {
             return Assembly.GetExecutingAssembly().GetName().Version.ToString() + (settings.DevMode ? "-DevMode" : "");
