@@ -12,6 +12,7 @@ namespace HKTool.FSM
     {
         static FsmWatcher()
         {
+            Modding.Logger.Log("Patch PlayMakerFSM.Start");
             On.PlayMakerFSM.Start += PlayMakerFSM_Start;
         }
         public FsmWatcher(IFilter<PlayMakerFSM> filter, WatchHandler<FSMPatch> handler) : base(filter, handler)

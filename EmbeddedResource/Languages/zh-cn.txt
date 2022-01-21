@@ -1,4 +1,4 @@
-﻿
+
 HKTool.Settings.DeveloperMode=开发者模式
 HKTool.Settings.DeveloperMode.Desc=开启/关闭开发者模式，重启游戏后生效
 HKTool.Settings.On=开启
@@ -16,3 +16,39 @@ HKTool.Debug.DisableDebugDraw=隐藏Debug Line
 
 HKTool.DebugMenu.Back=返回
 
+HKTool.Menu.ModifySaveTitle=存档编辑
+HKTool.Menu.ModifySaveSlot=存档{0}
+HKTool.Menu.ModifySave.AllOptions=所有选项
+HKTool.Menu.ModifySave.Charms=护符
+HKTool.Menu.ModifySave.Skills=技能
+
+HKTool.Menu.ModifySave.CharmGot=拥有{1}(#{0})
+HKTool.Menu.ModifySave.CharmEquipped=正在佩戴: {1}(#{0})
+HKTool.Menu.ModifySave.CharmNew=新的: {1}(#{0})
+
+HKTool.Menu.ModifySave.SpecailCharmState=特殊状态{1}(#{0})
+HKTool.Menu.ModifySave.SCS.N=无
+HKTool.Menu.ModifySave.SCS.B=损坏
+HKTool.Menu.ModifySave.SCS.S=坚固
+
+
+HKTool.Menu.ModifySave.GrimmChildLevel=格林之子状态
+
+HKTool.Menu.ModifySave.KingsoulState=国王之魂状态
+HKTool.Menu.ModifySave.KS.L0=白色碎片(1)
+HKTool.Menu.ModifySave.KS.L1=白色碎片(2)
+HKTool.Menu.ModifySave.KS.L2=国王之魂(3)
+HKTool.Menu.ModifySave.KS.L3=虚空之心(4)
+
+HKTool.Menu.ModifySave.HasDash=拥有冲刺
+HKTool.Menu.ModifySave.HasBlackDash=拥有黑冲
+HKTool.Menu.ModifySave.HasDashSlash=拥有冲刺斩
+HKTool.Menu.ModifySave.HasGreatSlash=拥有强力劈砍
+HKTool.Menu.ModifySave.HasCycloneSlash=拥有旋风斩
+HKTool.Menu.ModifySave.HasDoubleJump=拥有二段跳
+HKTool.Menu.ModifySave.HasInvJump=可以无限跳跃
+HKTool.Menu.ModifySave.HasWallJump=拥有螳螂爪
+HKTool.Menu.ModifySave.HasSuperDash=拥有超冲
+
+HKTool.Menu.Bool.True=是
+HKTool.Menu.Bool.False=否

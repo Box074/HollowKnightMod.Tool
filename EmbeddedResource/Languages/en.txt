@@ -15,3 +15,28 @@ HKTool.Debug.EnableDebugDraw=Show Debug Line
 HKTool.Debug.DisableDebugDraw=Hide Debug Line
 
 HKTool.DebugMenu.Back=Back
+
+HKTool.Menu.ModifySaveTitle=Edit Save
+HKTool.Menu.ModifySaveSlot=Save {0}
+HKTool.Menu.ModifySave.Charms=Charms
+
+HKTool.Menu.ModifySave.CharmGot=Got {1}(#{0})
+HKTool.Menu.ModifySave.CharmEquipped=Equipped {1}(#{0})
+HKTool.Menu.ModifySave.CharmNew=New: {1}(#{0})
+
+HKTool.Menu.ModifySave.SpecailCharmState={1}(#{0}) state
+HKTool.Menu.ModifySave.SCS.N=None
+HKTool.Menu.ModifySave.SCS.B=Broken
+HKTool.Menu.ModifySave.SCS.S=Unbreakable
+
+
+HKTool.Menu.ModifySave.GrimmChildLevel=GrimmChild Level
+
+HKTool.Menu.ModifySave.KingsoulState=King Soul State
+HKTool.Menu.ModifySave.KS.L0=(1)
+HKTool.Menu.ModifySave.KS.L1=(2)
+HKTool.Menu.ModifySave.KS.L2=King Soul(3)
+HKTool.Menu.ModifySave.KS.L3=Void Heart(4)
+
+HKTool.Menu.Bool.True=True
+HKTool.Menu.Bool.False=False
