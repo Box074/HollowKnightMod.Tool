@@ -133,13 +133,13 @@ class SaveModifyCoreMenu : CustomMenu
         {
 
         }
-        public override int itemCount => 10;
+        public override int itemCount => 17;
         protected override void Build(ContentArea contentArea)
         {
             AddBoolOption("HKTool.Menu.ModifySave.HasDash".Get(),
-                (b) => pd.hasDash = pd.canDash = b, () => pd.hasDash | pd.canDash);
+                (b) => pd.hasDash = pd.canDash = b, () => pd.hasDash && pd.canDash);
             AddBoolOption("HKTool.Menu.ModifySave.HasBlackDash".Get(),
-                (b) => pd.canShadowDash = pd.hasShadowDash = b, () => pd.hasShadowDash | pd.canShadowDash);
+                (b) => pd.canShadowDash = pd.hasShadowDash = b, () => pd.hasShadowDash && pd.canShadowDash);
             AddBoolOption("HKTool.Menu.ModifySave.HasDashSlash".Get(),
                 (b) => pd.hasDashSlash = b, () => pd.hasDashSlash);
             AddBoolOption("HKTool.Menu.ModifySave.HasGreatSlash".Get(),
@@ -154,7 +154,28 @@ class SaveModifyCoreMenu : CustomMenu
             AddBoolOption("HKTool.Menu.ModifySave.HasWallJump".Get(),
                 (b) => pd.hasWalljump = b, () => pd.hasWalljump);
             AddBoolOption("HKTool.Menu.ModifySave.HasSuperDash".Get(),
-                (b) => pd.canSuperDash = pd.hasSuperDash = b, () => pd.canSuperDash | pd.hasSuperDash);
+                (b) => pd.canSuperDash = pd.hasSuperDash = b, () => pd.canSuperDash && pd.hasSuperDash);
+            AddBoolOption("HKTool.Menu.ModifySave.HasDreamNail".Get(),
+                (b) => pd.hasDreamNail = b, () => pd.hasDreamNail);
+            
+            AddBoolOption("HKTool.Menu.ModifySave.HasDreamNailP".Get(),
+                (b) => pd.dreamNailUpgraded = b, () => pd.dreamNailUpgraded);
+            AddBoolOption("HKTool.Menu.ModifySave.HasDreamGate".Get(),
+                (b) => pd.hasDreamGate = b, () => pd.hasDreamGate);
+            AddBoolOption("HKTool.Menu.ModifySave.HasSwimming".Get(),
+                (b) => pd.hasAcidArmour = b, () => pd.hasAcidArmour);
+            AddBoolOption("HKTool.Menu.ModifySave.HasLantern".Get(),
+                (b) => pd.hasLantern = b, () => pd.hasLantern);
+            AddIntOption("HKTool.Menu.ModifySave.FireballLevel".Get(),
+                0, 2,
+                (b) => pd.fireballLevel = b, () => pd.fireballLevel);
+            
+            AddIntOption("HKTool.Menu.ModifySave.QuakeLevel".Get(),
+                0, 2,
+                (b) => pd.quakeLevel = b, () => pd.quakeLevel);
+            AddIntOption("HKTool.Menu.ModifySave.ScreamLevel".Get(),
+                0, 2,
+                (b) => pd.screamLevel = b, () => pd.screamLevel);
         }
     }
     class CharmModify : PlayerDataModifyBase
