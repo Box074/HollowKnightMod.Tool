@@ -1,6 +1,6 @@
 {
   "ProjectName": "HKTool",
-  "ModVersion": "1.0.1.2",
+  "ModVersion": "1.0.1.4",
   "CSharpVersion": "latest",
   "CodeDir": ".\\Scripts\\",
   "EmbeddedResourceDir": ".\\EmbeddedResource\\",
@@ -13,5 +13,7 @@
   "DependenciesDir": ".\\Dependencies\\",
   "ModdingAPIVersion": "1.5.78.11833-68",
   "IgnoreDlls": [ "HKTool.dll" ],
-  "WebDependencies": []
+  "WebDependencies": [ 
+    
+  ]
 }

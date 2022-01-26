@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Reflection;
-using System.Threading.Tasks;
+﻿
 using Modding;
 using HKTool.DebugTools;
-using HKTool.FSM;
-using UnityEngine;
 using System.Text.RegularExpressions;
 
 namespace HKTool
@@ -34,6 +26,26 @@ namespace HKTool
             return GetType().Assembly.GetName().Version.ToString();
         }
         public virtual I18n I18n => _i18n.Value;
+        public byte[] GetEmbeddedResource(string name)
+        {
+            using(Stream s = GetType().Assembly.GetManifestResourceStream(name))
+            {
+                byte[] b = new byte[s.Length];
+                s.Read(b, 0, b.Length);
+                return b;
+            }
+        }
+        public Texture2D LoadTexture2D(string name)
+        {
+            Texture2D tex = new Texture2D(1,1);
+            tex.LoadImage(GetEmbeddedResource(name));
+            return tex;
+        }
+        public AssetBundle LoadAssetBundle(string name)
+        {
+            return AssetBundle.LoadFromMemory(GetEmbeddedResource(name));
+        }
+        
         public ModBase(string name = null) : base(name)
         {
             if (this is IDebugViewBase @base && ShowDebugView)

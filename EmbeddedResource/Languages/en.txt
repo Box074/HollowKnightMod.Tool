@@ -1,4 +1,4 @@
-﻿
+
 HKTool.Settings.DeveloperMode=Developer mode
 HKTool.Settings.DeveloperMode.Desc=Turn on/off developer mode, it will take effect after restarting the game
 HKTool.Settings.On=On
