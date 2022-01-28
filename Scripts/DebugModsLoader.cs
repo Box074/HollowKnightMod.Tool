@@ -14,10 +14,10 @@ namespace HKTool
         public static Type TModLoader = typeof(Mod).Assembly.GetType("Modding.ModLoader");
         public static MethodInfo MAddModInstance = TModLoader.GetMethod("AddModInstance", BindingFlags.Static | BindingFlags.NonPublic);
         public static Type TModInstance = TModLoader.GetNestedType("ModInstance");
-        /*public static FieldInfo IMI_Mod = TModInstance.GetField("Mod", BindingFlags.Public | BindingFlags.Instance);
+        public static FieldInfo IMI_Mod = TModInstance.GetField("Mod", BindingFlags.Public | BindingFlags.Instance);
         public static FieldInfo IMI_Name = TModInstance.GetField("Name", BindingFlags.Public | BindingFlags.Instance);
         public static FieldInfo IMI_Error = TModInstance.GetField("Error", BindingFlags.Public | BindingFlags.Instance);
-        public static FieldInfo IMI_Enabled = TModInstance.GetField("Enabled", BindingFlags.Public | BindingFlags.Instance);*/
+        public static FieldInfo IMI_Enabled = TModInstance.GetField("Enabled", BindingFlags.Public | BindingFlags.Instance);
         public static Type TModErrorState = TModLoader.GetNestedType("ModErrorState");
         public static Type TErrorC = typeof(Nullable<>).MakeGenericType(TModErrorState);
 
@@ -33,8 +33,8 @@ namespace HKTool
         public static void AddModInstance(Type type, Mod mod, bool enabled, string error, string name)
         {
             object mi = Activator.CreateInstance(TModInstance);
-            var rmi = mi.CreateReflectionObject();
-            /*IMI_Mod.SetValue(mi, mod);
+            //var rmi = mi.CreateReflectionObject();
+            IMI_Mod.SetValue(mi, mod);
             IMI_Name.SetValue(mi, name);
             IMI_Enabled.SetValue(mi, enabled);
             if (string.IsNullOrEmpty(error))
@@ -44,8 +44,8 @@ namespace HKTool
             else
             {
                 IMI_Error.SetValue(mi, Activator.CreateInstance(TErrorC, Enum.Parse(TModErrorState, error)));
-            }*/
-            rmi.SetMemberData("Mod", mod);
+            }
+            /*rmi.SetMemberData("Mod", mod);
             rmi.SetMemberData("Name", name);
             rmi.SetMemberData("Enabled", enabled);
             if (string.IsNullOrEmpty(error))
@@ -55,7 +55,7 @@ namespace HKTool
             else
             {
                 rmi.SetMemberData("Error", Activator.CreateInstance(TErrorC, Enum.Parse(TModErrorState, error)));
-            }
+            }*/
             MAddModInstance.FastInvoke(null, type, mi);
         }
         public static void LoadMod(Assembly ass)
