@@ -52,6 +52,8 @@ HKTool.Menu.ModifySave.HasSuperDash=拥有超冲
 HKTool.Menu.ModifySave.HasDreamNail=拥有梦之钉
 HKTool.Menu.ModifySave.HasDreamNailP=觉醒的梦钉
 HKTool.Menu.ModifySave.HasDreamGate=拥有梦之门
+HKTool.Menu.ModifySave.HasSwimming=拥有酸泳
+HKTool.Menu.ModifySave.HasLantern=有灯
 
 HKTool.Menu.ModifySave.FireballLevel=复仇之魂等级
 HKTool.Menu.ModifySave.QuakeLevel=下砸等级

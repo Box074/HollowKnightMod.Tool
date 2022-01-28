@@ -8,7 +8,6 @@ namespace HKTool
 
         public static I18n I18N { get; } = new I18n();
         public static bool IsDebugMode { get; private set; }
-        static int olds = 0;
         public HKToolMod() : base("HKTool")
         {
             instance = this;

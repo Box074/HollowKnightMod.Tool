@@ -18,6 +18,7 @@ HKTool.DebugMenu.Back=Back
 
 HKTool.Menu.ModifySaveTitle=Edit Save
 HKTool.Menu.ModifySaveSlot=Save {0}
+HKTool.Menu.ModifySave.AllOptions=All Bool Options
 HKTool.Menu.ModifySave.Charms=Charms
 HKTool.Menu.ModifySave.Skills=Skills
 
@@ -51,6 +52,8 @@ HKTool.Menu.ModifySave.HasSuperDash=Has Super Dash
 HKTool.Menu.ModifySave.HasDreamNail=Has Dream Nail
 HKTool.Menu.ModifySave.HasDreamNailP=Dream Nail Upgraded
 HKTool.Menu.ModifySave.HasDreamGate=Has Dream Gate
+HKTool.Menu.ModifySave.HasSwimming=Has Isma's Tear
+HKTool.Menu.ModifySave.HasLantern=Has Lumafly Lantern
 
 HKTool.Menu.ModifySave.FireballLevel=Fireball Level
 HKTool.Menu.ModifySave.QuakeLevel=Quake Level

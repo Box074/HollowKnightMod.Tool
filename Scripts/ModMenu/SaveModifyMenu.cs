@@ -86,7 +86,7 @@ class SaveModifyCoreMenu : CustomMenu
         protected void AddBoolOption(string label, Action<bool> onChange, Func<bool> onRefresh)
         {
             AddOption(label, "", new string[] { "HKTool.Menu.Bool.False".Get(), "HKTool.Menu.Bool.True".Get() },
-                (id) => { if (pd != null) onChange(id == 1); }, () => pd == null ? 0 : onRefresh() ? 1 : 0);
+                (id) => { if (pd != null) onChange(id == 1); }, () => pd == null ? 0 : (onRefresh() ? 1 : 0));
         }
         protected void AddIntOption(string label, int minValue, int maxValue,
          Action<int> onChange, Func<int> onRefresh)
@@ -96,13 +96,14 @@ class SaveModifyCoreMenu : CustomMenu
             {
                 s[i] = (i + minValue).ToString();
             }
-            AddOption(label, "", s, (id) => onChange(id + minValue), () => onRefresh() - minValue);
+            AddOption(label, "", s, (id) => { if (pd != null)  onChange(id + minValue); },
+                 () => pd != null ? (onRefresh() - minValue) : 0);
         }
     }
     class AllPlayerDataModify : PlayerDataModifyBase
     {
         public static readonly List<string> boolOptions = new();
-        
+
         static AllPlayerDataModify()
         {
             var fs = typeof(PlayerData).GetRuntimeFields();
@@ -157,7 +158,7 @@ class SaveModifyCoreMenu : CustomMenu
                 (b) => pd.canSuperDash = pd.hasSuperDash = b, () => pd.canSuperDash && pd.hasSuperDash);
             AddBoolOption("HKTool.Menu.ModifySave.HasDreamNail".Get(),
                 (b) => pd.hasDreamNail = b, () => pd.hasDreamNail);
-            
+
             AddBoolOption("HKTool.Menu.ModifySave.HasDreamNailP".Get(),
                 (b) => pd.dreamNailUpgraded = b, () => pd.dreamNailUpgraded);
             AddBoolOption("HKTool.Menu.ModifySave.HasDreamGate".Get(),
@@ -169,7 +170,7 @@ class SaveModifyCoreMenu : CustomMenu
             AddIntOption("HKTool.Menu.ModifySave.FireballLevel".Get(),
                 0, 2,
                 (b) => pd.fireballLevel = b, () => pd.fireballLevel);
-            
+
             AddIntOption("HKTool.Menu.ModifySave.QuakeLevel".Get(),
                 0, 2,
                 (b) => pd.quakeLevel = b, () => pd.quakeLevel);
