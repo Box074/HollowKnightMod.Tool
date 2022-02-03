@@ -39,7 +39,7 @@ jobs:
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-      body_path: Info.txt
+        body_path: Info.txt
         files: |
           ./Output/HKTool.dll
     - name: Clone
