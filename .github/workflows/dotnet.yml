@@ -33,7 +33,7 @@ jobs:
     - name: Build
       run: |
         dotnet ./HKToolUtils/HKToolUtils.dll build .
-    -name: Create Release Info
+    - name: Create Release Info
       run: |
         Get-FileHash -Algorithm SHA256 .\Output\HKTool.dll > .\Info.txt
     - name: Release
