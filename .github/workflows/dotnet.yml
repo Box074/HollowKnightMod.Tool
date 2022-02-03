@@ -33,9 +33,13 @@ jobs:
     - name: Build
       run: |
         dotnet ./HKToolUtils/HKToolUtils.dll build .
+    -name: Create Release Info
+      run: |
+        Get-FileHash -Algorithm SHA256 .\Output\HKTool.dll > .\Info.txt
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
+      body_path: Info.txt
         files: |
           ./Output/HKTool.dll
     - name: Clone
