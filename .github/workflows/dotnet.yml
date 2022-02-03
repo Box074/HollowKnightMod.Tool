@@ -43,7 +43,7 @@ jobs:
         git clone https://github.com/HKLab/HKToolLibraries.git
     - name: Commit
       run: |
-        copy /Y /B  .\Output\HKTool.dll .\HKToolLibraries\HKTool.dll
+        copy .\Output\HKTool.dll -Destination .\HKToolLibraries\HKTool.dll
         cd HKToolLibraries
         git config --local user.email "60681033+HKLab@users.noreply.github.com"
         git config --local user.name "HKLab"
