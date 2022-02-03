@@ -27,3 +27,4 @@ global using HKTool.FSM;
 global using HKTool.Reflection;
 global using HKTool.Menu;
 global using HKTool.ModMenu;
+global using HKTool.SpecialBehaviour;
