@@ -96,7 +96,7 @@ class SaveModifyCoreMenu : CustomMenu
             {
                 s[i] = (i + minValue).ToString();
             }
-            AddOption(label, "", s, (id) => { if (pd != null)  onChange(id + minValue); },
+            AddOption(label, "", s, (id) => { if (pd != null) onChange(id + minValue); },
                  () => pd != null ? (onRefresh() - minValue) : 0);
         }
     }
@@ -115,7 +115,6 @@ class SaveModifyCoreMenu : CustomMenu
                 }
             }
         }
-        public override int itemCount => boolOptions.Count;
         public AllPlayerDataModify(CustomMenu rs) : base(rs)
         {
 
@@ -134,7 +133,6 @@ class SaveModifyCoreMenu : CustomMenu
         {
 
         }
-        public override int itemCount => 17;
         protected override void Build(ContentArea contentArea)
         {
             AddBoolOption("HKTool.Menu.ModifySave.HasDash".Get(),
@@ -181,7 +179,6 @@ class SaveModifyCoreMenu : CustomMenu
     }
     class CharmModify : PlayerDataModifyBase
     {
-        public override int itemCount => 40 * 3 + 3 + 2;
         public CharmModify(CustomMenu rs) : base(rs)
         {
 
@@ -305,13 +302,41 @@ class SaveModifyCoreMenu : CustomMenu
             }
         }
     }
+    class MiscModify : PlayerDataModifyBase
+    {
+        public MiscModify(CustomMenu rs) : base(rs)
+        {
+
+        }
+        protected override void Build(ContentArea contentArea)
+        {
+            AddOption("HKTool.Menu.GameMode".Get(), "",
+                (id) =>
+                {
+                    if(pd == null) return;
+                    pd.bossRushMode = id == 3;
+                    pd.permadeathMode = id == 3 ? 0 : pd.permadeathMode;
+
+                },
+                () =>
+                {
+                    if(pd == null) return 0;
+                    return pd.bossRushMode ? 3 : pd.permadeathMode;
+                }, "HKTool.Menu.GM.0".Get(),
+                    "HKTool.Menu.GM.1".Get(),
+                    "HKTool.Menu.GM.2".Get(),
+                    "HKTool.Menu.GM.3".Get());
+        }
+    }
     private static CharmModify charmMenu;
     private static SkillModify skillModify;
     private static AllPlayerDataModify allOptions;
+    private static MiscModify misc;
     public SaveModifyCoreMenu(CustomMenu rsa) : base(rsa, "HKTool.Menu.ModifySaveTitle".Get())
     {
         charmMenu = new(this);
         skillModify = new(this);
+        misc = new(this);
     }
     private static PlayerData pd => currentData?.playerData;
     public static SaveModifyCoreMenu instance = null;
@@ -355,5 +380,11 @@ class SaveModifyCoreMenu : CustomMenu
                 skillModify.Refresh();
                 GoToMenu(skillModify);
             });
-    }
+        AddButton("HKTool.Menu.ModifySave.Misc".Get(), "",
+            () => 
+            {
+                misc.Refresh();
+                GoToMenu(misc);
+            });
+    }     
 }

@@ -8,6 +8,7 @@ public abstract class CustomMenu
     public string title { get; private set; }
     public MenuScreen menuScreen { get; private set; }
     protected ContentArea content { get; private set; }
+    [Obsolete]
     public virtual int itemCount { get; } = 1;
     public MenuButton backButton => _backButton;
     private MenuButton _backButton;
@@ -29,7 +30,7 @@ public abstract class CustomMenu
             });
         builder.AddContent(default(NullContentLayout), (c) =>
         {
-            IContentLayout layout = RegularGridLayout.CreateVerticalLayout(105f, default(Vector2));
+            RegularGridLayout layout = RegularGridLayout.CreateVerticalLayout(105f, default(Vector2));
             c.AddScrollPaneContent(new ScrollbarConfig()
             {
                 CancelAction = (_) => UIManager.instance.GoToDynamicMenu(returnScreen),
@@ -45,12 +46,18 @@ public abstract class CustomMenu
                     ParentAnchor = new Vector2(1f, 1f),
                     Offset = new Vector2(-310f, 0f)
                 }
-            }, new RelLength(105 * itemCount), layout, (c1) =>
+            }, new RelLength(105), layout, (c1) =>
                 {
                     try
                     {
                         content = c1;
                         Build(c1);
+                        var scrollPaneRt = content.ContentObject.GetComponent<RectTransform>();
+                        RectTransformData.FromSizeAndPos(
+                            new RelVector2(new RelLength(0f, 1f), 
+                                new RelLength((layout.Index == 0 ? 1 : layout.Index) * 105)), 
+                            new AnchoredPosition(new Vector2(0.5f, 1f), 
+                            new Vector2(0.5f, 1f), default(Vector2))).Apply(scrollPaneRt);
                     }
                     finally
                     {

@@ -21,6 +21,7 @@ HKTool.Menu.ModifySaveSlot=Save {0}
 HKTool.Menu.ModifySave.AllOptions=All Bool Options
 HKTool.Menu.ModifySave.Charms=Charms
 HKTool.Menu.ModifySave.Skills=Skills
+HKTool.Menu.ModifySave.Misc=Misc
 
 HKTool.Menu.ModifySave.CharmGot=Got {1}(#{0})
 HKTool.Menu.ModifySave.CharmEquipped=Equipped {1}(#{0})
@@ -58,6 +59,12 @@ HKTool.Menu.ModifySave.HasLantern=Has Lumafly Lantern
 HKTool.Menu.ModifySave.FireballLevel=Fireball Level
 HKTool.Menu.ModifySave.QuakeLevel=Quake Level
 HKTool.Menu.ModifySave.ScreamLevel=Scream Level
+
+HKTool.Menu.GameMode=Game Mode
+HKTool.Menu.GM.0=Default
+HKTool.Menu.GM.1=Steel Soul
+HKTool.Menu.GM.2=Steel Soul(Dead)
+HKTool.Menu.GM.3=Godseeker
 
 HKTool.Menu.Bool.True=True
 HKTool.Menu.Bool.False=False
