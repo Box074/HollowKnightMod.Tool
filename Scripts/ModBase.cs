@@ -48,6 +48,7 @@ namespace HKTool
         
         public ModBase(string name = null) : base(name)
         {
+            ModManager.NewMod(this);
             if (this is IDebugViewBase @base && ShowDebugView)
             {
                 DebugView.debugViews.Add(@base);

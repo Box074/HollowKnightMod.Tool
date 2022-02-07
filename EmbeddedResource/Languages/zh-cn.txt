@@ -14,6 +14,8 @@ HKTool.Debug.DisableHitBox=隐藏碰撞箱
 HKTool.Debug.EnableDebugDraw=显示Debug Line
 HKTool.Debug.DisableDebugDraw=隐藏Debug Line
 
+HKTool.Menu.ULST={0}栈追踪等级
+
 HKTool.DebugMenu.Back=返回
 
 HKTool.Menu.ModifySaveTitle=存档编辑
@@ -64,7 +66,7 @@ HKTool.Menu.GameMode=游戏模式
 HKTool.Menu.GM.0=普通
 HKTool.Menu.GM.1=钢魂
 HKTool.Menu.GM.2=钢魂(死亡)
-HKTool.Menu.GM.3=寻神者
+HKTool.Menu.GM.GodSeeker=寻神者模式
 
 HKTool.Menu.Bool.True=是
 HKTool.Menu.Bool.False=否

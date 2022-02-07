@@ -103,17 +103,9 @@ namespace HKDebug
                 }
             }
         }
- /*     public static Menu.ButtonGroup group = new Menu.ButtonGroup();
-        static bool chaseShow = false;
-        static bool getposShow = false;
-        static bool moveShow = false;*/
+
         public static void Init()
         {
- /*           Menu.MenuManager.AddButton(new Menu.ButtonInfo()
-            {
-                label = "Debug",
-                submit = (_) => Menu.MenuManager.EnterGroup(group)
-            });*/
             Menu.MenuManager.AddButton(new Menu.ButtonInfo()
             {
                 label = "HKTool.Debug.EnableDebugDraw".Get(),
@@ -124,42 +116,6 @@ namespace HKDebug
                     : "HKTool.Debug.DisableDebugDraw".Get();
                 }
             });
-#if DEBUG
-            //group.AddButton(new Menu.ButtonInfo()
-            //{
-            //    label = "显示ChaseObjectV2",
-            //    submit = (but) =>
-            //    {
-            //        chaseShow = !chaseShow;
-            //        but.label = (!chaseShow ? "显示" : "隐藏") + "ChaseObjectV2";
-            //    }
-            //});
-            //group.AddButton(new Menu.ButtonInfo()
-            //{
-            //    label = "显示GetPosition",
-            //    submit = (but) =>
-            //    {
-            //        getposShow = !getposShow;
-            //        but.label = (!getposShow ? "显示" : "隐藏") + "GetPosition";
-            //    }
-            //});
-            //group.AddButton(new Menu.ButtonInfo()
-            //{
-            //    label = "显示Move",
-            //    submit = (but) =>
-            //    {
-            //        moveShow = !moveShow;
-            //        but.label = (!moveShow ? "显示" : "隐藏") + "Move";
-            //    }
-            //});
-            //On.HutongGames.PlayMaker.Actions.SetPosition.DoSetPosition += SetPosition_DoSetPosition;
-            //On.HutongGames.PlayMaker.Actions.iTweenMoveTo.DoiTween += ITweenMoveTo_DoiTween;
-            //On.HutongGames.PlayMaker.Actions.ChaseObject.DoBuzz += ChaseObject_DoBuzz;
-            //On.HutongGames.PlayMaker.Actions.ChaseObjectV2.DoChase += ChaseObjectV2_DoChase;
-            //On.HutongGames.PlayMaker.Actions.GetPosition2D.DoGetPosition += GetPosition2D_DoGetPosition;
-            //On.HutongGames.PlayMaker.Actions.GetPosition.DoGetPosition += GetPosition_DoGetPosition;
-            //On.HutongGames.PlayMaker.Actions.GetAngleToTarget2D.DoGetAngle += GetAngleToTarget2D_DoGetAngle;
-#endif
             HookEndpointManager.Add(typeof(Debug).GetMethod("DrawLine", new Type[]{
                 typeof(Vector3),
                 typeof(Vector3),
@@ -183,64 +139,6 @@ namespace HKDebug
                     ));
 
         }
-#if DEBUG
-        //private static void ChaseObject_DoBuzz(On.HutongGames.PlayMaker.Actions.ChaseObject.orig_DoBuzz orig,
-        //    HutongGames.PlayMaker.Actions.ChaseObject self)
-        //{
-        //    orig(self);
-        //    if (chaseShow) DrawLine(self.gameObject.GetSafe(self).transform.position, self.target.Value.transform.position,
-        //         Color.red, 0, true, true);
-        //}
-
-        //private static void SetPosition_DoSetPosition(On.HutongGames.PlayMaker.Actions.SetPosition.orig_DoSetPosition orig, 
-        //    HutongGames.PlayMaker.Actions.SetPosition self)
-        //{
-        //    orig(self);
-        //    if (moveShow) DrawLine(self.gameObject.GetSafe(self).transform.position,
-        //        (self.space == Space.Self ? self.gameObject.GetSafe(self).transform.parent.position : Vector3.zero) +
-        //         self.vector.Value + new Vector3(self.x.Value, self.y.Value, self.z.Value), Color.blue, 0, true, true);
-        //}
-
-        //private static void ITweenMoveTo_DoiTween(On.HutongGames.PlayMaker.Actions.iTweenMoveTo.orig_DoiTween orig, 
-        //    HutongGames.PlayMaker.Actions.iTweenMoveTo self)
-        //{
-        //    orig(self);
-        //    if (moveShow) DrawLine(self.gameObject.GetSafe(self).transform.position, self.vectorPosition.IsNone ?
-        //         self.transformPosition.Value.transform.position : self.vectorPosition.Value, Color.blue, 0, true, true);
-        //}
-
-        //private static void GetAngleToTarget2D_DoGetAngle(On.HutongGames.PlayMaker.Actions.GetAngleToTarget2D.orig_DoGetAngle orig,
-        //    HutongGames.PlayMaker.Actions.GetAngleToTarget2D self)
-        //{
-        //    orig(self);
-        //    if (getposShow) DrawLine(self.Fsm.GameObject.transform.position, self.gameObject.GetSafe(self).transform.position,
-        //         Color.red, 0, true, true);
-        //}
-
-        //private static void GetPosition2D_DoGetPosition(On.HutongGames.PlayMaker.Actions.GetPosition2D.orig_DoGetPosition orig, HutongGames.PlayMaker.Actions.GetPosition2D self)
-        //{
-        //    orig(self);
-        //    if (getposShow) DrawLine(self.Fsm.GameObject.transform.position, self.gameObject.GetSafe(self).transform.position,
-        //         Color.red, 0, true, true);
-        //}
-
-        //private static void GetPosition_DoGetPosition(On.HutongGames.PlayMaker.Actions.GetPosition.orig_DoGetPosition orig, 
-        //    HutongGames.PlayMaker.Actions.GetPosition self)
-        //{
-        //    orig(self);
-        //    if (getposShow) DrawLine(self.Fsm.GameObject.transform.position, self.gameObject.GetSafe(self).transform.position,
-        //         Color.red, 0, true, true);
-        //}
-
-        //private static void ChaseObjectV2_DoChase(On.HutongGames.PlayMaker.Actions.ChaseObjectV2.orig_DoChase orig,
-        //    HutongGames.PlayMaker.Actions.ChaseObjectV2 self)
-        //{
-        //    orig(self);
-        //    if(chaseShow) DrawLine(self.gameObject.GetSafe(self).transform.position, self.target.Value.transform.position,
-        //        Color.red, 0, true, true);
-        //}
-#endif
-
         public static void DrawLine(Vector3 start, Vector3 end,Color color, float duration = 0, bool depthTest = true, bool keepFixed = false)
         {
             if (!enable) return;

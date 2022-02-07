@@ -11,6 +11,14 @@ namespace HKTool
         public HKToolMod() : base("HKTool")
         {
             instance = this;
+            try
+            {
+                Init();
+            }
+            catch (Exception e)
+            {
+                LogError(e);
+            }
             var ass = Assembly.GetExecutingAssembly();
             I18N.AddLanguage(Language.LanguageCode.EN, ass.GetManifestResourceStream("HKTool.Languages.en.txt"));
             I18N.AddLanguage(Language.LanguageCode.ZH, ass.GetManifestResourceStream("HKTool.Languages.zh-cn.txt"));
@@ -28,18 +36,50 @@ namespace HKTool
                 }
             }
         }
+        
+        private static void UnityLogStackTrace()
+        {
+            var ut = devSettings.UnityLogStackTraceType;
+            void SetULST()
+            {
+                ut = new StackTraceLogType[5];
+                for(int i = 0; i < 5; i++)
+                {
+                    ut[i] = Application.GetStackTraceLogType((LogType)i);
+                }
+                devSettings.UnityLogStackTraceType = ut;
+            }
+            if(ut == null)
+            {
+                SetULST();
+                return;
+            }
+            if(ut.Length != 5)
+            {
+                SetULST();
+                return;
+            }
+            for(int i = 0; i < 5; i++)
+            {
+                Application.SetStackTraceLogType((LogType)i, ut[i]);
+            }
+        }
+        private static void Init()
+        {
+            if(IsDebugMode)
+            {
+                UnityLogStackTrace();
+            }
+        }
 
         public static HKToolSettings settings = new HKToolSettings();
+        public static HKToolDebugConfig devSettings => settings.DebugConfig;
         public bool ToggleButtonInsideMenu => true;
         public static HKToolSettingsMenu SettingsMenu;
         public void SaveSettings() => SaveGlobalSettings();
         public MenuScreen GetMenuScreen(MenuScreen modListMenu, ModToggleDelegates? toggleDelegates)
         {
             SettingsMenu = new(modListMenu);
-            if(IsDebugMode)
-            {
-                SaveModifyMenu.instance = new(SettingsMenu);
-            }
             return SettingsMenu;
         }
         public override string GetVersion()

@@ -28,3 +28,5 @@ global using HKTool.Reflection;
 global using HKTool.Menu;
 global using HKTool.ModMenu;
 global using HKTool.SpecialBehaviour;
+
+global using UObject = UnityEngine.Object;

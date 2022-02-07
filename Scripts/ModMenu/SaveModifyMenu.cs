@@ -3,10 +3,11 @@ namespace HKTool.ModMenu;
 
 class SaveModifyMenu : CustomMenu
 {
+    public override Font titleFont => MenuResources.Perpetua;
     public static readonly MethodInfo MGetSaveSlotPath = typeof(DesktopPlatform).GetMethod("GetSaveSlotPath",
         BindingFlags.NonPublic | BindingFlags.Instance);
     public static SaveModifyMenu instance = null;
-    public SaveModifyMenu(CustomMenu returnScreen) : base(returnScreen, "HKTool.Menu.ModifySaveTitle".Get())
+    public SaveModifyMenu(MenuScreen returnScreen) : base(returnScreen, "HKTool.Menu.ModifySaveTitle".Get())
     {
         SaveModifyCoreMenu.instance = new(this);
     }
@@ -57,6 +58,7 @@ class SaveModifyMenu : CustomMenu
     }
     protected override void Build(ContentArea contentArea)
     {
+
         for (int i = 1; i <= 4; i++)
         {
             int slotId = i;
@@ -79,14 +81,15 @@ class SaveModifyCoreMenu : CustomMenu
 {
     abstract class PlayerDataModifyBase : CustomMenu
     {
-        public PlayerDataModifyBase(CustomMenu rs) : base(rs, "HKTool.Menu.ModifySaveTitle".Get())
+        public override Font titleFont => MenuResources.Perpetua;
+        public PlayerDataModifyBase(MenuScreen rs) : base(rs, "HKTool.Menu.ModifySaveTitle".Get())
         {
-
+            autoRefresh = true;
         }
         protected void AddBoolOption(string label, Action<bool> onChange, Func<bool> onRefresh)
         {
-            AddOption(label, "", new string[] { "HKTool.Menu.Bool.False".Get(), "HKTool.Menu.Bool.True".Get() },
-                (id) => { if (pd != null) onChange(id == 1); }, () => pd == null ? 0 : (onRefresh() ? 1 : 0));
+            AddBoolOption(label, "", (v) => { if (pd != null) onChange(v); },
+                () => pd == null ? false : onRefresh(), MenuResources.Perpetua);
         }
         protected void AddIntOption(string label, int minValue, int maxValue,
          Action<int> onChange, Func<int> onRefresh)
@@ -97,7 +100,7 @@ class SaveModifyCoreMenu : CustomMenu
                 s[i] = (i + minValue).ToString();
             }
             AddOption(label, "", s, (id) => { if (pd != null) onChange(id + minValue); },
-                 () => pd != null ? (onRefresh() - minValue) : 0);
+                 () => pd != null ? (onRefresh() - minValue) : 0, MenuResources.Perpetua);
         }
     }
     class AllPlayerDataModify : PlayerDataModifyBase
@@ -115,7 +118,7 @@ class SaveModifyCoreMenu : CustomMenu
                 }
             }
         }
-        public AllPlayerDataModify(CustomMenu rs) : base(rs)
+        public AllPlayerDataModify(MenuScreen rs) : base(rs)
         {
 
         }
@@ -129,7 +132,7 @@ class SaveModifyCoreMenu : CustomMenu
     }
     class SkillModify : PlayerDataModifyBase
     {
-        public SkillModify(CustomMenu rs) : base(rs)
+        public SkillModify(MenuScreen rs) : base(rs)
         {
 
         }
@@ -179,7 +182,7 @@ class SaveModifyCoreMenu : CustomMenu
     }
     class CharmModify : PlayerDataModifyBase
     {
-        public CharmModify(CustomMenu rs) : base(rs)
+        public CharmModify(MenuScreen rs) : base(rs)
         {
 
         }
@@ -212,7 +215,7 @@ class SaveModifyCoreMenu : CustomMenu
                 {
                     if (pd == null) return 0;
                     return pd.royalCharmState - 1;
-                });
+                }, MenuResources.Perpetua);
             for (int i = 1; i <= 40; i++)
             {
                 int charmId = i;
@@ -296,7 +299,7 @@ class SaveModifyCoreMenu : CustomMenu
                             if (pd.GetBoolInternal($"brokenCharm_{charmId}")) return 1;
                             if (pd.GetBoolInternal($"fragile{scn}_unbreakable")) return 2;
                             return 0;
-                        });
+                        }, MenuResources.Perpetua);
                 }
 
             }
@@ -304,7 +307,7 @@ class SaveModifyCoreMenu : CustomMenu
     }
     class MiscModify : PlayerDataModifyBase
     {
-        public MiscModify(CustomMenu rs) : base(rs)
+        public MiscModify(MenuScreen rs) : base(rs)
         {
 
         }
@@ -313,26 +316,26 @@ class SaveModifyCoreMenu : CustomMenu
             AddOption("HKTool.Menu.GameMode".Get(), "",
                 (id) =>
                 {
-                    if(pd == null) return;
-                    pd.bossRushMode = id == 3;
+                    if (pd == null) return;
                     pd.permadeathMode = id == 3 ? 0 : pd.permadeathMode;
 
                 },
                 () =>
                 {
-                    if(pd == null) return 0;
+                    if (pd == null) return 0;
                     return pd.bossRushMode ? 3 : pd.permadeathMode;
-                }, "HKTool.Menu.GM.0".Get(),
+                }, MenuResources.Perpetua,"HKTool.Menu.GM.0".Get(),
                     "HKTool.Menu.GM.1".Get(),
-                    "HKTool.Menu.GM.2".Get(),
-                    "HKTool.Menu.GM.3".Get());
+                    "HKTool.Menu.GM.2".Get());
+            AddBoolOption("HKTool.Menu.GM.GodSeeker".Get(),
+                (v) => pd.bossRushMode = v, () => pd.bossRushMode);
         }
     }
     private static CharmModify charmMenu;
     private static SkillModify skillModify;
     private static AllPlayerDataModify allOptions;
     private static MiscModify misc;
-    public SaveModifyCoreMenu(CustomMenu rsa) : base(rsa, "HKTool.Menu.ModifySaveTitle".Get())
+    public SaveModifyCoreMenu(MenuScreen rsa) : base(rsa, "HKTool.Menu.ModifySaveTitle".Get())
     {
         charmMenu = new(this);
         skillModify = new(this);
@@ -364,27 +367,27 @@ class SaveModifyCoreMenu : CustomMenu
                 }
                 else
                 {
-                    allOptions.Refresh();
+                    //allOptions.Refresh();
                 }
                 GoToMenu(allOptions);
             });
         AddButton("HKTool.Menu.ModifySave.Charms".Get(), "",
             () =>
             {
-                charmMenu.Refresh();
+                //charmMenu.Refresh();
                 GoToMenu(charmMenu);
             });
         AddButton("HKTool.Menu.ModifySave.Skills".Get(), "",
             () =>
             {
-                skillModify.Refresh();
+                //skillModify.Refresh();
                 GoToMenu(skillModify);
             });
         AddButton("HKTool.Menu.ModifySave.Misc".Get(), "",
-            () => 
+            () =>
             {
-                misc.Refresh();
+                //misc.Refresh();
                 GoToMenu(misc);
             });
-    }     
+    }
 }
