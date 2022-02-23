@@ -10,6 +10,8 @@ namespace HKTool
         public static bool IsDebugMode { get; private set; }
         public HKToolMod() : base("HKTool")
         {
+            HKToolResourcesAPI.Init();
+            IsDebugMode = settings.DevMode;
             instance = this;
             try
             {
@@ -25,7 +27,7 @@ namespace HKTool
 
             I18N.UseGameLanguage();
 
-            IsDebugMode = settings.DevMode;
+            
             if (settings.DevMode)
             {
                 DebugTools.DebugManager.Init();
@@ -86,7 +88,6 @@ namespace HKTool
         {
             return Assembly.GetExecutingAssembly().GetName().Version.ToString() + (settings.DevMode ? "-DevMode" : "");
         }
-
         public void OnLoadGlobal(HKToolSettings s) => settings = s;
         public HKToolSettings OnSaveGlobal() => settings;
     }

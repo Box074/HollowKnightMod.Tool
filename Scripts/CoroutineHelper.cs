@@ -86,6 +86,7 @@ namespace HKTool
                         }
                         catch (Exception e)
                         {
+                            Debug.LogError(e);
                             CurrentCoroutine = null;
                             info.LastException = e;
                             info.State = CoroutineInfo.CoroutineState.Exception;

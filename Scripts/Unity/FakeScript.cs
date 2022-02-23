@@ -79,13 +79,14 @@ namespace HKTool.Unity
         {
             get
             {
+                if(Application.isEditor) throw new System.NotSupportedException();
                 if (_instance == null)
                 {
                     LoadData();
                 }
                 else
                 {
-                    throw new System.NotSupportedException();
+                     
                 }
                 return _instance;
             }
@@ -189,7 +190,7 @@ namespace HKTool.Unity
             }
             else
             {
-                return instance?.GetType()?.GetRuntimeField(name)?.GetValue(instance);
+                return instance.GetType().GetRuntimeField(name).GetValue(instance);
             }
         }
         public void SetData(string name, object data)
