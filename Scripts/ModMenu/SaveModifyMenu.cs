@@ -118,9 +118,10 @@ class SaveModifyCoreMenu : CustomMenu
                 }
             }
         }
+        
         public AllPlayerDataModify(MenuScreen rs) : base(rs)
         {
-
+            autoRefresh = false;
         }
         protected override void Build(ContentArea contentArea)
         {
@@ -369,6 +370,7 @@ class SaveModifyCoreMenu : CustomMenu
                 {
                     //allOptions.Refresh();
                 }
+                allOptions.Refresh();
                 GoToMenu(allOptions);
             });
         AddButton("HKTool.Menu.ModifySave.Charms".Get(), "",

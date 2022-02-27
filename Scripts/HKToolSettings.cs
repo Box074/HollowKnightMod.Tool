@@ -15,5 +15,10 @@ namespace HKTool
         public List<string> DebugMods { get; set; } = new List<string>();
         public HitBoxConfig HitBoxConfig { get; set; } = null;
         public StackTraceLogType[] UnityLogStackTraceType { get; set; } = null;
+        public bool rUnityLog { get; set; }
+        public bool rUnityWarn { get; set; }
+        public bool rUnityError { get; set; }
+        public bool rUnityException { get; set; }
+        public bool rUnityAssert { get; set; }
     }
 }

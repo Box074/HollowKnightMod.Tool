@@ -13,6 +13,7 @@ public abstract class CustomMenu
                 foreach (var v in menus)
                 {
                     if (v == null) continue;
+                    if(v.menuScreen != menu) continue;
                     if (v.autoRefresh)
                     {
                         try

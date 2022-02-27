@@ -12,11 +12,12 @@ class HKToolSettingsMenu : CustomMenu
     private void DebugOptions()
     {
         SaveModifyMenu.instance = new(this);
+        LogMenu.instance = new(this);
         AddButton("HKTool.Settings.DebugView".Get(), "HKTool.Settings.DebugView.Desc".Get(),
             () =>
             {
                 DebugTools.DebugView.IsEnable = !DebugTools.DebugView.IsEnable;
-            });
+            }, MenuResources.Perpetua);
 
         AddButton("HKTool.Menu.ModifySaveTitle".Get(), "",
         () =>
@@ -25,22 +26,19 @@ class HKToolSettingsMenu : CustomMenu
             {
                 GoToMenu(SaveModifyMenu.instance);
             }
-        });
-        
-        for(int i = 0; i < 5 ; i++)
+        }, MenuResources.Perpetua);
+        AddButton("HKTool.LogMenu.Title".Get(), "",
+        () => 
         {
-            int id = i;
-            AddOption(string.Format("HKTool.Menu.ULST".Get(), Enum.GetName(typeof(LogType), (LogType)id)), 
-                "", Enum.GetNames(typeof(StackTraceLogType)),
-            (int val) =>
-            {
-                Application.SetStackTraceLogType((LogType)id, (StackTraceLogType)val);
-                HKToolMod.devSettings.UnityLogStackTraceType[id] = (StackTraceLogType) val;
+            LogMenu.instance.Refresh();
+            GoToMenu(LogMenu.instance);
+        }, MenuResources.Perpetua);
+        AddBoolOption("HKTool.I18n.ShowOrigin".Get(),
+            "HKTool.Desc.NeverSave".Get(),
+            (val) => {
+                HKToolMod.i18nShowOrig = val;
             },
-            () => {
-                return (int)Application.GetStackTraceLogType((LogType)id);
-            });
-        }
+            () => HKToolMod.i18nShowOrig, MenuResources.Perpetua);
     }
     protected override void Build(ContentArea contentArea)
     {

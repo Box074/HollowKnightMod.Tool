@@ -7,6 +7,7 @@ namespace HKTool
         public static HKToolMod instance { get; private set; }
 
         public static I18n I18N { get; } = new I18n();
+        public static SimpleLogger unityLogger = new("UNITY");
         public static bool IsDebugMode { get; private set; }
         public HKToolMod() : base("HKTool")
         {
@@ -22,8 +23,8 @@ namespace HKTool
                 LogError(e);
             }
             var ass = Assembly.GetExecutingAssembly();
-            I18N.AddLanguage(Language.LanguageCode.EN, ass.GetManifestResourceStream("HKTool.Languages.en.txt"));
-            I18N.AddLanguage(Language.LanguageCode.ZH, ass.GetManifestResourceStream("HKTool.Languages.zh-cn.txt"));
+            I18N.AddLanguage(Language.LanguageCode.EN, EmbeddedResHelper.GetStream(ass, "HKTool.Languages.en.txt"));
+            I18N.AddLanguage(Language.LanguageCode.ZH, EmbeddedResHelper.GetStream(ass, "HKTool.Languages.zh-cn.txt"));
 
             I18N.UseGameLanguage();
 
@@ -66,10 +67,40 @@ namespace HKTool
                 Application.SetStackTraceLogType((LogType)i, ut[i]);
             }
         }
+        private static void UnityLogHandler(string msg, string stackTrace, LogType logType)
+        {
+            if(logType == LogType.Error && settings.DebugConfig.rUnityError)
+            {
+                unityLogger.LogError($"{msg}\n{stackTrace}");
+            }
+            else if(logType == LogType.Warning && settings.DebugConfig.rUnityWarn)
+            {
+                unityLogger.LogWarn($"{msg}\n{stackTrace}");
+            }
+            else if (logType == LogType.Log && settings.DebugConfig.rUnityLog)
+            {
+                unityLogger.Log($"{msg}\n{stackTrace}");
+            }
+            else if (logType == LogType.Exception && settings.DebugConfig.rUnityException)
+            {
+                unityLogger.LogError($"[EXCEPTION]{msg}\n{stackTrace}");
+            }
+            else if (logType == LogType.Assert && settings.DebugConfig.rUnityAssert)
+            {
+                unityLogger.LogError($"[ASSERT]{msg}\n{stackTrace}");
+            }
+        }
+        public static bool i18nShowOrig;
         private static void Init()
         {
             if(IsDebugMode)
             {
+                Application.logMessageReceived += UnityLogHandler;
+                ModHooks.LanguageGetHook += (key, sheet, orig) =>
+                {
+                    if(i18nShowOrig) return $"#{key}({sheet})";
+                    return orig;
+                };
                 UnityLogStackTrace();
             }
         }
