@@ -19,7 +19,7 @@ HKTool.Debug.DisableHitBox=Hide HitBox
 HKTool.Debug.EnableDebugDraw=Show Debug Line
 HKTool.Debug.DisableDebugDraw=Hide Debug Line
 
-HKTool.I18n.ShowOrigin=显示原始Key
+HKTool.I18n.ShowOrigin=Display the Key and Sheet of Language.Get
 HKTool.Desc.NeverSave=Never save
 
 HKTool.Menu.ULST=Stack Trace Type({0})

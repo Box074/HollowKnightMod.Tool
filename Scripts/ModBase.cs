@@ -97,7 +97,7 @@ public abstract class ModBase : Mod
     }
     public override string GetVersion()
     {
-        return GetType().Assembly.GetName().Version.ToString();
+        return GetType().Assembly.GetName().Version.ToString() + "-" + sha1;
     }
     protected void MissingDependency(string name)
     {
@@ -143,10 +143,18 @@ public abstract class ModBase : Mod
         return null;
     }
 
+    public readonly string sha1;
+
     public ModBase(string name = null) : base(name)
     {
         CheckHKToolVersion(name);
         OnCheckDependencies();
+
+        sha1 = BitConverter.ToString(
+            System.Security.Cryptography.SHA1
+                .Create().ComputeHash(File.ReadAllBytes(GetType().Assembly.Location)))
+                .Replace("-", "").ToLowerInvariant().Substring(0, 6);
+            
 
         ModManager.NewMod(this);
         if (this is IDebugViewBase @base && ShowDebugView)

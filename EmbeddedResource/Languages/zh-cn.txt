@@ -19,7 +19,7 @@ HKTool.Debug.DisableHitBox=隐藏碰撞箱
 HKTool.Debug.EnableDebugDraw=显示Debug Line
 HKTool.Debug.DisableDebugDraw=隐藏Debug Line
 
-HKTool.I18n.ShowOrigin=显示原始Key
+HKTool.I18n.ShowOrigin=显示Language.Get的Key和Sheet
 HKTool.Desc.NeverSave=不会被保存
 
 HKTool.Menu.ULST=栈追踪等级({0})
