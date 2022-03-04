@@ -50,7 +50,7 @@ public class I18n
                 var n = l2.Substring(0, s);
                 var val = l2.Substring(s + 1).Replace("\\n", "\n");
                 Current.Add(n, val);
-                Modding.Logger.Log($"I18n: {n} = {val}");
+                HKToolMod.Instance.LogFine($"I18n: {n} = {val}");
             }
             return true;
         }
