@@ -2,18 +2,35 @@
 using Modding;
 namespace HKTool
 {
-    class HKToolMod : Mod, IGlobalSettings<HKToolSettings>, ICustomMenuMod
+    class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMenuMod
     {
-        public static HKToolMod instance { get; private set; }
+        private static int? apiVersion = null;
+        public static int ModdingAPIVersion
+        {
+            get
+            {
+                if(apiVersion == null)
+                {
+                    apiVersion = int.Parse(ModHooks.ModVersion.Split('-')[1]);
+                }
+                return apiVersion ?? 0;
+            }
+        }
 
-        public static I18n I18N { get; } = new I18n();
+        public static I18n I18N => Instance.I18n;
         public static SimpleLogger unityLogger = new("UNITY");
+        public static SimpleLogger logger = new("HKTool");
         public static bool IsDebugMode { get; private set; }
+        protected override (LanguageCode, string)[] Languages => new (LanguageCode, string)[]
+        {
+            (LanguageCode.EN, "HKTool.Languages.en.txt"),
+            (LanguageCode.ZH, "HKTool.Languages.zh-cn.txt")
+        };
         public HKToolMod() : base("HKTool")
         {
             HKToolResourcesAPI.Init();
+            
             IsDebugMode = settings.DevMode;
-            instance = this;
             try
             {
                 Init();
@@ -22,11 +39,11 @@ namespace HKTool
             {
                 LogError(e);
             }
-            var ass = Assembly.GetExecutingAssembly();
-            I18N.AddLanguage(Language.LanguageCode.EN, EmbeddedResHelper.GetStream(ass, "HKTool.Languages.en.txt"));
-            I18N.AddLanguage(Language.LanguageCode.ZH, EmbeddedResHelper.GetStream(ass, "HKTool.Languages.zh-cn.txt"));
+            //var ass = Assembly.GetExecutingAssembly();
+            //I18N.AddLanguage(Language.LanguageCode.EN, EmbeddedResHelper.GetStream(ass, "HKTool.Languages.en.txt"));
+            //I18N.AddLanguage(Language.LanguageCode.ZH, EmbeddedResHelper.GetStream(ass, "HKTool.Languages.zh-cn.txt"));
 
-            I18N.UseGameLanguage();
+            //I18N.UseGameLanguage();
 
             
             if (settings.DevMode)
@@ -104,7 +121,8 @@ namespace HKTool
                 UnityLogStackTrace();
             }
         }
-
+        public override string MenuButtonName => "HKTool.Menu.ButtonLabel".Get();
+        public override Font MenuButtonLabelFont => MenuResources.Perpetua;
         public static HKToolSettings settings = new HKToolSettings();
         public static HKToolDebugConfig devSettings => settings.DebugConfig;
         public bool ToggleButtonInsideMenu => true;
@@ -117,7 +135,7 @@ namespace HKTool
         }
         public override string GetVersion()
         {
-            return Assembly.GetExecutingAssembly().GetName().Version.ToString() + (settings.DevMode ? "-DevMode" : "");
+            return base.GetVersion() + (settings.DevMode ? "-DevMode" : "");
         }
         public void OnLoadGlobal(HKToolSettings s) => settings = s;
         public HKToolSettings OnSaveGlobal() => settings;

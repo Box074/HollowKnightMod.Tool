@@ -16,8 +16,10 @@ namespace HKTool.Reflection
         public static Dictionary<FieldInfo, RD_GetField> fgetter = new Dictionary<FieldInfo, RD_GetField>();
         public static Dictionary<MethodInfo, FastReflectionDelegate> mcaller =
             new Dictionary<MethodInfo, FastReflectionDelegate>();
+        public static bool ApiUpdateTo69 => HKToolMod.ModdingAPIVersion >= 69;
         public static RD_GetField GetGetter(FieldInfo field)
         {
+            if(field is null) throw new ArgumentNullException(nameof(field));
             if (!fgetter.TryGetValue(field, out var getter))
             {
                 DynamicMethod dm = new DynamicMethod("", MethodAttributes.Static | MethodAttributes.Public,
@@ -43,6 +45,7 @@ namespace HKTool.Reflection
         }
         public static RD_SetField GetSetter(FieldInfo field)
         {
+            if(field is null) throw new ArgumentNullException(nameof(field));
             if (!fsetter.TryGetValue(field, out var setter))
             {
                 DynamicMethod dm = new DynamicMethod("", MethodAttributes.Static | MethodAttributes.Public,
@@ -69,8 +72,9 @@ namespace HKTool.Reflection
             }
             return setter;
         }
-        internal static object CallMethod(object @this, MethodInfo method, object[] args)
+        internal static object CallMethod(object @this, MethodInfo method, params object[] args)
         {
+            if(method is null) throw new ArgumentNullException(nameof(method));
             if (!mcaller.TryGetValue(method, out var caller))
             {
                 caller = method.CreateFastDelegate(true);
@@ -80,11 +84,29 @@ namespace HKTool.Reflection
         }
         internal static object GetField(object @this, FieldInfo field)
         {
-            return GetGetter(field)(@this);
+            if(field is null) throw new ArgumentNullException(nameof(field));
+            try
+            {
+                return GetGetter(field)(@this);
+            }
+            catch (Exception e)
+            {
+                HKToolMod.logger.LogError(e);
+                return field.GetValue(@this);
+            }
         }
         internal static void SetField(object @this, FieldInfo field, object val)
         {
-            GetSetter(field)(@this, val);
+            if(field is null) throw new ArgumentNullException(nameof(field));
+            try
+            {
+                GetSetter(field)(@this, val);
+            }
+            catch (Exception e)
+            {
+                HKToolMod.logger.LogError(e);
+                field.SetValue(@this, val);
+            }
         }
     }
 }

@@ -1,3 +1,8 @@
+HKTool.Error.ModMultiInstance=A second instance of {0} was created by mistake, please check if you have added mod repeatedly(current mod location: {1})
+HKTool.ErrorShow.ModMultiInstance=The mod was loaded repeatedly (current mod location: {0})
+HKTool.Error.NeedLibraryVersion=Requires version of {0} >= {1}
+HKTool.Error.NeedLibrary=Requires dependency {0}
+HKTool.Menu.ButtonLabel=HKTool Menu
 
 HKTool.Settings.DeveloperMode=Developer mode
 HKTool.Settings.DeveloperMode.Desc=Turn on/off developer mode, it will take effect after restarting the game

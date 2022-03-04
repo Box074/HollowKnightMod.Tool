@@ -68,11 +68,11 @@ public static class MonoNative
     }
     public static bool TryGetMonoFunc<T>(string name, out T d) where T : Delegate
     {
-        return TryGetFunction(_mono_handle, name, out d);
+        return TryGetFunction(mono, name, out d);
     }
     public static void GetMonoFunc<T>(string name, out T d) where T : Delegate
     {
-        GetFunction(_mono_handle, name, out d);
+        GetFunction(mono, name, out d);
     }
     #endregion
 

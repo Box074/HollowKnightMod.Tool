@@ -1,3 +1,8 @@
+HKTool.Error.ModMultiInstance=错误的创造了第二个{0}实例，请检查是否重复添加mod(当前Mod位置: {1})
+HKTool.ErrorShow.ModMultiInstance=该mod被重复加载(当前Mod位置: {0})
+HKTool.Error.NeedLibraryVersion=需要{0}的版本>={1}
+HKTool.Error.NeedLibrary=需要{0}
+HKTool.Menu.ButtonLabel=HKTool 菜单
 
 HKTool.Settings.DeveloperMode=开发者模式
 HKTool.Settings.DeveloperMode.Desc=开启/关闭开发者模式，重启游戏后生效

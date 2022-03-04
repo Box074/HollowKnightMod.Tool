@@ -24,7 +24,7 @@ namespace HKTool.Reflection
         }
         public ReflectionObject(Type t)
         {
-            if (objType is null) throw new ArgumentNullException(nameof(t));
+            if (t is null) throw new ArgumentNullException(nameof(t));
             obj = null;
             objType = t;
         }
@@ -40,12 +40,12 @@ namespace HKTool.Reflection
 
         public T GetMemberData<T>(string name)
         {
-            FieldInfo f = objType.GetRuntimeField(name);
+            FieldInfo f = objType.GetField(name, ReflectionHelper.All);
             if (f != null)
             {
                 return (T)f.FastGet(obj);
             }
-            PropertyInfo p = objType.GetRuntimeProperty(name);
+            PropertyInfo p = objType.GetProperty(name, ReflectionHelper.All);
             if (p != null)
             {
                 return (T)p.GetMethod.FastInvoke(obj, null);
@@ -65,7 +65,8 @@ namespace HKTool.Reflection
 
         private MethodInfo FindMethod(string name, params Type[] pt)
         {
-            return objType.GetRuntimeMethod(name, pt) ?? throw new MissingMethodException(objType.FullName, name);
+            return objType.GetMethod(name, ReflectionHelper.All, null,
+                CallingConventions.Any, pt, null) ?? throw new MissingMethodException(objType.FullName, name);
         }
         private MethodInfo FindMethod(string name, params object[] args)
         {
@@ -87,13 +88,13 @@ namespace HKTool.Reflection
 
         public void SetMemberData(string name, object data)
         {
-            FieldInfo f = objType.GetRuntimeField(name);
+            FieldInfo f = objType.GetField(name, ReflectionHelper.All);
             if (f != null)
             {
                 f.FastSet(obj, data);
                 return;
             }
-            PropertyInfo p = objType.GetRuntimeProperty(name);
+            PropertyInfo p = objType.GetProperty(name, ReflectionHelper.All);
             if (p != null)
             {
                 p.SetMethod.FastInvoke(obj, data);

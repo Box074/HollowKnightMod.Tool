@@ -15,10 +15,114 @@ public abstract class ModBase : Mod
             return new FsmNameFilter(attr.sceneName, attr.objName, attr.fsmName);
         }
     }
+    public virtual string MenuButtonName => GetName();
+    public virtual Font MenuButtonLabelFont => MenuResources.TrajanBold;
+    public virtual Version HKToolMinVersion 
+    {
+        get
+        {
+            var ver = GetType().Assembly.GetCustomAttribute<NeedHKToolVersionAttribute>()?.version;
+            if(ver == null) return null;
+            return Version.Parse(ver);
+        }
+    }
     protected virtual bool ShowDebugView => true;
+    private void CheckHKToolVersion(string name = null)
+    {
+        if (HKToolMinVersion is null) return;
+        var hkv = typeof(HKToolMod).Assembly.GetName().Version;
+        if (hkv < HKToolMinVersion)
+        {
+            TooOldDependency("HKTool", HKToolMinVersion);
+        }
+    }
+    private static void ModifyModListMenu()
+    {
+        try
+        {
+            var modMenu = UIManager.instance.UICanvas.gameObject.transform.Find("ModListMenu");
+            var allButton = modMenu.gameObject.GetComponentsInChildren<MenuButton>();
+            foreach (var v in ModManager.modsTable)
+            {
+                try
+                {
+                    if (v is ICustomMenuMod)
+                    {
+                        var name = v.GetName() + "_Settings";
+                        var b = allButton.FirstOrDefault(x => x.name == name);
+                        if (b != null)
+                        {
+                            v.AfterCreateModListButton(b);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    HKToolMod.logger.LogError(e);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            HKToolMod.logger.LogError(e);
+        }
+    }
+    static ModBase()
+    {
+        HookEndpointManager.Add(
+            typeof(UIManager).GetMethod("add_EditMenus"),
+            (Action<Action> orig, Action action) =>
+            {
+                orig(action);
+                if (action == null) return;
+                if (action.Method.DeclaringType.FullName != "Modding.ModListMenu") return;
+                if (Modding.ReflectionHelper.GetField<UIManager, bool>(UIManager.instance,
+                    "hasCalledEditMenus"))
+                {
+                    ModifyModListMenu();
+                }
+                else
+                {
+                    HookEndpointManager.Add(
+                        action.Method,
+                        (Action<object> orig, object self) =>
+                        {
+                            orig(self);
+                            ModifyModListMenu();
+                        }
+                    );
+                }
+            }
+        );
+    }
     public override string GetVersion()
     {
         return GetType().Assembly.GetName().Version.ToString();
+    }
+    protected void MissingDependency(string name)
+    {
+        var err = "HKTool.Error.NeedLibrary"
+                .GetFormat(name);
+        LogError(err);
+        ModManager.modErrors.Add((GetName(), err));
+        throw new NotSupportedException(err);
+    }
+    protected void TooOldDependency(string name, Version needVersion)
+    {
+        var err = "HKTool.Error.NeedLibraryVersion"
+                .GetFormat(name, needVersion.ToString());
+        LogError(err);
+        ModManager.modErrors.Add((GetName(), err));
+        throw new NotSupportedException(err);
+    }
+    public virtual void OnCheckDependencies()
+    {
+
+    }
+    protected virtual void AfterCreateModListButton(MenuButton button)
+    {
+        button.GetLabelText().text = MenuButtonName;
+        button.GetLabelText().font = MenuButtonLabelFont;
     }
     public virtual I18n I18n => _i18n.Value;
     public byte[] GetEmbeddedResource(string name) => EmbeddedResHelper.GetBytes(GetType().Assembly, name);
@@ -33,8 +137,17 @@ public abstract class ModBase : Mod
         return AssetBundle.LoadFromMemory(GetEmbeddedResource(name));
     }
 
+    public static ModBase FindMod(Type type)
+    {
+        if (ModManager.instanceMap.TryGetValue(type, out var v)) return v;
+        return null;
+    }
+
     public ModBase(string name = null) : base(name)
     {
+        CheckHKToolVersion(name);
+        OnCheckDependencies();
+
         ModManager.NewMod(this);
         if (this is IDebugViewBase @base && ShowDebugView)
         {
@@ -52,7 +165,7 @@ public abstract class ModBase : Mod
             }
         }
         _i18n = new Lazy<I18n>(
-            () => new(GetName(), Path.GetDirectoryName(GetType().Assembly.Location))
+            () => new(GetName(), Path.GetDirectoryName(GetType().Assembly.GetRealAssembly().Location))
         );
         var l = Languages;
         if (l != null)
@@ -62,7 +175,7 @@ public abstract class ModBase : Mod
             {
                 try
                 {
-                    using (Stream stream = ass.GetManifestResourceStream(v.Item2))
+                    using (Stream stream = EmbeddedResHelper.GetStream(ass, v.Item2))
                     {
                         I18n.AddLanguage(v.Item1, stream, false);
                     }
@@ -86,8 +199,27 @@ public abstract class ModBase : Mod
         GUILayout.Label("Empty DebugView");
     }
 }
-public abstract class ModBase<TGlobalSettings, TLocalSettings> : ModBase where TGlobalSettings : new()
+public abstract class ModBase<T> : ModBase where T : ModBase<T>
+{
+    public static T Instance { get; protected set; } = null;
+    public ModBase(string name = null) : base(name)
+    {
+        Instance = (T)this;
+    }
+}
+[Obsolete]
+public abstract class ModBaseWithSettings<TGlobalSettings, TLocalSettings> : ModBase where TGlobalSettings : new()
         where TLocalSettings : new()
+{
+    public virtual TLocalSettings localSettings { get; protected set; } = new();
+    public TLocalSettings OnSaveLocal() => localSettings;
+    public void OnLoadLocal(TLocalSettings s) => localSettings = s;
+    public virtual TGlobalSettings globalSettings { get; protected set; } = new();
+    public TGlobalSettings OnSaveGlobal() => globalSettings;
+    public void OnLoadGlobal(TGlobalSettings s) => globalSettings = s;
+}
+public abstract class ModBaseWithSettings<T, TGlobalSettings, TLocalSettings> : ModBase<T> where TGlobalSettings : new()
+        where TLocalSettings : new() where T : ModBaseWithSettings<T, TGlobalSettings, TLocalSettings>
 {
     public virtual TLocalSettings localSettings { get; protected set; } = new();
     public TLocalSettings OnSaveLocal() => localSettings;

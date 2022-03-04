@@ -49,7 +49,7 @@ class HKToolSettingsMenu : CustomMenu
             (id) =>
             {
                 settings.DevMode = id == 1;
-                HKToolMod.instance.SaveSettings();
+                HKToolMod.Instance.SaveSettings();
             }, () =>
             {
                 return settings.DevMode ? 1 : 0;

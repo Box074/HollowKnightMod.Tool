@@ -9,6 +9,8 @@ namespace HKTool.Reflection
 {
     public static class ReflectionHelper
     {
+        public static BindingFlags All = BindingFlags.Public | BindingFlags.NonPublic 
+            | BindingFlags.Instance | BindingFlags.Static;
         public static ReflectionObject CreateReflectionObject(this object obj) => new ReflectionObject(obj);
         public static ReflectionObject CreateReflectionObject(this Type type) => new ReflectionObject(type);
         public static Type FindType(string fullname)

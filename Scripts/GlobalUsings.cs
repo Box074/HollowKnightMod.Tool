@@ -32,5 +32,8 @@ global using HKTool.ModMenu;
 global using HKTool.SpecialBehaviour;
 global using HKTool.Unity;
 global using HKTool.Attributes;
+global using HKTool.PackMod;
+
+global using MonoMod.RuntimeDetour.HookGen;
 
 global using UObject = UnityEngine.Object;
