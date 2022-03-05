@@ -3,23 +3,37 @@ namespace HKTool;
 
 class HKToolSettingsMenu : CustomMenu
 {
+    public static bool init = false;
     public override Font titleFont => MenuResources.Perpetua;
     public static HKToolSettings settings => HKToolMod.settings;
+    public MenuButton modifySaveButton;
     public HKToolSettingsMenu(MenuScreen returnScreen) : base(returnScreen, "HKTool")
-    {
-
-    }
-    private void DebugOptions()
     {
         SaveModifyMenu.instance = new(this);
         LogMenu.instance = new(this);
+    }
+    protected override void OnEnterMenu()
+    {
+        if(modifySaveButton is null) return;
+        if(GameManager.instance.gameState != GameState.MAIN_MENU)
+        {
+            modifySaveButton.SetInteractable(false, "HKTool.Menu.OnlyMainMenu".Get());
+        }
+        else
+        {
+            modifySaveButton.SetInteractable(true);
+        }
+    }
+    private void DebugOptions()
+    {
+        
         AddButton("HKTool.Settings.DebugView".Get(), "HKTool.Settings.DebugView.Desc".Get(),
             () =>
             {
                 DebugTools.DebugView.IsEnable = !DebugTools.DebugView.IsEnable;
             }, MenuResources.Perpetua);
 
-        AddButton("HKTool.Menu.ModifySaveTitle".Get(), "",
+        modifySaveButton = AddButton("HKTool.Menu.ModifySaveTitle".Get(), "",
         () =>
         {
             if (SaveModifyMenu.instance != null)
@@ -39,6 +53,22 @@ class HKToolSettingsMenu : CustomMenu
                 HKToolMod.i18nShowOrig = val;
             },
             () => HKToolMod.i18nShowOrig, MenuResources.Perpetua);
+        AddButton("HKTool.Menu.RebuildMenu".Get(), "",
+            () =>
+            {
+                foreach(var v in CustomMenu.menus)
+                {
+                    try
+                    {
+                        v.Rebuild();
+                    }
+                    catch(Exception e)
+                    {
+                        HKToolMod.Instance.LogError(e);
+                    }
+                    Back();
+                }
+            }, MenuResources.Perpetua);
     }
     protected override void Build(ContentArea contentArea)
     {
@@ -53,6 +83,26 @@ class HKToolSettingsMenu : CustomMenu
             }, () =>
             {
                 return settings.DevMode ? 1 : 0;
+            }, MenuResources.Perpetua);
+        AddButton("HKTool.Menu.RefreshLanguage".Get(), "",
+            () =>
+            {
+                foreach(var v in I18n.Instances)
+                {
+                    v.TrySwitch();
+                }
+                foreach(var v in CustomMenu.menus)
+                {
+                    try
+                    {
+                        v.Rebuild();
+                    }
+                    catch(Exception e)
+                    {
+                        HKToolMod.Instance.LogError(e);
+                    }
+                    Back();
+                }
             }, MenuResources.Perpetua);
         if (HKToolMod.IsDebugMode)
         {

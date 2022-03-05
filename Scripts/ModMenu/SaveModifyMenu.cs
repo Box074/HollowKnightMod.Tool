@@ -7,10 +7,11 @@ class SaveModifyMenu : CustomMenu
     public static readonly MethodInfo MGetSaveSlotPath = typeof(DesktopPlatform).GetMethod("GetSaveSlotPath",
         BindingFlags.NonPublic | BindingFlags.Instance);
     public static SaveModifyMenu instance = null;
-    public SaveModifyMenu(MenuScreen returnScreen) : base(returnScreen, "HKTool.Menu.ModifySaveTitle".Get())
+    public SaveModifyMenu(MenuScreen returnScreen) : base(returnScreen)
     {
         SaveModifyCoreMenu.instance = new(this);
     }
+    public override string title => "HKTool.Menu.ModifySaveTitle".Get();
     public static SaveGameData LoadSaveGameData(int slot)
     {
         if (GameManager.instance.profileID == slot && HeroController.UnsafeInstance != null)
@@ -82,10 +83,11 @@ class SaveModifyCoreMenu : CustomMenu
     abstract class PlayerDataModifyBase : CustomMenu
     {
         public override Font titleFont => MenuResources.Perpetua;
-        public PlayerDataModifyBase(MenuScreen rs) : base(rs, "HKTool.Menu.ModifySaveTitle".Get())
+        public PlayerDataModifyBase(MenuScreen rs) : base(rs)
         {
             autoRefresh = true;
         }
+        public override string title => "HKTool.Menu.ModifySaveTitle".Get();
         protected void AddBoolOption(string label, Action<bool> onChange, Func<bool> onRefresh)
         {
             AddBoolOption(label, "", (v) => { if (pd != null) onChange(v); },
@@ -336,12 +338,13 @@ class SaveModifyCoreMenu : CustomMenu
     private static SkillModify skillModify;
     private static AllPlayerDataModify allOptions;
     private static MiscModify misc;
-    public SaveModifyCoreMenu(MenuScreen rsa) : base(rsa, "HKTool.Menu.ModifySaveTitle".Get())
+    public SaveModifyCoreMenu(MenuScreen rsa) : base(rsa)
     {
         charmMenu = new(this);
         skillModify = new(this);
         misc = new(this);
     }
+    public override string title => "HKTool.Menu.ModifySaveTitle".Get();
     private static PlayerData pd => currentData?.playerData;
     public static SaveModifyCoreMenu instance = null;
     public override Font titleFont => MenuResources.Perpetua;

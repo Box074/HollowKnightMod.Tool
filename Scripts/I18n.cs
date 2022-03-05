@@ -4,16 +4,29 @@ namespace HKTool;
 public class I18n
 {
     public static List<I18n> Instances { get; private set; } = new List<I18n>();
+    internal static List<IBindI18n> waitBinds = new();
+    public static void BeginBind(IBindI18n bind) => waitBinds.Add(bind);
+    public static void EndBind(IBindI18n bind) => waitBinds.RemoveAll(x => ReferenceEquals(x, bind));
     public readonly string modName;
     public readonly string modDir;
+    public event Action OnLanguageSwitch;
+    public LanguageCode DefaultLanguage;
+    public LanguageCode? CurrentCode { get; private set; }
     public Dictionary<string, string> Current
     { get; private set; } = new Dictionary<string, string>();
     public Dictionary<LanguageCode, string> Languages { get; private set; } = new Dictionary<LanguageCode, string>();
-    public I18n(string modName = "", string modDir = "")
+    public I18n(string modName = "", string modDir = "", LanguageCode defaultLanguage = LanguageCode.EN)
     {
         this.modName = modName;
         this.modDir = modDir;
+        DefaultLanguage = defaultLanguage;
         Instances.Add(this);
+
+        On.Language.Language.DoSwitch += (orig, lang) =>
+        {
+            orig(lang);
+            TrySwitch();
+        };
     }
     public bool UseLanguageHook
     {
@@ -38,6 +51,7 @@ public class I18n
     public bool ChangeLanguage(SupportedLanguages lang) => ChangeLanguage((LanguageCode)lang);
     public bool ChangeLanguage(LanguageCode code)
     {
+        if(CurrentCode == code) return true;
         if (Languages.TryGetValue(code, out var v))
         {
             Current.Clear();
@@ -52,18 +66,42 @@ public class I18n
                 Current.Add(n, val);
                 HKToolMod.Instance.LogFine($"I18n: {n} = {val}");
             }
+            CurrentCode = code;
+            if (OnLanguageSwitch is not null)
+            {
+                foreach (var v2 in OnLanguageSwitch.GetInvocationList())
+                {
+                    try
+                    {
+                        v2.DynamicInvoke();
+                    }
+                    catch (Exception e)
+                    {
+                        HKToolMod.Instance.LogError(e);
+                    }
+                }
+            }
             return true;
         }
         return false;
     }
     public string Get(string key)
     {
-        if (Current.TryGetValue(key, out var v)) return v;
+        if (Current.TryGetValue(key, out var v))
+        {
+            foreach (var v2 in waitBinds) v2.BindI18n(this);
+            return v;
+        }
         return key;
     }
     public bool TryGet(string key, out string val)
     {
-        return Current.TryGetValue(key, out val);
+        bool r = Current.TryGetValue(key, out val);
+        if (r)
+        {
+            foreach (var v in waitBinds) v.BindI18n(this);
+        }
+        return r;
     }
 
     public static string GlobalGet(string key)
@@ -109,38 +147,44 @@ public class I18n
     {
         AddLanguage((LanguageCode)src, (LanguageCode)dst);
     }
-    public void UseGameLanguage(SupportedLanguages defaultCode = SupportedLanguages.EN, bool allowExternLang = false)
+    public void UseGameLanguage(SupportedLanguages? defaultCode = null, bool allowExternLang = false)
     {
-        UseGameLanguage((LanguageCode)defaultCode, allowExternLang);
+        UseGameLanguage((LanguageCode?)defaultCode, allowExternLang);
     }
-    public void UseGameLanguage(LanguageCode defaultCode = LanguageCode.EN, bool allowExternLang = false)
+    public void UseGameLanguage(LanguageCode? defaultCode = null, bool allowExternLang = false)
     {
         var current = Language.Language.CurrentLanguage();
+        var dcode = defaultCode ?? DefaultLanguage;
         if (!ChangeLanguage(current))
         {
-            if(allowExternLang)
+            if (allowExternLang)
             {
                 var langName = $"{modName}.{current.ToString().ToLower()}.lang";
                 var langPath = Path.Combine(modDir, langName);
-                if(File.Exists(langPath))
+                if (File.Exists(langPath))
                 {
                     AddLanguage(current, File.ReadAllText(langPath));
                     ChangeLanguage(current);
                 }
-                else if(File.Exists(langName))
+                else if (File.Exists(langName))
                 {
                     AddLanguage(current, File.ReadAllText(langName));
                     ChangeLanguage(current);
                 }
                 else
                 {
-                    ChangeLanguage(defaultCode);
+                    HKToolMod.Instance.LogWarn($"[{modName}]Missing Language: {current.ToString()}");
+                    ChangeLanguage(dcode);
                 }
                 return;
             }
             HKToolMod.Instance.LogWarn($"[{modName}]Missing Language: {current.ToString()}");
-            ChangeLanguage(defaultCode);
+            ChangeLanguage(dcode);
         }
+    }
+    public void TrySwitch()
+    {
+        UseGameLanguage(DefaultLanguage, true);
     }
 }
 

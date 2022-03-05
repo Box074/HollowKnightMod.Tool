@@ -173,7 +173,8 @@ public abstract class ModBase : Mod
             }
         }
         _i18n = new Lazy<I18n>(
-            () => new(GetName(), Path.GetDirectoryName(GetType().Assembly.GetRealAssembly().Location))
+            () =>   
+                new(GetName(), Path.GetDirectoryName(GetType().Assembly.GetRealAssembly().Location), (LanguageCode)DefaultLanguageCode)
         );
 #pragma warning disable CS0618
         var l = Languages;
@@ -217,7 +218,7 @@ public abstract class ModBase : Mod
         }
         if (l is not null || lex is not null)
         {
-            I18n.UseGameLanguage(DefaultLanguageCode, true);
+            I18n.TrySwitch();
         }
     }
     private readonly Lazy<I18n> _i18n;

@@ -33,6 +33,7 @@ global using HKTool.Reflection;
 global using HKTool.Menu;
 global using HKTool.ModMenu;
 global using HKTool.SpecialBehaviour;
+global using HKTool.Utils;
 global using HKTool.Unity;
 global using HKTool.Attributes;
 global using HKTool.PackMod;

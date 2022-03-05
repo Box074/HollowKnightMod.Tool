@@ -4,6 +4,9 @@ HKTool.Error.NeedLibraryVersion=Requires version of {0} >= {1}
 HKTool.Error.NeedLibrary=Requires dependency {0}
 HKTool.Error.GetModInstaceBeforeLoad=Trying to get an instance of {0} before loading it
 HKTool.Menu.ButtonLabel=HKTool Options
+HKTool.Menu.OnlyMainMenu=Please use in the main menu 
+HKTool.Menu.RebuildMenu=Rebuild the menu
+HKTool.Menu.RefreshLanguage=Refresh language
 
 HKTool.Settings.DeveloperMode=Developer mode
 HKTool.Settings.DeveloperMode.Desc=Turn on/off developer mode, it will take effect after restarting the game

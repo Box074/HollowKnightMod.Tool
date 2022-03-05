@@ -4,6 +4,9 @@ HKTool.Error.NeedLibraryVersion=需要{0}的版本>={1}
 HKTool.Error.NeedLibrary=需要{0}
 HKTool.Error.GetModInstaceBeforeLoad=尝试在{0}被加载前获取其实例
 HKTool.Menu.ButtonLabel=HKTool 选项
+HKTool.Menu.OnlyMainMenu=请在主菜单中使用
+HKTool.Menu.RebuildMenu=重新构造菜单
+HKTool.Menu.RefreshLanguage=刷新语言
 
 HKTool.Settings.DeveloperMode=开发者模式
 HKTool.Settings.DeveloperMode.Desc=开启/关闭开发者模式，重启游戏后生效

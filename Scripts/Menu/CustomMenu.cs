@@ -1,7 +1,7 @@
 
 namespace HKTool.Menu;
 
-public abstract class CustomMenu
+public abstract class CustomMenu : BindI18n
 {
     internal readonly static List<CustomMenu> menus = new();
     static CustomMenu()
@@ -13,17 +13,18 @@ public abstract class CustomMenu
                 foreach (var v in menus)
                 {
                     if (v == null) continue;
-                    if(v.menuScreen != menu) continue;
-                    if (v.autoRefresh)
+                    if (v.menuScreen != menu) continue;
+                    try
                     {
-                        try
+                        if (v.autoRefresh)
                         {
                             v.Refresh();
                         }
-                        catch (Exception e2)
-                        {
-                            Modding.Logger.LogError(e2);
-                        }
+                        v.OnEnterMenu();
+                    }
+                    catch (Exception e2)
+                    {
+                        Modding.Logger.LogError(e2);
                     }
                 }
             }
@@ -34,8 +35,11 @@ public abstract class CustomMenu
             return orig(self, menu);
         };
     }
+    public virtual bool RebuildOnSwitchLanguage { get; } = true;
+
     public MenuScreen returnScreen { get; private set; }
-    public string title { get; private set; }
+    private string _title;
+    public virtual string title => _title;
     public MenuScreen menuScreen { get; private set; }
     protected ContentArea content { get; private set; }
     public virtual Font titleFont => MenuResources.TrajanBold;
@@ -44,16 +48,77 @@ public abstract class CustomMenu
     [Obsolete]
     public virtual int itemCount { get; } = 1;
     public MenuButton backButton => _backButton;
+    public Text titleText { get; private set; }
     public bool autoRefresh { get; set; } = false;
     private MenuButton _backButton;
+    private
     protected readonly List<MenuSetting> needRefresh = new();
-    private CustomMenu(string title)
+    protected virtual void OnEnterMenu()
     {
+
+    }
+    public void Rebuild()
+    {
+        for (int i = 0; i < menuScreen.content.transform.childCount; i++)
+        {
+            UObject.Destroy(menuScreen.content.transform.GetChild(i).gameObject);
+        }
+        DoBuild(new ContentArea(menuScreen.content.gameObject, default(NullContentLayout),
+            new ChainedNavGraph()));
+    }
+    private void DoBuild(ContentArea c)
+    {
+        RegularGridLayout layout = RegularGridLayout.CreateVerticalLayout(105f, default(Vector2));
+        c.AddScrollPaneContent(new ScrollbarConfig()
+        {
+            CancelAction = Back,
+            Navigation = new Navigation()
+            {
+                mode = Navigation.Mode.Explicit,
+                selectOnUp = backButton,
+                selectOnDown = backButton
+            },
+            Position = new AnchoredPosition
+            {
+                ChildAnchor = new Vector2(0f, 1f),
+                ParentAnchor = new Vector2(1f, 1f),
+                Offset = new Vector2(-310f, 0f)
+            }
+        }, new RelLength(105), layout, (c1) =>
+            {
+                try
+                {
+                    content = c1;
+                    HKToolMod.Instance.Log("Build Menu: " + title);
+                    Build(c1);
+                    var scrollPaneRt = content.ContentObject.GetComponent<RectTransform>();
+                    RectTransformData.FromSizeAndPos(
+                        new RelVector2(new RelLength(0f, 1f),
+                            new RelLength((layout.Index == 0 ? 1 : layout.Index) * 105)),
+                        new AnchoredPosition(new Vector2(0.5f, 1f),
+                        new Vector2(0.5f, 1f), default(Vector2))).Apply(scrollPaneRt);
+                }
+                finally
+                {
+                    content = null;
+                }
+            });
+        titleText.text = title;
+        titleText.font = titleFont ?? MenuResources.TrajanBold;
+        if (HasBackButton)
+        {
+            backButton.GetLabelText().text = Language.Language.Get("NAV_BACK", "MainMenu");
+        }
+    }
+    protected CustomMenu(MenuScreen returnScreen)
+    {
+        this.returnScreen = returnScreen;
         menus.Add(this);
         var builder = MenuUtils.CreateMenuBuilder(title);
         var tf = titleFont ?? MenuResources.TrajanBold;
         var to = builder.MenuObject.transform.Find("Title");
         var tt = to.GetComponent<Text>();
+        titleText = tt;
         tt.font = tf;
         menuScreen = builder.Screen;
         if (HasBackButton)
@@ -63,7 +128,7 @@ public abstract class CustomMenu
             {
                 c.AddMenuButton("BackButton", new()
                 {
-                    Label = Language.Language.Get("NAV_BACK", "MainMenu"),
+                    Label = "Back",
                     CancelAction = Back,
                     SubmitAction = Back,
                     Proceed = true,
@@ -77,52 +142,41 @@ public abstract class CustomMenu
         }
         builder.AddContent(default(NullContentLayout), (c) =>
         {
-            RegularGridLayout layout = RegularGridLayout.CreateVerticalLayout(105f, default(Vector2));
-            c.AddScrollPaneContent(new ScrollbarConfig()
+            try
             {
-                CancelAction = (_) => UIManager.instance.GoToDynamicMenu(returnScreen),
-                Navigation = new Navigation()
-                {
-                    mode = Navigation.Mode.Explicit,
-                    selectOnUp = backButton,
-                    selectOnDown = backButton
-                },
-                Position = new AnchoredPosition
-                {
-                    ChildAnchor = new Vector2(0f, 1f),
-                    ParentAnchor = new Vector2(1f, 1f),
-                    Offset = new Vector2(-310f, 0f)
-                }
-            }, new RelLength(105), layout, (c1) =>
-                {
-                    try
-                    {
-                        content = c1;
-                        Build(c1);
-                        var scrollPaneRt = content.ContentObject.GetComponent<RectTransform>();
-                        RectTransformData.FromSizeAndPos(
-                            new RelVector2(new RelLength(0f, 1f),
-                                new RelLength((layout.Index == 0 ? 1 : layout.Index) * 105)),
-                            new AnchoredPosition(new Vector2(0.5f, 1f),
-                            new Vector2(0.5f, 1f), default(Vector2))).Apply(scrollPaneRt);
-                    }
-                    finally
-                    {
-                        content = null;
-                    }
-                });
+                I18n.BeginBind(this);
+                DoBuild(c);
+            }
+            finally
+            {
+                I18n.EndBind(this);
+            }
         });
         builder.Build();
+        if (RebuildOnSwitchLanguage)
+        {
+            foreach (var v in bindI18n)
+            {
+                v.OnLanguageSwitch += Rebuild;
+            }
+        }
     }
-    protected CustomMenu(MenuScreen returnScreen, string title) : this(title)
+    protected CustomMenu(MenuScreen returnScreen, string title) : this(returnScreen)
     {
-        this.returnScreen = returnScreen;
+        _title = title;
     }
     protected MenuButton AddButton(string label, string desc, Action onSubmit, Font font = null)
     {
+        return AddButton(label, desc, (_) => onSubmit(), font);
+    }
+    protected MenuButton AddButton(string label, string desc, Action<MenuButton> onSubmit, Font font = null)
+    {
         content.AddMenuButton(label, new MenuButtonConfig()
         {
-            SubmitAction = (_) => onSubmit?.Invoke(),
+            SubmitAction = (self) =>
+            {
+                if (self.interactable) onSubmit?.Invoke(self);
+            },
             CancelAction = Back,
             Label = label,
             Description = string.IsNullOrEmpty(desc) ? null : new DescriptionInfo()
@@ -137,7 +191,7 @@ public abstract class CustomMenu
             var lt = l.GetComponent<Text>();
             lt.font = font;
             var d = menuButton.descriptionText;
-            if(d != null)
+            if (d != null)
             {
                 var dt = d.GetComponent<Text>();
                 dt.font = font;

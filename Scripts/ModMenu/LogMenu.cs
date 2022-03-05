@@ -6,10 +6,11 @@ class LogMenu : CustomMenu
     public override Font titleFont => MenuResources.Perpetua;
     public static HKToolSettings settings => HKToolMod.settings;
     public static LogMenu instance = null;
-    public LogMenu(MenuScreen rs) : base(rs, "HKTool.LogMenu.Title".Get())
+    public LogMenu(MenuScreen rs) : base(rs)
     {
 
     }
+    public override string title => "HKTool.LogMenu.Title".Get();
     protected override void Build(ContentArea contentArea)
     {
         for (int i = 0; i < 5; i++)
