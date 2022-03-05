@@ -1,9 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
-namespace HKTool.Unity
-{
+
+namespace HKTool.Unity;
     [CreateAssetMenu]
     public class FakeScriptData : ScriptableObject
     {
@@ -22,4 +19,4 @@ namespace HKTool.Unity
         public string scriptFullName;
         public FieldData[] fields;
     }
-}
+

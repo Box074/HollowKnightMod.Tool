@@ -72,7 +72,7 @@ class SaveModifyMenu : CustomMenu
                         SaveModifyCoreMenu.slotId = slotId;
                         GoToMenu(SaveModifyCoreMenu.instance);
                     }
-                });
+                }, MenuResources.Perpetua);
         }
     }
 }
@@ -201,7 +201,7 @@ class SaveModifyCoreMenu : CustomMenu
                 {
                     if (pd == null) return 0;
                     return pd.grimmChildLevel;
-                });
+                }, MenuResources.Perpetua);
             AddOption("HKTool.Menu.ModifySave.KingsoulState".Get(), "",
                 new string[] { "HKTool.Menu.ModifySave.KS.L0".Get(),
                     "HKTool.Menu.ModifySave.KS.L1".Get(),
@@ -344,6 +344,7 @@ class SaveModifyCoreMenu : CustomMenu
     }
     private static PlayerData pd => currentData?.playerData;
     public static SaveModifyCoreMenu instance = null;
+    public override Font titleFont => MenuResources.Perpetua;
     public static SaveGameData currentData = null;
     public static int slotId = -1;
     protected override void Back()
@@ -372,24 +373,24 @@ class SaveModifyCoreMenu : CustomMenu
                 }
                 allOptions.Refresh();
                 GoToMenu(allOptions);
-            });
+            }, MenuResources.Perpetua);
         AddButton("HKTool.Menu.ModifySave.Charms".Get(), "",
             () =>
             {
                 //charmMenu.Refresh();
                 GoToMenu(charmMenu);
-            });
+            }, MenuResources.Perpetua);
         AddButton("HKTool.Menu.ModifySave.Skills".Get(), "",
             () =>
             {
                 //skillModify.Refresh();
                 GoToMenu(skillModify);
-            });
+            }, MenuResources.Perpetua);
         AddButton("HKTool.Menu.ModifySave.Misc".Get(), "",
             () =>
             {
                 //misc.Refresh();
                 GoToMenu(misc);
-            });
+            }, MenuResources.Perpetua);
     }
 }

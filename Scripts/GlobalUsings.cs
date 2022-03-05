@@ -4,6 +4,7 @@ global using System.IO.Compression;
 global using System.Collections;
 global using System.Collections.Generic;
 global using System.Reflection;
+global using System.Reflection.Emit;
 global using System.Runtime.Serialization.Formatters.Binary;
 global using System.Runtime.CompilerServices;
 global using System.Runtime.InteropServices;
@@ -12,6 +13,7 @@ global using System.Text.RegularExpressions;
 global using System.Linq;
 global using UnityEngine;
 global using UnityEngine.UI;
+global using UnityEngine.SceneManagement;
 
 global using Newtonsoft.Json;
 global using Newtonsoft.Json.Converters;
@@ -24,6 +26,7 @@ global using Modding.Menu.Components;
 global using GlobalEnums;
 global using Language;
 
+global using HKTool;
 global using HKTool.DebugTools;
 global using HKTool.FSM;
 global using HKTool.Reflection;
@@ -35,5 +38,9 @@ global using HKTool.Attributes;
 global using HKTool.PackMod;
 
 global using MonoMod.RuntimeDetour.HookGen;
+global using MonoMod.Utils;
+
+global using HutongGames.PlayMaker;
+global using HutongGames.PlayMaker.Actions;
 
 global using UObject = UnityEngine.Object;

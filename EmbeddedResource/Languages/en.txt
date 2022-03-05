@@ -78,7 +78,7 @@ HKTool.Menu.GM.2=Steel Soul(Dead)
 HKTool.Menu.GM.GodSeeker=Godseeker Mode
 
 HKTool.LogMenu.Title=Log
-HKTool.LogMenu.RLogLabel={0}
+HKTool.LogMenu.RLogLabel=Redirect UnityLog to ModLog({0})
 
 HKTool.Menu.Bool.True=True
 HKTool.Menu.Bool.False=False
