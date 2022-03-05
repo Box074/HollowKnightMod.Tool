@@ -2,7 +2,8 @@ HKTool.Error.ModMultiInstance=A second instance of {0} was created by mistake, p
 HKTool.ErrorShow.ModMultiInstance=The mod was loaded repeatedly (current mod location: {0})
 HKTool.Error.NeedLibraryVersion=Requires version of {0} >= {1}
 HKTool.Error.NeedLibrary=Requires dependency {0}
-HKTool.Menu.ButtonLabel=HKTool Menu
+HKTool.Error.GetModInstaceBeforeLoad=Trying to get an instance of {0} before loading it
+HKTool.Menu.ButtonLabel=HKTool Options
 
 HKTool.Settings.DeveloperMode=Developer mode
 HKTool.Settings.DeveloperMode.Desc=Turn on/off developer mode, it will take effect after restarting the game
@@ -46,8 +47,8 @@ HKTool.Menu.ModifySave.SCS.S=Unbreakable
 HKTool.Menu.ModifySave.GrimmChildLevel=GrimmChild Level
 
 HKTool.Menu.ModifySave.KingsoulState=King Soul State
-HKTool.Menu.ModifySave.KS.L0=(1)
-HKTool.Menu.ModifySave.KS.L1=(2)
+HKTool.Menu.ModifySave.KS.L0=White Fragment(1)
+HKTool.Menu.ModifySave.KS.L1=White Fragment(2)
 HKTool.Menu.ModifySave.KS.L2=King Soul(3)
 HKTool.Menu.ModifySave.KS.L3=Void Heart(4)
 

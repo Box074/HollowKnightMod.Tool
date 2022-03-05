@@ -53,7 +53,7 @@ class HKToolSettingsMenu : CustomMenu
             }, () =>
             {
                 return settings.DevMode ? 1 : 0;
-            });
+            }, MenuResources.Perpetua);
         if (HKToolMod.IsDebugMode)
         {
             DebugOptions();

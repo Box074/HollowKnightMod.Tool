@@ -29,8 +29,30 @@ namespace HKTool.Utils
         }
         public static GameObject FindGameObject(this Scene scene, string name)
         {
-            return scene.ForEachGameObjects().FirstOrDefault(
-                x => x.name.Equals(name, StringComparison.Ordinal) || x.GetPath().Equals(name, StringComparison.Ordinal));
+            var p = name.Split('/');
+            if(p.Length == 1)
+            {
+                return scene.ForEachGameObjects().FirstOrDefault(
+                    x => x.name.Equals(name, StringComparison.Ordinal));
+            }
+            var c = scene.GetRootGameObjects().FirstOrDefault(
+                    x => x.name.Equals(p[0], StringComparison.Ordinal));
+            for(int i = 1; i < p.Length ; i++)
+            {
+                c = c.transform.Find(p[i])?.gameObject;
+                if(c == null) return null;
+            }
+            return c;
+        }
+        public static GameObject FindChildWithPath(this GameObject root, params string[] relativePath)
+        {
+            var c = root;
+            foreach(var v in relativePath)
+            {
+                c = c.transform.Find(v)?.gameObject;
+                if(c == null) return null;
+            }
+            return c;
         }
         public static string GetPath(this GameObject go)
         {

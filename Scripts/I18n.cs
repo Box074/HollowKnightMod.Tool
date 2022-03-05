@@ -35,7 +35,7 @@ public class I18n
         }
         return orig;
     }
-
+    public bool ChangeLanguage(SupportedLanguages lang) => ChangeLanguage((LanguageCode)lang);
     public bool ChangeLanguage(LanguageCode code)
     {
         if (Languages.TryGetValue(code, out var v))
@@ -77,9 +77,17 @@ public class I18n
         }
         return key;
     }
+    public void AddLanguage(SupportedLanguages lang, string data)
+    {
+        AddLanguage((LanguageCode)lang, data);
+    }
     public void AddLanguage(LanguageCode code, string data)
     {
         Languages[code] = data;
+    }
+    public void AddLanguage(SupportedLanguages lang, Stream stream, bool closeStream = true)
+    {
+        AddLanguage((LanguageCode)lang, stream, closeStream);
     }
     public void AddLanguage(LanguageCode code, Stream stream, bool closeStream = true)
     {
@@ -96,6 +104,14 @@ public class I18n
         {
             Languages[dst] = v;
         }
+    }
+    public void AddLanguage(SupportedLanguages src, SupportedLanguages dst)
+    {
+        AddLanguage((LanguageCode)src, (LanguageCode)dst);
+    }
+    public void UseGameLanguage(SupportedLanguages defaultCode = SupportedLanguages.EN, bool allowExternLang = false)
+    {
+        UseGameLanguage((LanguageCode)defaultCode, allowExternLang);
     }
     public void UseGameLanguage(LanguageCode defaultCode = LanguageCode.EN, bool allowExternLang = false)
     {
@@ -122,6 +138,7 @@ public class I18n
                 }
                 return;
             }
+            HKToolMod.Instance.LogWarn($"[{modName}]Missing Language: {current.ToString()}");
             ChangeLanguage(defaultCode);
         }
     }

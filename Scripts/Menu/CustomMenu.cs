@@ -59,21 +59,21 @@ public abstract class CustomMenu
         if (HasBackButton)
         {
             builder.AddControls(new SingleContentLayout(new AnchoredPosition(new Vector2(0.5f, 0.5f),
-           new Vector2(0.5f, 0.5f), new Vector2(0f, -64f))), (c) =>
-           {
-               c.AddMenuButton("BackButton", new()
-               {
-                   Label = Language.Language.Get("NAV_BACK", "MainMenu"),
-                   CancelAction = Back,
-                   SubmitAction = Back,
-                   Proceed = true,
-                   Style = MenuButtonStyle.VanillaStyle
-               }, out _backButton);
-               var bf = backButtonFont ?? MenuResources.TrajanBold;
-               var l = _backButton.flashEffect.transform.parent;
-               var lt = l.GetComponent<Text>();
-               lt.font = bf;
-           });
+            new Vector2(0.5f, 0.5f), new Vector2(0f, -64f))), (c) =>
+            {
+                c.AddMenuButton("BackButton", new()
+                {
+                    Label = Language.Language.Get("NAV_BACK", "MainMenu"),
+                    CancelAction = Back,
+                    SubmitAction = Back,
+                    Proceed = true,
+                    Style = MenuButtonStyle.VanillaStyle
+                }, out _backButton);
+                var bf = backButtonFont ?? MenuResources.TrajanBold;
+                var l = _backButton.flashEffect.transform.parent;
+                var lt = l.GetComponent<Text>();
+                lt.font = bf;
+            });
         }
         builder.AddContent(default(NullContentLayout), (c) =>
         {

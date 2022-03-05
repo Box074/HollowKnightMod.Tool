@@ -92,15 +92,15 @@ class SaveModifyCoreMenu : CustomMenu
                 () => pd == null ? false : onRefresh(), MenuResources.Perpetua);
         }
         protected void AddIntOption(string label, int minValue, int maxValue,
-         Action<int> onChange, Func<int> onRefresh)
+        Action<int> onChange, Func<int> onRefresh)
         {
-            string[] s = new string[maxValue - minValue];
-            for (int i = 0; i < maxValue - minValue; i++)
+            string[] s = new string[maxValue - minValue + 1];
+            for (int i = 0; i < maxValue - minValue + 1; i++)
             {
                 s[i] = (i + minValue).ToString();
             }
             AddOption(label, "", s, (id) => { if (pd != null) onChange(id + minValue); },
-                 () => pd != null ? (onRefresh() - minValue) : 0, MenuResources.Perpetua);
+                () => pd != null ? (onRefresh() - minValue) : 0, MenuResources.Perpetua);
         }
     }
     class AllPlayerDataModify : PlayerDataModifyBase

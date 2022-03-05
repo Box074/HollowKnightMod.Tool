@@ -17,12 +17,12 @@ public abstract class ModBase : Mod
     }
     public virtual string MenuButtonName => GetName();
     public virtual Font MenuButtonLabelFont => MenuResources.TrajanBold;
-    public virtual Version HKToolMinVersion 
+    public virtual Version HKToolMinVersion
     {
         get
         {
             var ver = GetType().Assembly.GetCustomAttribute<NeedHKToolVersionAttribute>()?.version;
-            if(ver == null) return null;
+            if (ver == null) return null;
             return Version.Parse(ver);
         }
     }
@@ -154,7 +154,7 @@ public abstract class ModBase : Mod
             System.Security.Cryptography.SHA1
                 .Create().ComputeHash(File.ReadAllBytes(GetType().Assembly.Location)))
                 .Replace("-", "").ToLowerInvariant().Substring(0, 6);
-            
+
 
         ModManager.NewMod(this);
         if (this is IDebugViewBase @base && ShowDebugView)
@@ -175,6 +175,7 @@ public abstract class ModBase : Mod
         _i18n = new Lazy<I18n>(
             () => new(GetName(), Path.GetDirectoryName(GetType().Assembly.GetRealAssembly().Location))
         );
+#pragma warning disable CS0618
         var l = Languages;
         if (l != null)
         {
@@ -193,12 +194,37 @@ public abstract class ModBase : Mod
                     LogError(e);
                 }
             }
+        }
+#pragma warning restore CS0618
+        var lex = LanguagesEx;
+        if (lex != null)
+        {
+            Assembly ass = GetType().Assembly;
+            foreach (var v in lex)
+            {
+                try
+                {
+                    using (Stream stream = EmbeddedResHelper.GetStream(ass, v.Item2))
+                    {
+                        I18n.AddLanguage(v.Item1, stream, false);
+                    }
+                }
+                catch (Exception e)
+                {
+                    LogError(e);
+                }
+            }
+        }
+        if (l is not null || lex is not null)
+        {
             I18n.UseGameLanguage(DefaultLanguageCode, true);
         }
     }
     private readonly Lazy<I18n> _i18n;
+    [Obsolete("Please override LanguagesEx instead of Languages")]
     protected virtual (Language.LanguageCode, string)[] Languages => null;
-    protected virtual Language.LanguageCode DefaultLanguageCode => Language.LanguageCode.EN;
+    protected virtual List<(SupportedLanguages, string)> LanguagesEx => null;
+    protected virtual SupportedLanguages DefaultLanguageCode => SupportedLanguages.EN;
     public virtual string GetViewName() => GetName();
     public virtual bool FullScreen => false;
 
@@ -209,10 +235,47 @@ public abstract class ModBase : Mod
 }
 public abstract class ModBase<T> : ModBase where T : ModBase<T>
 {
-    public static T Instance { get; protected set; } = null;
+    private static void PreloadModBeforeModLoader()
+    {
+        ModManager.skipMods.Add(typeof(T));
+        var type = typeof(T);
+        try
+        {
+            ConstructorInfo constructor = type.GetConstructor(new Type[0]);
+            if ((constructor?.Invoke(new object[0])) is Mod mod)
+            {
+                DebugModsLoader.AddModInstance(type, mod, false, null, mod.GetName());
+            }
+        }
+        catch (Exception e)
+        {
+            HKToolMod.logger.LogError(e);
+            DebugModsLoader.AddModInstance(type, null, false, "Construct", type.Name);
+        }
+    }
+    public static T Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = FindMod(typeof(T)) as T;
+                if (_instance == null)
+                {
+                    if (typeof(T).GetCustomAttribute<ModAllowEarlyInitializationAttribute>() is null)
+                    {
+                        throw new InvalidOperationException("HKTool.Error.GetModInstaceBeforeLoad".GetFormat(typeof(T).Name));
+                    }
+                    PreloadModBeforeModLoader();
+                }
+            }
+            return _instance;
+        }
+    }
+    private static T _instance = null;
     public ModBase(string name = null) : base(name)
     {
-        Instance = (T)this;
+        _instance = (T)this;
     }
 }
 [Obsolete]

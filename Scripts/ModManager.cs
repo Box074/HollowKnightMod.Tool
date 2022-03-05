@@ -6,9 +6,28 @@ static class ModManager
     public static List<ModBase> modsTable = new();
     public static Dictionary<Type, ModBase> instanceMap = new();
     public static List<(string, string)> modErrors = new();
-    public static ReflectionObject RModLoader = new(DebugModsLoader.TModLoader);
+    public static List<Type> skipMods = new();
+    public static ReflectionObject RModLoader => HKToolMod.RModLoader;
     static ModManager()
     {
+        ModHooks.FinishedLoadingModsHook += () =>
+        {
+            skipMods.Clear();
+            skipMods = null;
+        };
+        HookEndpointManager.Add
+        (
+            typeof(Type).GetMethod("GetConstructor", new Type[]
+            {
+                typeof(Type[])
+            }),
+            (Func<Type, Type[], ConstructorInfo> orig, Type self, Type[] types) =>
+            {
+                if(skipMods is null || !self.IsSubclassOf(typeof(ModBase))) return orig(self, types);
+                if((types?.Length ?? -1) == 0 && skipMods.Contains(self)) return null;
+                else return orig(self, types);
+            }
+        );
         HookEndpointManager.Add(
             RModLoader
                 .GetObjectType()
