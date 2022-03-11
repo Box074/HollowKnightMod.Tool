@@ -23,7 +23,7 @@ static class ModManager
             }),
             (Func<Type, Type[], ConstructorInfo> orig, Type self, Type[] types) =>
             {
-                if(skipMods is null || !self.IsSubclassOf(typeof(ModBase))) return orig(self, types);
+                if(RModLoader["Loaded"].As<bool>() || skipMods is null || !self.IsSubclassOf(typeof(ModBase))) return orig(self, types);
                 if((types?.Length ?? -1) == 0 && skipMods.Contains(self)) return null;
                 else return orig(self, types);
             }
@@ -42,9 +42,11 @@ static class ModManager
                 sb.AppendLine();
                 foreach(var v in modErrors)
                 {
+                    sb.Append("<color="+ ModHooks.GlobalSettings.ConsoleSettings.ErrorColor + ">");
                     sb.Append(v.Item1);
                     sb.Append(" : ");
-                    sb.AppendLine(v.Item2);
+                    sb.Append(v.Item2);
+                    sb.AppendLine("</color>");
                 }
                 vd.drawString = sb.ToString();
             }

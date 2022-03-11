@@ -53,6 +53,18 @@ public static class ModListMenuHelper
             }
         }
     }
+    public static void HideModMenuButton(string name)
+    {
+        TestMenuLoad();
+        FindButtonInMenuListMenu(name)?.gameObject.SetActive(false);
+        RearrangeButtons();
+    }
+    public static void ShowModMenuButton(string name)
+    {
+        TestMenuLoad();
+        FindButtonInMenuListMenu(name)?.gameObject.SetActive(true);
+        RearrangeButtons();
+    }
     private static void TestMenuLoad()
     {
         if(!modListBuildFinished) throw new InvalidOperationException("HKTool.Error.TryGetInstanceWithoutInit".GetFormat("ModListMenu"));

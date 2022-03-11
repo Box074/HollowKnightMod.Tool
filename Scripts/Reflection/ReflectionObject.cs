@@ -7,6 +7,8 @@ public class ReflectionObject
     public Type objType = null;
     public object obj = null;
     public bool HasValue => !(obj is null);
+    private Dictionary<string, Func<object>> getterCache = new();
+    private Dictionary<string, Action<object>> setterCache = new();
     public ReflectionObject(object o)
     {
         if (o is null) throw new ArgumentNullException(nameof(o));
@@ -32,14 +34,20 @@ public class ReflectionObject
 
     public T GetMemberData<T>(string name)
     {
+        if(getterCache.TryGetValue(name, out var getter))
+        {
+            return (T)getter();
+        }
         FieldInfo f = objType.GetField(name, ReflectionHelper.All);
         if (f != null)
         {
+            getterCache.Add(name, () => f.FastGet(obj));
             return (T)f.FastGet(obj);
         }
         PropertyInfo p = objType.GetProperty(name, ReflectionHelper.All);
         if (p != null)
         {
+            getterCache.Add(name, () => p.GetMethod.FastInvoke(obj, null));
             return (T)p.GetMethod.FastInvoke(obj, null);
         }
         throw new MissingMemberException(objType.FullName, name);
@@ -80,15 +88,22 @@ public class ReflectionObject
 
     public void SetMemberData(string name, object data)
     {
+        if(setterCache.TryGetValue(name, out var setter))
+        {
+            setter(data);
+            return;
+        }
         FieldInfo f = objType.GetField(name, ReflectionHelper.All);
         if (f != null)
         {
+            setterCache.Add(name, (val) => f.FastSet(obj, val));
             f.FastSet(obj, data);
             return;
         }
         PropertyInfo p = objType.GetProperty(name, ReflectionHelper.All);
         if (p != null)
         {
+            setterCache.Add(name, (val) => p.SetMethod.FastInvoke(obj, val));
             p.SetMethod.FastInvoke(obj, data);
             return;
         }

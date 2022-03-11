@@ -2,6 +2,7 @@
 namespace HKTool;
 public abstract class ModBase : Mod
 {
+    public const string compileVersion = "1.4.6.0";
     private static FsmFilter CreateFilter(FsmPatcherAttribute attr)
     {
         if (attr.useRegex)
@@ -98,7 +99,27 @@ public abstract class ModBase : Mod
     }
 
     public readonly string sha1;
-
+    protected static bool HaveAssembly(string name)
+    {
+        foreach(var v in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            if(v.GetName().Name == name) return true;
+        }
+        return false;
+    }
+    protected void CheckAssembly(string name, Version minVer)
+    {
+        foreach(var v in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            var n = v.GetName();
+            if(n.Name == name) 
+            {
+                if(n.Version < minVer) TooOldDependency(name, minVer);
+                return;
+            }
+        }
+        MissingDependency(name);
+    }
     public ModBase(string name = null) : base(name)
     {
         CheckHKToolVersion(name);
