@@ -3,6 +3,7 @@ HKTool.ErrorShow.ModMultiInstance=The mod was loaded repeatedly (current mod loc
 HKTool.Error.NeedLibraryVersion=Requires version of {0} >= {1}
 HKTool.Error.NeedLibrary=Requires dependency {0}
 HKTool.Error.GetModInstaceBeforeLoad=Trying to get an instance of {0} before loading it
+HKTool.Error.TryGetInstanceWithoutInit=Attempting to get an instance of {0} before its initialization is complete 
 HKTool.Menu.ButtonLabel=HKTool Options
 HKTool.Menu.OnlyMainMenu=Please use in the main menu 
 HKTool.Menu.RebuildMenu=Rebuild the menu

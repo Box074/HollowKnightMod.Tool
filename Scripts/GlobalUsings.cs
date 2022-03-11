@@ -45,3 +45,4 @@ global using HutongGames.PlayMaker;
 global using HutongGames.PlayMaker.Actions;
 
 global using UObject = UnityEngine.Object;
+global using HReflectionHelper = HKTool.Reflection.ReflectionHelper;

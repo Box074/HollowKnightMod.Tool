@@ -28,6 +28,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
     };
     public HKToolMod() : base("HKTool")
     {
+        ModListMenuHelper.Init();
         HKToolResourcesAPI.Init();
 
         IsDebugMode = settings.DevMode;

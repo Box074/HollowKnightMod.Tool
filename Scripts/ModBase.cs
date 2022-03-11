@@ -26,6 +26,7 @@ public abstract class ModBase : Mod
             return Version.Parse(ver);
         }
     }
+    public MenuButton ModListMenuButton { get; private set; }
     protected virtual bool ShowDebugView => true;
     private void CheckHKToolVersion(string name = null)
     {
@@ -36,68 +37,21 @@ public abstract class ModBase : Mod
             TooOldDependency("HKTool", HKToolMinVersion);
         }
     }
-    private static void ModifyModListMenu()
-    {
-        try
-        {
-            var modMenu = UIManager.instance.UICanvas.gameObject.transform.Find("ModListMenu");
-            var allButton = modMenu.gameObject.GetComponentsInChildren<MenuButton>();
-            foreach (var v in ModManager.modsTable)
-            {
-                try
-                {
-                    if (v is ICustomMenuMod)
-                    {
-                        var name = v.GetName() + "_Settings";
-                        var b = allButton.FirstOrDefault(x => x.name == name);
-                        if (b != null)
-                        {
-                            v.AfterCreateModListButton(b);
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    HKToolMod.logger.LogError(e);
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            HKToolMod.logger.LogError(e);
-        }
-    }
-    static ModBase()
-    {
-        HookEndpointManager.Add(
-            typeof(UIManager).GetMethod("add_EditMenus"),
-            (Action<Action> orig, Action action) =>
-            {
-                orig(action);
-                if (action == null) return;
-                if (action.Method.DeclaringType.FullName != "Modding.ModListMenu") return;
-                if (Modding.ReflectionHelper.GetField<UIManager, bool>(UIManager.instance,
-                    "hasCalledEditMenus"))
-                {
-                    ModifyModListMenu();
-                }
-                else
-                {
-                    HookEndpointManager.Add(
-                        action.Method,
-                        (Action<object> orig, object self) =>
-                        {
-                            orig(self);
-                            ModifyModListMenu();
-                        }
-                    );
-                }
-            }
-        );
-    }
     public override string GetVersion()
     {
         return GetType().Assembly.GetName().Version.ToString() + "-" + sha1;
+    }
+    public void HideButtonInModListMenu()
+    {
+        if(ModListMenuButton is null) throw new InvalidOperationException();
+        ModListMenuButton.gameObject.SetActive(false);
+        ModListMenuHelper.RearrangeButtons();
+    }
+    public void ShowButtonInModListMenu()
+    {
+        if(ModListMenuButton is null) throw new InvalidOperationException();
+        ModListMenuButton.gameObject.SetActive(true);
+        ModListMenuHelper.RearrangeButtons();
     }
     protected void MissingDependency(string name)
     {
@@ -149,14 +103,25 @@ public abstract class ModBase : Mod
     {
         CheckHKToolVersion(name);
         OnCheckDependencies();
+        ModManager.NewMod(this);
 
         sha1 = BitConverter.ToString(
             System.Security.Cryptography.SHA1
                 .Create().ComputeHash(File.ReadAllBytes(GetType().Assembly.Location)))
                 .Replace("-", "").ToLowerInvariant().Substring(0, 6);
+        
+        if(this is ICustomMenuMod || this is IMenuMod)
+        {
+            ModListMenuHelper.OnAfterBuildModListMenuComplete += (_) =>
+            {
+                ModListMenuButton = ModListMenuHelper.FindButtonInMenuListMenu(GetName());
+                if(ModListMenuButton is null) return;
+                ModListMenuButton.GetLabelText().text = MenuButtonName;
+                ModListMenuButton.GetLabelText().font = MenuButtonLabelFont;
+                AfterCreateModListButton(ModListMenuButton);
+            };
+        }
 
-
-        ModManager.NewMod(this);
         if (this is IDebugViewBase @base && ShowDebugView)
         {
             DebugView.debugViews.Add(@base);
@@ -219,6 +184,13 @@ public abstract class ModBase : Mod
         if (l is not null || lex is not null)
         {
             I18n.TrySwitch();
+            if(this is ICustomMenuMod || this is IMenuMod)
+            {
+                I18n.OnLanguageSwitch += () =>
+                {
+                    ModListMenuButton.GetLabelText().text = MenuButtonName;
+                };
+            }
         }
     }
     private readonly Lazy<I18n> _i18n;
@@ -279,7 +251,6 @@ public abstract class ModBase<T> : ModBase where T : ModBase<T>
         _instance = (T)this;
     }
 }
-[Obsolete]
 public abstract class ModBaseWithSettings<TGlobalSettings, TLocalSettings> : ModBase where TGlobalSettings : new()
         where TLocalSettings : new()
 {
