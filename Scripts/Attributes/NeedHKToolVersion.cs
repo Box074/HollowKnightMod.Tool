@@ -4,13 +4,14 @@ namespace HKTool.Attributes;
 [AttributeUsage(AttributeTargets.Assembly)]
 public class NeedHKToolVersionAttribute : Attribute
 {
+    [Obsolete("Please fill in Version or use NeedHKToolVersionAttribute(default)", true)]
     public NeedHKToolVersionAttribute()
     {
-        version = ModBase.compileVersion;
+
     }
-    public NeedHKToolVersionAttribute(string ver)
+    public NeedHKToolVersionAttribute(string ver = ModBase.compileVersion)
     {
         version = ver;
     }
-    public string version = "";
+    public string version = ModBase.compileVersion;
 }
