@@ -2,7 +2,7 @@
 namespace HKTool;
 public abstract class ModBase : Mod
 {
-    public const string compileVersion = "1.4.6.0";
+    public const string compileVersion = "1.4.10.0";
     private static FsmFilter CreateFilter(FsmPatcherAttribute attr)
     {
         if (attr.useRegex)
