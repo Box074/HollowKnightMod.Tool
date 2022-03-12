@@ -7,6 +7,7 @@ public static class ReflectionHelper
         | BindingFlags.Instance | BindingFlags.Static;
     public static ReflectionObject CreateReflectionObject(this object obj) => new ReflectionObject(obj);
     public static ReflectionObject CreateReflectionObject(this Type type) => new ReflectionObject(type);
+    public static ReflectionObject CreateReflectionObject(this ReflectionObject obj) => obj;
     public static Type FindType(string fullname)
     {
         foreach (var v in AppDomain.CurrentDomain.GetAssemblies())

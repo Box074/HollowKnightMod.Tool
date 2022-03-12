@@ -40,7 +40,8 @@ public abstract class ModBase : Mod
     }
     public override string GetVersion()
     {
-        return GetType().Assembly.GetName().Version.ToString() + "-" + sha1;
+        return GetType().Assembly.GetName().Version.ToString() + "-" + sha1 + 
+            (DebugManager.IsDebug(this)? "-DevMode" : "");
     }
     public void HideButtonInModListMenu()
     {
@@ -120,6 +121,11 @@ public abstract class ModBase : Mod
         }
         MissingDependency(name);
     }
+    private byte[] GetAssemblyBytes()
+    {
+        if(DebugModsLoader.assBytes.TryGetValue(GetType().Assembly.FullName, out var b)) return b;
+        return File.ReadAllBytes(GetType().Assembly.Location);
+    }
     public ModBase(string name = null) : base(name)
     {
         CheckHKToolVersion(name);
@@ -128,7 +134,7 @@ public abstract class ModBase : Mod
 
         sha1 = BitConverter.ToString(
             System.Security.Cryptography.SHA1
-                .Create().ComputeHash(File.ReadAllBytes(GetType().Assembly.Location)))
+                .Create().ComputeHash(GetAssemblyBytes()))
                 .Replace("-", "").ToLowerInvariant().Substring(0, 6);
         
         if(this is ICustomMenuMod || this is IMenuMod)

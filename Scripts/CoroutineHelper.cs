@@ -102,7 +102,7 @@ public static class CoroutineHelper
         private void CleanUp()
         {
             coroutines.RemoveAll(x => x.IsFinished
-             || (x.AttendGameObject && x.AttendGameObject == null));
+            || (x.AttendGameObject && x.AttendGameObject == null));
         }
         private void StartCor(CoroutineInfo info)
         {

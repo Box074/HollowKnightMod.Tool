@@ -6,6 +6,7 @@ namespace HKTool;
 class DebugModsLoader
 {
     public static List<Mod> DebugMods { get; } = new List<Mod>();
+    public static Dictionary<string, byte[]> assBytes = new();
     public static Type TModLoader = typeof(Mod).Assembly.GetType("Modding.ModLoader");
     public static MethodInfo MAddModInstance = TModLoader.GetMethod("AddModInstance", BindingFlags.Static | BindingFlags.NonPublic);
     public static Type TModInstance = TModLoader.GetNestedType("ModInstance");
@@ -22,7 +23,9 @@ class DebugModsLoader
         {
             AssemblyDefinition ass = AssemblyDefinition.ReadAssembly(path);
             ass.Write(stream);
-            return stream.ToArray();
+            var b = stream.ToArray();
+            assBytes.Add(ass.FullName, b);
+            return b;
         }
     }
     public static void AddModInstance(Type type, Mod mod, bool enabled, string error, string name)
