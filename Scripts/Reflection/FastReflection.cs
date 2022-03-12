@@ -12,6 +12,7 @@ static class FastReflection
     public static RD_GetField GetGetter(FieldInfo field)
     {
         if (field is null) throw new ArgumentNullException(nameof(field));
+        HKToolMod.Instance.Log(field.ToString());
         if (!fgetter.TryGetValue(field, out var getter))
         {
             DynamicMethod dm = new DynamicMethod("", MethodAttributes.Static | MethodAttributes.Public,
@@ -28,6 +29,10 @@ static class FastReflection
             else
             {
                 il.Emit(OpCodes.Ldsfld, field);
+            }
+            if(field.FieldType.IsValueType)
+            {
+                il.Emit(OpCodes.Box, field.FieldType);
             }
             il.Emit(OpCodes.Ret);
             getter = (RD_GetField)dm.CreateDelegate(typeof(RD_GetField));
@@ -50,12 +55,14 @@ static class FastReflection
             if (field.IsStatic)
             {
                 il.Emit(OpCodes.Ldarg_1);
+                if(field.FieldType.IsValueType) il.Emit(OpCodes.Unbox_Any, field.FieldType);
                 il.Emit(OpCodes.Stsfld, field);
             }
             else
             {
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldarg_1);
+                if(field.FieldType.IsValueType) il.Emit(OpCodes.Unbox_Any, field.FieldType);
                 il.Emit(OpCodes.Stfld, field);
             }
             il.Emit(OpCodes.Ret);
