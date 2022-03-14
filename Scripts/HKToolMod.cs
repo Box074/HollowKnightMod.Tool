@@ -15,7 +15,6 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
             return apiVersion ?? 0;
         }
     }
-
     public static I18n I18N => Instance.I18n;
     public static SimpleLogger unityLogger = new("UNITY");
     public static SimpleLogger logger = new("HKTool");
@@ -45,6 +44,12 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
         //I18N.AddLanguage(Language.LanguageCode.ZH, EmbeddedResHelper.GetStream(ass, "HKTool.Languages.zh-cn.txt"));
 
         //I18N.UseGameLanguage();
+
+        HookEndpointManager.Add(typeof(HeroController).GetMethod("get_instance"),
+            (Func<HeroController> _) =>
+            {
+                return HeroController.SilentInstance;
+            });
 
 
         if (settings.DevMode)
@@ -122,6 +127,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
             UnityLogStackTrace();
         }
     }
+    
     public override string MenuButtonName => "HKTool.Menu.ButtonLabel".Get();
     public override Font MenuButtonLabelFont => MenuResources.Perpetua;
     public static HKToolSettings settings = new HKToolSettings();

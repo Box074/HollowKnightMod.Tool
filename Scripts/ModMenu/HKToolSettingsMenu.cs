@@ -7,6 +7,7 @@ class HKToolSettingsMenu : CustomMenu
     public override Font titleFont => MenuResources.Perpetua;
     public static HKToolSettings settings => HKToolMod.settings;
     public MenuButton modifySaveButton;
+    public override bool DelayBuild => true;
     public HKToolSettingsMenu(MenuScreen returnScreen) : base(returnScreen, "HKTool")
     {
         SaveModifyMenu.instance = new(this);

@@ -6,7 +6,6 @@ public class ReflectionObject
 
     public Type objType = null;
     public object obj = null;
-    public bool HasValue => !(obj is null);
     private Dictionary<string, Func<object>> getterCache = new();
     private Dictionary<string, Action<object>> setterCache = new();
     public ReflectionObject(object o)
@@ -29,7 +28,8 @@ public class ReflectionObject
 
     public ReflectionObject GetMemberData(string name)
     {
-        return new ReflectionObject(GetMemberData<object>(name));
+        var r = GetMemberData<object>(name);
+        return r is null ? null : new ReflectionObject(r);
     }
 
     public T GetMemberData<T>(string name)
@@ -38,6 +38,7 @@ public class ReflectionObject
         {
             return (T)getter();
         }
+        if(objType is null) throw new InvalidOperationException();
         FieldInfo f = objType.GetField(name, ReflectionHelper.All);
         if (f != null)
         {
@@ -65,6 +66,7 @@ public class ReflectionObject
 
     private MethodInfo FindMethod(string name, params Type[] pt)
     {
+        if(objType is null) throw new InvalidOperationException();
         return objType.GetMethod(name, ReflectionHelper.All, null,
             CallingConventions.Any, pt, null) ?? throw new MissingMethodException(objType.FullName, name);
     }
@@ -93,6 +95,7 @@ public class ReflectionObject
             setter(data);
             return;
         }
+        if(objType is null) throw new InvalidOperationException();
         FieldInfo f = objType.GetField(name, ReflectionHelper.All);
         if (f != null)
         {

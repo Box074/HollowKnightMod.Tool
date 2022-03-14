@@ -1,8 +1,8 @@
 ﻿
 namespace HKTool;
-public abstract class ModBase : Mod
+public abstract class ModBase : Mod, IHKToolMod
 {
-    public const string compileVersion = "1.4.10.0";
+    public const string compileVersion = "1.5.1.0";
     private static FsmFilter CreateFilter(FsmPatcherAttribute attr)
     {
         if (attr.useRegex)
@@ -40,18 +40,18 @@ public abstract class ModBase : Mod
     }
     public override string GetVersion()
     {
-        return GetType().Assembly.GetName().Version.ToString() + "-" + sha1 + 
-            (DebugManager.IsDebug(this)? "-DevMode" : "");
+        return GetType().Assembly.GetName().Version.ToString() + "-" + sha1 +
+            (DebugManager.IsDebug(this) ? "-Dev" : "");
     }
     public void HideButtonInModListMenu()
     {
-        if(ModListMenuButton is null) throw new InvalidOperationException();
+        if (ModListMenuButton is null) throw new InvalidOperationException();
         ModListMenuButton.gameObject.SetActive(false);
         ModListMenuHelper.RearrangeButtons();
     }
     public void ShowButtonInModListMenu()
     {
-        if(ModListMenuButton is null) throw new InvalidOperationException();
+        if (ModListMenuButton is null) throw new InvalidOperationException();
         ModListMenuButton.gameObject.SetActive(true);
         ModListMenuHelper.RearrangeButtons();
     }
@@ -102,20 +102,20 @@ public abstract class ModBase : Mod
     public readonly string sha1;
     protected static bool HaveAssembly(string name)
     {
-        foreach(var v in AppDomain.CurrentDomain.GetAssemblies())
+        foreach (var v in AppDomain.CurrentDomain.GetAssemblies())
         {
-            if(v.GetName().Name == name) return true;
+            if (v.GetName().Name == name) return true;
         }
         return false;
     }
     protected void CheckAssembly(string name, Version minVer)
     {
-        foreach(var v in AppDomain.CurrentDomain.GetAssemblies())
+        foreach (var v in AppDomain.CurrentDomain.GetAssemblies())
         {
             var n = v.GetName();
-            if(n.Name == name) 
+            if (n.Name == name)
             {
-                if(n.Version < minVer) TooOldDependency(name, minVer);
+                if (n.Version < minVer) TooOldDependency(name, minVer);
                 return;
             }
         }
@@ -123,8 +123,77 @@ public abstract class ModBase : Mod
     }
     private byte[] GetAssemblyBytes()
     {
-        if(DebugModsLoader.assBytes.TryGetValue(GetType().Assembly.FullName, out var b)) return b;
+        if (DebugModsLoader.assBytes.TryGetValue(GetType().Assembly.FullName, out var b)) return b;
         return File.ReadAllBytes(GetType().Assembly.Location);
+    }
+
+    void IHKToolMod.HookInit(Dictionary<string, Dictionary<string, GameObject>> go)
+    {
+        foreach (var v in preloads)
+        {
+            if (!go.TryGetValue(v.Value.Item1, out var scene))
+            {
+                LogWarn("Missing Scene: " + v.Value.Item1);
+                continue;
+            }
+            if (!scene.TryGetValue(v.Value.Item2, out var obj))
+            {
+                LogWarn("Missing Object: " + v.Value.Item2);
+                continue;
+            }
+            try
+            {
+                v.Key.FastInvoke(this, obj);
+            }
+            catch (Exception e)
+            {
+                LogError(e);
+            }
+        }
+    }
+    private List<(string, string)> HookGetPreloads(List<(string, string)> preloads)
+    {
+        preloads = preloads ?? new();
+        foreach (var v in this.preloads) preloads.Add(v.Value);
+        return preloads;
+    }
+    private void CheckHookGetPreloads()
+    {
+        if (needHookGetPreloads)
+        {
+            var gpM = GetType().GetTypeInfo().DeclaredMethods.FirstOrDefault(x => x.Name == "GetPreloadNames"
+                && x.GetParameters().Length == 0 &&
+                x.ReturnType == typeof(List<(string, string)>));
+            if (gpM is not null)
+            {
+                HookEndpointManager.Add(
+                    gpM,
+                    (Func<ModBase, List<(string, string)>> orig, ModBase self) =>
+                    {
+                        return HookGetPreloads(orig(self));
+                    }
+                );
+            }
+            else
+            {
+                ModManager.hookGetPreloads[this] = HookGetPreloads;
+            }
+        }
+    }
+    private bool needHookGetPreloads = false;
+    private bool needHookInit = false;
+    private Dictionary<MethodInfo, (string, string)> preloads = new();
+    private void CheckPreloads()
+    {
+        var t = GetType();
+        foreach (var v in t.GetMethods(HReflectionHelper.All))
+        {
+            var p = v.GetCustomAttribute<PreloadAttribute>();
+            if (p is null) continue;
+            preloads.Add(v, (p.sceneName, p.objPath));
+            needHookInit = true;
+            needHookGetPreloads = true;
+        }
     }
     public ModBase(string name = null) : base(name)
     {
@@ -136,13 +205,13 @@ public abstract class ModBase : Mod
             System.Security.Cryptography.SHA1
                 .Create().ComputeHash(GetAssemblyBytes()))
                 .Replace("-", "").ToLowerInvariant().Substring(0, 6);
-        
-        if(this is ICustomMenuMod || this is IMenuMod)
+
+        if (this is ICustomMenuMod || this is IMenuMod)
         {
             ModListMenuHelper.OnAfterBuildModListMenuComplete += (_) =>
             {
                 ModListMenuButton = ModListMenuHelper.FindButtonInMenuListMenu(GetName());
-                if(ModListMenuButton is null) return;
+                if (ModListMenuButton is null) return;
                 ModListMenuButton.GetLabelText().text = MenuButtonName;
                 ModListMenuButton.GetLabelText().font = MenuButtonLabelFont;
                 AfterCreateModListButton(ModListMenuButton);
@@ -165,9 +234,16 @@ public abstract class ModBase : Mod
             }
         }
         _i18n = new Lazy<I18n>(
-            () =>   
-                new(GetName(), Path.GetDirectoryName(GetType().Assembly.GetRealAssembly().Location), (LanguageCode)DefaultLanguageCode)
-        );
+                    () =>
+                        new(GetName(), Path.GetDirectoryName(GetType().Assembly.GetRealAssembly().Location), (LanguageCode)DefaultLanguageCode)
+                );
+        InitI18n();
+        CheckPreloads();
+        CheckHookGetPreloads();
+    }
+    private void InitI18n()
+    {
+
 #pragma warning disable CS0618
         var l = Languages;
         if (l != null)
@@ -211,7 +287,7 @@ public abstract class ModBase : Mod
         if (l is not null || lex is not null)
         {
             I18n.TrySwitch();
-            if(this is ICustomMenuMod || this is IMenuMod)
+            if (this is ICustomMenuMod || this is IMenuMod)
             {
                 I18n.OnLanguageSwitch += () =>
                 {

@@ -3,11 +3,14 @@ namespace HKTool;
 
 static class ModManager
 {
+    public static bool modLoaded => RModLoader["Loaded"].As<bool>();
     public static List<ModBase> modsTable = new();
     public static Dictionary<Type, ModBase> instanceMap = new();
     public static List<(string, string)> modErrors = new();
     public static List<Type> skipMods = new();
     public static ReflectionObject RModLoader => HKToolMod.RModLoader;
+    public static Dictionary<Mod, Func<PreloadObject, bool>> hookInits = new();
+    public static Dictionary<Mod, Func<List<(string, string)>, List<(string, string)>>> hookGetPreloads = new();
     static ModManager()
     {
         ModHooks.FinishedLoadingModsHook += () =>
@@ -23,8 +26,8 @@ static class ModManager
             }),
             (Func<Type, Type[], ConstructorInfo> orig, Type self, Type[] types) =>
             {
-                if(RModLoader["Loaded"].As<bool>() || skipMods is null || !self.IsSubclassOf(typeof(ModBase))) return orig(self, types);
-                if((types?.Length ?? -1) == 0 && skipMods.Contains(self)) return null;
+                if (modLoaded || skipMods is null || !self.IsSubclassOf(typeof(ModBase))) return orig(self, types);
+                if ((types?.Length ?? -1) == 0 && skipMods.Contains(self)) return null;
                 else return orig(self, types);
             }
         );
@@ -35,14 +38,14 @@ static class ModManager
             (Action orig) =>
             {
                 orig();
-                if(modErrors.Count == 0) return;
+                if (modErrors.Count == 0) return;
                 var vd = RModLoader.GetMemberData<ModVersionDraw>("modVersionDraw");
                 var sb = new StringBuilder();
                 sb.AppendLine(vd.drawString);
                 sb.AppendLine();
-                foreach(var v in modErrors)
+                foreach (var v in modErrors)
                 {
-                    sb.Append("<color="+ ModHooks.GlobalSettings.ConsoleSettings.ErrorColor + ">");
+                    sb.Append("<color=" + ModHooks.GlobalSettings.ConsoleSettings.ErrorColor + ">");
                     sb.Append(v.Item1);
                     sb.Append(" : ");
                     sb.Append(v.Item2);
@@ -51,13 +54,85 @@ static class ModManager
                 vd.drawString = sb.ToString();
             }
         );
+        HookEndpointManager.Add(
+            RModLoader.GetObjectType().GetMethod("LoadMod", HReflectionHelper.All),
+                (Action<object, bool, PreloadObject> orig,
+                    object mod, bool updateVer, PreloadObject objs
+                    ) =>
+                    {
+                        if(mod is null) return;
+                        var m = mod.CreateReflectionObject();
+                        if(m["Error"]?["HasValue"]?.As<bool>() ?? false) return;
+                        var ms = m["Mod"].As<IMod>();
+                        if (ms is IHKToolMod hmod && !modLoaded)
+                        {
+                            hmod.HookInit(objs);
+                        }
+                        if (!modLoaded)
+                        {
+                            orig(mod, updateVer, objs);
+                        }
+                        if (ms is ITogglableModBase thmod)
+                        {
+                            try
+                            {
+                                thmod.OnLoad();
+                                if (!modLoaded)
+                                {
+                                    LoadModSelf(m, updateVer, objs);
+                                    return;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                m.SetMemberData("Error", 
+                                    Activator.CreateInstance(DebugModsLoader.TErrorC, 
+                                    Enum.Parse(DebugModsLoader.TModErrorState, "Initialize")));
+                                HKToolMod.logger.LogError(e);
+                            }
+
+                        }
+                        else if(modLoaded)
+                        {
+                            orig(mod, updateVer, objs);
+                        }
+                    }
+        );
+        HookEndpointManager.Add(
+            typeof(Mod).GetMethod("GetPreloadNames"),
+            (Func<Mod, List<(string, string)>> orig, Mod self) =>
+            {
+                var list = orig(self);
+                if (!hookGetPreloads.TryGetValue(self, out var mod)) return list;
+                if (list is null) list = new();
+                list = mod.Invoke(list);
+                return list;
+            }
+        );
+    }
+    private static void LoadModSelf(ReflectionObject modInst, bool updateModText, PreloadObject objs)
+    {
+
+        if (modInst != null && !modInst["Enabled"].As<bool>())
+        {
+            var err = modInst["Error"];
+            if (!err["HasValue"].As<bool>())
+            {
+                modInst.SetMemberData("Enabled", true);
+            }
+        }
+
+        if (updateModText)
+        {
+            RModLoader.InvokeMethod("UpdateModText");
+        }
     }
     public static void NewMod(ModBase mod, string name = null)
     {
-        if(mod is null) return;
-        if(modsTable.Contains(mod)) return;
+        if (mod is null) return;
+        if (modsTable.Contains(mod)) return;
 
-        if(instanceMap.ContainsKey(mod.GetType()))
+        if (instanceMap.ContainsKey(mod.GetType()))
         {
             var err = "HKTool.Error.ModMultiInstance"
                 .GetFormat(name ?? mod.GetType().Name, mod.GetType().Assembly.Location);
@@ -69,13 +144,13 @@ static class ModManager
 
         instanceMap.Add(mod.GetType(), mod);
         modsTable.Add(mod);
-        foreach(var v in mod.GetType().Assembly.GetTypes())
+        foreach (var v in mod.GetType().Assembly.GetTypes())
         {
-            if(v.GetCustomAttribute<AttachHeroControllerAttribute>() is not null)
+            if (v.GetCustomAttribute<AttachHeroControllerAttribute>() is not null)
             {
                 HookManager.attachHeroController.Add(v);
             }
-            if(v.GetCustomAttribute<AttachHealthManagerAttribute>() is not null)
+            if (v.GetCustomAttribute<AttachHealthManagerAttribute>() is not null)
             {
                 HookManager.attachHealthManager.Add(v);
             }

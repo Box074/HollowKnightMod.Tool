@@ -6,6 +6,7 @@ class LogMenu : CustomMenu
     public override Font titleFont => MenuResources.Perpetua;
     public static HKToolSettings settings => HKToolMod.settings;
     public static LogMenu instance = null;
+    public override bool DelayBuild => true;
     public LogMenu(MenuScreen rs) : base(rs)
     {
 

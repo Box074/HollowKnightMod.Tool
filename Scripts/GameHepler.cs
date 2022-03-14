@@ -19,7 +19,7 @@ public static class GameHelper
         IEnumerable<HealthManager> enemies = UObject.FindObjectsOfType<HealthManager>(true);
         if(ignoreDead)
         {
-            enemies = enemies.Where(x=> (!x.isDead) && (x.hp > 0));
+            enemies = enemies.Where(x => (!x.isDead) && (x.hp > 0));
         }
         if(needCollider)
         {

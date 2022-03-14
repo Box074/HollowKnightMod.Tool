@@ -82,6 +82,7 @@ class SaveModifyCoreMenu : CustomMenu
 {
     abstract class PlayerDataModifyBase : CustomMenu
     {
+        public override bool DelayBuild => true;
         public override Font titleFont => MenuResources.Perpetua;
         public PlayerDataModifyBase(MenuScreen rs) : base(rs)
         {
@@ -350,6 +351,7 @@ class SaveModifyCoreMenu : CustomMenu
     public override Font titleFont => MenuResources.Perpetua;
     public static SaveGameData currentData = null;
     public static int slotId = -1;
+    public override bool DelayBuild => true;
     protected override void Back()
     {
         if (HasGameSaveData())

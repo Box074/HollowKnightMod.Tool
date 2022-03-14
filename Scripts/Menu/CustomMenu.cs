@@ -16,7 +16,20 @@ public abstract class CustomMenu : BindI18n
                     if (v.menuScreen != menu) continue;
                     try
                     {
-                        if (v.autoRefresh)
+                        if (v.DelayBuild && !v.IsBuilt)
+                        {
+                            try
+                            {
+                                I18n.BeginBind(v);
+                                v.Rebuild();
+                                v.Refresh();
+                            }
+                            finally
+                            {
+                                I18n.EndBind(v);
+                            }
+                        }
+                        else if (v.autoRefresh)
                         {
                             v.Refresh();
                         }
@@ -24,7 +37,7 @@ public abstract class CustomMenu : BindI18n
                     }
                     catch (Exception e2)
                     {
-                        Modding.Logger.LogError(e2);
+                        HKToolMod.logger.LogError(e2);
                     }
                 }
             }
@@ -35,8 +48,9 @@ public abstract class CustomMenu : BindI18n
             return orig(self, menu);
         };
     }
-    public virtual bool RebuildOnSwitchLanguage { get; } = true;
-
+    public virtual bool RebuildOnSwitchLanguage => true;
+    public virtual bool DelayBuild => false;
+    public bool IsBuilt { get; private set; } = false;
     public MenuScreen returnScreen { get; private set; }
     private string _title;
     public virtual string title => _title;
@@ -97,6 +111,7 @@ public abstract class CustomMenu : BindI18n
                             new RelLength((layout.Index == 0 ? 1 : layout.Index) * 105)),
                         new AnchoredPosition(new Vector2(0.5f, 1f),
                         new Vector2(0.5f, 1f), default(Vector2))).Apply(scrollPaneRt);
+                    IsBuilt = true;
                 }
                 finally
                 {
@@ -142,14 +157,18 @@ public abstract class CustomMenu : BindI18n
         }
         builder.AddContent(default(NullContentLayout), (c) =>
         {
-            try
+            if (!DelayBuild)
             {
-                I18n.BeginBind(this);
-                DoBuild(c);
-            }
-            finally
-            {
-                I18n.EndBind(this);
+                try
+                {
+                    I18n.BeginBind(this);
+                    DoBuild(c);
+                    Refresh();
+                }
+                finally
+                {
+                    I18n.EndBind(this);
+                }
             }
         });
         builder.Build();
