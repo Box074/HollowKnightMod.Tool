@@ -12,7 +12,6 @@ static class FastReflection
     public static RD_GetField GetGetter(FieldInfo field)
     {
         if (field is null) throw new ArgumentNullException(nameof(field));
-        HKToolMod.Instance.Log(field.ToString());
         if (!fgetter.TryGetValue(field, out var getter))
         {
             DynamicMethod dm = new DynamicMethod("", MethodAttributes.Static | MethodAttributes.Public,

@@ -313,13 +313,14 @@ public abstract class ModBase<T> : ModBase where T : ModBase<T>
 {
     private static void PreloadModBeforeModLoader()
     {
-        ModManager.skipMods.Add(typeof(T));
+        
         var type = typeof(T);
         try
         {
             ConstructorInfo constructor = type.GetConstructor(new Type[0]);
             if ((constructor?.Invoke(new object[0])) is Mod mod)
             {
+                ModManager.skipMods.Add(typeof(T));
                 DebugModsLoader.AddModInstance(type, mod, false, null, mod.GetName());
             }
         }
