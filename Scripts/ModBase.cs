@@ -123,7 +123,6 @@ public abstract class ModBase : Mod, IHKToolMod
     }
     private byte[] GetAssemblyBytes()
     {
-        if (DebugModsLoader.assBytes.TryGetValue(GetType().Assembly.FullName, out var b)) return b;
         return File.ReadAllBytes(GetType().Assembly.Location);
     }
 
@@ -235,7 +234,7 @@ public abstract class ModBase : Mod, IHKToolMod
         }
         _i18n = new Lazy<I18n>(
                     () =>
-                        new(GetName(), Path.GetDirectoryName(GetType().Assembly.GetRealAssembly().Location), (LanguageCode)DefaultLanguageCode)
+                        new(GetName(), Path.GetDirectoryName(GetType().Assembly.Location), (LanguageCode)DefaultLanguageCode)
                 );
         InitI18n();
         CheckPreloads();
@@ -339,7 +338,7 @@ public abstract class ModBase<T> : ModBase where T : ModBase<T>
                 _instance = FindMod(typeof(T)) as T;
                 if (_instance == null)
                 {
-                    if (typeof(T).GetCustomAttribute<ModAllowEarlyInitializationAttribute>() is null)
+                    if (!typeof(T).IsDefined(typeof(ModAllowEarlyInitializationAttribute)))
                     {
                         throw new InvalidOperationException("HKTool.Error.GetModInstaceBeforeLoad".GetFormat(typeof(T).Name));
                     }

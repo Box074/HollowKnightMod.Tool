@@ -14,6 +14,16 @@ class LogMenu : CustomMenu
     public override string title => "HKTool.LogMenu.Title".Get();
     protected override void Build(ContentArea contentArea)
     {
+        AddOption("HKTool.LogMenu.MAPILogLevel".Get(), "", Enum.GetNames(typeof(Modding.LogLevel)),
+            (val) =>
+            {
+                ModHooks.GlobalSettings.LoggingLevel = (Modding.LogLevel)val;
+                typeof(Modding.Logger).CreateReflectionObject().SetMemberData("_logLevel", (Modding.LogLevel)val);
+            },
+            () =>
+            {
+                return (int)ModHooks.GlobalSettings.LoggingLevel;
+            }, MenuResources.Perpetua);
         for (int i = 0; i < 5; i++)
         {
             int id = i;

@@ -21,7 +21,7 @@ public static class EmbeddedResHelper
         {
             if(stream == null) throw new FileNotFoundException($"\"{name}\" in {ass.FullName}");
             byte[] data = null;
-            if (ass.GetCustomAttribute<EmbeddedResourceCompressionAttribute>() != null)
+            if (ass.IsDefined(typeof(EmbeddedResourceCompressionAttribute)))
             {
                 data = LoadCompression(stream);
             }

@@ -83,6 +83,7 @@ HKTool.Menu.GM.GodSeeker=Godseeker Mode
 
 HKTool.LogMenu.Title=Log
 HKTool.LogMenu.RLogLabel=Redirect UnityLog to ModLog({0})
+HKTool.LogMenu.MAPILogLevel=MAPI logging output level
 
 HKTool.Menu.Bool.True=True
 HKTool.Menu.Bool.False=False

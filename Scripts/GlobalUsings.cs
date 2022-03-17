@@ -36,7 +36,6 @@ global using HKTool.SpecialBehaviour;
 global using HKTool.Utils;
 global using HKTool.Unity;
 global using HKTool.Attributes;
-global using HKTool.PackMod;
 global using HKTool.Runtime;
 
 global using MonoMod.Cil;

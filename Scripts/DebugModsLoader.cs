@@ -6,7 +6,7 @@ namespace HKTool;
 class DebugModsLoader
 {
     public static List<Mod> DebugMods { get; } = new List<Mod>();
-    public static Dictionary<string, byte[]> assBytes = new();
+    public static Dictionary<string, string> locationMap = new();
     public static Type TModLoader = typeof(Mod).Assembly.GetType("Modding.ModLoader");
     public static MethodInfo MAddModInstance = TModLoader.GetMethod("AddModInstance", BindingFlags.Static | BindingFlags.NonPublic);
     public static Type TModInstance = TModLoader.GetNestedType("ModInstance");
@@ -16,7 +16,15 @@ class DebugModsLoader
     public static FieldInfo IMI_Enabled = TModInstance.GetField("Enabled", BindingFlags.Public | BindingFlags.Instance);
     public static Type TModErrorState = TModLoader.GetNestedType("ModErrorState");
     public static Type TErrorC = typeof(Nullable<>).MakeGenericType(TModErrorState);
-
+    static DebugModsLoader()
+    {
+        HookEndpointManager.Add(typeof(Assembly).GetMethod("get_Location"),
+            (Func<Assembly, string> orig, Assembly self) =>
+            {
+                if(locationMap.TryGetValue(self.FullName, out var p)) return p;
+                return orig(self);
+            });
+    }
     private static byte[] ModifyAssembly(string path)
     {
         using (MemoryStream stream = new MemoryStream())
@@ -24,7 +32,7 @@ class DebugModsLoader
             AssemblyDefinition ass = AssemblyDefinition.ReadAssembly(path);
             ass.Write(stream);
             var b = stream.ToArray();
-            assBytes.Add(ass.FullName, b);
+            locationMap.Add(ass.FullName, path);
             return b;
         }
     }
