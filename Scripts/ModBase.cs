@@ -180,7 +180,6 @@ public abstract class ModBase : Mod, IHKToolMod
         }
     }
     private bool needHookGetPreloads = false;
-    private bool needHookInit = false;
     private Dictionary<MethodInfo, (string, string)> preloads = new();
     private void CheckPreloads()
     {
@@ -190,7 +189,6 @@ public abstract class ModBase : Mod, IHKToolMod
             var p = v.GetCustomAttribute<PreloadAttribute>();
             if (p is null) continue;
             preloads.Add(v, (p.sceneName, p.objPath));
-            needHookInit = true;
             needHookGetPreloads = true;
         }
     }
@@ -320,13 +318,27 @@ public abstract class ModBase<T> : ModBase where T : ModBase<T>
             if ((constructor?.Invoke(new object[0])) is Mod mod)
             {
                 ModManager.skipMods.Add(typeof(T));
-                DebugModsLoader.AddModInstance(type, mod, false, null, mod.GetName());
+                ModLoaderHelper.AddModInstance(type, new()
+                {
+                    Mod = mod,
+                    Enabled = false,
+                    Error = null,
+                    Name = mod.GetName()
+                });
+                //ModLoaderHelper.AddModInstance(type, mod, false, null, mod.GetName());
             }
         }
         catch (Exception e)
         {
             HKToolMod.logger.LogError(e);
-            DebugModsLoader.AddModInstance(type, null, false, "Construct", type.Name);
+            ModLoaderHelper.AddModInstance(type, new()
+            {
+                Mod = null,
+                Enabled = false,
+                Error = ModErrorState.Construct,
+                Name = type.Name
+            });
+            //ModLoaderHelper.AddModInstance(type, null, false, "Construct", type.Name);
         }
     }
     public static T Instance

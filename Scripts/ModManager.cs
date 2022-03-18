@@ -3,12 +3,12 @@ namespace HKTool;
 
 static class ModManager
 {
-    public static bool modLoaded => RModLoader["Loaded"].As<bool>();
+    public static bool modLoaded => ModLoaderHelper.modLoadState.HasFlag(ModLoadState.Loaded);
     public static List<ModBase> modsTable = new();
     public static Dictionary<Type, ModBase> instanceMap = new();
     public static List<(string, string)> modErrors = new();
     public static List<Type> skipMods = new();
-    public static ReflectionObject RModLoader => HKToolMod.RModLoader;
+    public static ReflectionObject RModLoader => ModLoaderHelper.RModLoader;
     public static Dictionary<Mod, Func<PreloadObject, bool>> hookInits = new();
     public static Dictionary<Mod, Func<List<(string, string)>, List<(string, string)>>> hookGetPreloads = new();
     static ModManager()
@@ -61,9 +61,9 @@ static class ModManager
                     ) =>
                     {
                         if(mod is null) return;
-                        var m = mod.CreateReflectionObject();
-                        if(m["Error"]?["HasValue"]?.As<bool>() ?? false) return;
-                        var ms = m["Mod"].As<IMod>();
+                        var mi = new ModInstance(mod);
+                        if(mi.Error.HasValue) return;
+                        var ms = mi.Mod;
                         if (ms is IHKToolMod hmod && !modLoaded)
                         {
                             hmod.HookInit(objs);
@@ -79,15 +79,14 @@ static class ModManager
                                 thmod.OnLoad();
                                 if (!modLoaded)
                                 {
-                                    LoadModSelf(m, updateVer, objs);
+                                    LoadModSelf(mi, updateVer, objs);
                                     return;
                                 }
                             }
                             catch (Exception e)
                             {
-                                m.SetMemberData("Error", 
-                                    Activator.CreateInstance(DebugModsLoader.TErrorC, 
-                                    Enum.Parse(DebugModsLoader.TModErrorState, "Initialize")));
+                                mi.Error = ModErrorState.Initialize;
+                                mi.Write();
                                 HKToolMod.logger.LogError(e);
                             }
 
@@ -110,15 +109,15 @@ static class ModManager
             }
         );
     }
-    private static void LoadModSelf(ReflectionObject modInst, bool updateModText, PreloadObject objs)
+    private static void LoadModSelf(ModInstance modInst, bool updateModText, PreloadObject objs)
     {
 
-        if (modInst != null && !modInst["Enabled"].As<bool>())
+        if (modInst is not null && modInst.Enabled)
         {
-            var err = modInst["Error"];
-            if (!err["HasValue"].As<bool>())
+            if (!modInst.Error.HasValue)
             {
-                modInst.SetMemberData("Enabled", true);
+                modInst.Enabled = true;
+                modInst.Write();
             }
         }
 

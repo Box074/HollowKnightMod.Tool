@@ -19,7 +19,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
     public static SimpleLogger unityLogger = new("UNITY");
     public static SimpleLogger logger = new("HKTool");
     public static bool IsDebugMode { get; private set; }
-    public static ReflectionObject RModLoader = new(HKTool.Reflection.ReflectionHelper.FindType("Modding.ModLoader"));
+    public static ReflectionObject RModLoader => ModLoaderHelper.RModLoader;
     protected override List<(SupportedLanguages, string)> LanguagesEx => new()
     {
         (SupportedLanguages.EN, "HKTool.Languages.en.txt"),
