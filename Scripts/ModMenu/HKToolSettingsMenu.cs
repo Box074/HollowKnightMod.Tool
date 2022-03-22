@@ -65,7 +65,7 @@ class HKToolSettingsMenu : CustomMenu
                     }
                     catch(Exception e)
                     {
-                        HKToolMod.Instance.LogError(e);
+                        HKToolMod.logger.LogError(e);
                     }
                     Back();
                 }
@@ -100,7 +100,7 @@ class HKToolSettingsMenu : CustomMenu
                     }
                     catch(Exception e)
                     {
-                        HKToolMod.Instance.LogError(e);
+                        HKToolMod.logger.LogError(e);
                     }
                     Back();
                 }

@@ -25,8 +25,8 @@ public static class ModLoaderHelper
     public static bool HasModLoadState => _hasModLoadState.Value;
     public readonly static ReflectionObject RModLoader = new(HKTool.Reflection.ReflectionHelper.FindType("Modding.ModLoader"));
     public static Type TModLoader = HKTool.Reflection.ReflectionHelper.FindType("Modding.ModLoader");
-    public static MethodInfo MAddModInstance = TModLoader.GetMethod("AddModInstance", BindingFlags.Static | BindingFlags.NonPublic);
-    
+    public static MethodInfo MAddModInstance = 
+        TModLoader.GetMethod("TryAddModInstance", HReflectionHelper.All) ?? TModLoader.GetMethod("AddModInstance", HReflectionHelper.All);
     public static void AddModInstance(Type type, ModInstance mi)
     {
         if(modLoadState.HasFlag(ModLoadState.Loaded)) throw new InvalidOperationException();

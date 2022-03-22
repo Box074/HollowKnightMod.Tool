@@ -132,11 +132,13 @@ public abstract class ModBase : Mod, IHKToolMod
         {
             if (!go.TryGetValue(v.Value.Item1, out var scene))
             {
+                if(v.Value.Item3) throw new MissingPreloadObjectException();
                 LogWarn("Missing Scene: " + v.Value.Item1);
                 continue;
             }
             if (!scene.TryGetValue(v.Value.Item2, out var obj))
             {
+                if(v.Value.Item3) throw new MissingPreloadObjectException();
                 LogWarn("Missing Object: " + v.Value.Item2);
                 continue;
             }
@@ -153,7 +155,7 @@ public abstract class ModBase : Mod, IHKToolMod
     private List<(string, string)> HookGetPreloads(List<(string, string)> preloads)
     {
         preloads = preloads ?? new();
-        foreach (var v in this.preloads) preloads.Add(v.Value);
+        foreach (var v in this.preloads) preloads.Add((v.Value.Item1, v.Value.Item2));
         return preloads;
     }
     private void CheckHookGetPreloads()
@@ -180,7 +182,7 @@ public abstract class ModBase : Mod, IHKToolMod
         }
     }
     private bool needHookGetPreloads = false;
-    private Dictionary<MethodInfo, (string, string)> preloads = new();
+    private Dictionary<MethodInfo, (string, string, bool)> preloads = new();
     private void CheckPreloads()
     {
         var t = GetType();
@@ -188,7 +190,7 @@ public abstract class ModBase : Mod, IHKToolMod
         {
             var p = v.GetCustomAttribute<PreloadAttribute>();
             if (p is null) continue;
-            preloads.Add(v, (p.sceneName, p.objPath));
+            preloads.Add(v, (p.sceneName, p.objPath, p.throwExceptionOnMissing));
             needHookGetPreloads = true;
         }
     }
@@ -308,9 +310,10 @@ public abstract class ModBase : Mod, IHKToolMod
 }
 public abstract class ModBase<T> : ModBase where T : ModBase<T>
 {
+    private static bool isTryLoad = false;
     private static void PreloadModBeforeModLoader()
     {
-        
+        isTryLoad = true;
         var type = typeof(T);
         try
         {
@@ -350,7 +353,7 @@ public abstract class ModBase<T> : ModBase where T : ModBase<T>
                 _instance = FindMod(typeof(T)) as T;
                 if (_instance == null)
                 {
-                    if (!typeof(T).IsDefined(typeof(ModAllowEarlyInitializationAttribute)))
+                    if (!typeof(T).IsDefined(typeof(ModAllowEarlyInitializationAttribute)) || isTryLoad)
                     {
                         throw new InvalidOperationException("HKTool.Error.GetModInstaceBeforeLoad".GetFormat(typeof(T).Name));
                     }

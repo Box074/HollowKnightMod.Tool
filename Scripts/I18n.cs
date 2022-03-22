@@ -64,7 +64,7 @@ public class I18n
                 var n = l2.Substring(0, s);
                 var val = l2.Substring(s + 1).Replace("\\n", "\n");
                 Current.Add(n, val);
-                HKToolMod.Instance.LogFine($"I18n: {n} = {val}");
+                HKToolMod.logger.LogFine($"I18n: {n} = {val}");
             }
             CurrentCode = code;
             if (OnLanguageSwitch is not null)
@@ -77,7 +77,7 @@ public class I18n
                     }
                     catch (Exception e)
                     {
-                        HKToolMod.Instance.LogError(e);
+                        HKToolMod.logger.LogError(e);
                     }
                 }
             }
@@ -173,12 +173,12 @@ public class I18n
                 }
                 else
                 {
-                    HKToolMod.Instance.LogWarn($"[{modName}]Missing Language: {current.ToString()}");
+                    HKToolMod.logger.LogWarn($"[{modName}]Missing Language: {current.ToString()}");
                     ChangeLanguage(dcode);
                 }
                 return;
             }
-            HKToolMod.Instance.LogWarn($"[{modName}]Missing Language: {current.ToString()}");
+            HKToolMod.logger.LogWarn($"[{modName}]Missing Language: {current.ToString()}");
             ChangeLanguage(dcode);
         }
     }

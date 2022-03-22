@@ -48,7 +48,7 @@ public static class ModListMenuHelper
                 }
                 catch(Exception e)
                 {
-                    HKToolMod.Instance.LogError(e);
+                    HKToolMod.logger.LogError(e);
                 }
             }
         }

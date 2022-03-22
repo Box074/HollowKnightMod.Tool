@@ -4,6 +4,7 @@ HKTool.Error.NeedLibraryVersion=Requires version of {0} >= {1}
 HKTool.Error.NeedLibrary=Requires dependency {0}
 HKTool.Error.GetModInstaceBeforeLoad=Trying to get an instance of {0} before loading it
 HKTool.Error.TryGetInstanceWithoutInit=Attempting to get an instance of {0} before its initialization is complete 
+HKTool.MissingPreloadObjectException=Preload object not found ("{0}", "{1}")
 HKTool.Menu.ButtonLabel=HKTool Options
 HKTool.Menu.OnlyMainMenu=Please use in the main menu 
 HKTool.Menu.RebuildMenu=Rebuild the menu
