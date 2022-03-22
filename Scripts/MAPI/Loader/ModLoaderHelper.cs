@@ -9,7 +9,7 @@ public static class ModLoaderHelper
         {
             if(HasModLoadState)
             {
-                return (ModLoadState)((IConvertible)RModLoader["LoadState"]).ToInt32(null);
+                return (ModLoadState)(RModLoader["LoadState"].As<IConvertible>()).ToInt32(null);
             }
             else
             {
