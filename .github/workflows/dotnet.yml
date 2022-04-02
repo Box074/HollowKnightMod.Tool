@@ -8,7 +8,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags')
     steps:
     - run: |
-        wget https://github.com/HKLab/HKToolUtils/releases/download/v1.1.0.0/net5.zip -O HKToolUtils.zip
+        wget https://github.com/HKLab/HKToolUtils/releases/latest/download/net5.zip -O HKToolUtils.zip
         unzip -o HKToolUtils.zip -d HKToolUtils
     - name: Upload files
       uses: actions/upload-artifact@v2
@@ -32,31 +32,11 @@ jobs:
         path: ./
     - name: Build
       run: |
-        dotnet ./HKToolUtils/HKToolUtils.dll build .
-    - name: Create Release Info
-      run: |
-        Get-FileHash -Algorithm SHA256 .\Output\HKTool.dll > .\Info.txt
+        dotnet ./HKToolUtils/HKToolUtils.zip buildInGithub . > .\Info.txt
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
         body_path: Info.txt
         files: |
-          ./Output/HKTool.dll
-    - name: Clone
-      run: |
-        git clone https://github.com/HKLab/HKToolLibraries.git
-    - name: Commit
-      run: |
-        copy .\Output\HKTool.dll -Destination .\HKToolLibraries\HKTool.dll
-        cd HKToolLibraries
-        git config --local user.email "60681033+HKLab@users.noreply.github.com"
-        git config --local user.name "HKLab"
-        git add .
-        git commit -m "Update HKTool"
-    - name: Push changes
-      uses: ad-m/github-push-action@v0.6.0
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        repository: HKLab\HKToolLibraries
-        
-        
+          ./Output/HKTool.zip
+
