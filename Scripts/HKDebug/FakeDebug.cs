@@ -30,13 +30,13 @@ public static class FakeDebug
         public float duration = 0;
         public bool use = false;
         public bool keepFixed = false;
-        public DebugLineRenderer renderer = null;
+        public DebugLineRenderer? renderer = null;
     }
     class DebugLineRenderer : MonoBehaviour
     {
 
-        LineRenderer lr = null;
-        LineData data = null;
+        LineRenderer? lr = null;
+        LineData? data = null;
         public void Init(LineData data)
         {
             this.data = data;
@@ -137,7 +137,7 @@ public static class FakeDebug
         {
             foreach (var v in lines.Where(x => x.renderer != null && !x.renderer.enabled))
             {
-                UnityEngine.Object.Destroy(v.renderer.gameObject);
+                UnityEngine.Object.Destroy(v.renderer?.gameObject);
                 v.renderer = null;
             }
             lines.RemoveAll(x => x.renderer == null);

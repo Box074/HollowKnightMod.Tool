@@ -6,12 +6,12 @@ class HKToolSettingsMenu : CustomMenu
     public static bool init = false;
     public override Font titleFont => MenuResources.Perpetua;
     public static HKToolSettings settings => HKToolMod.settings;
-    public MenuButton modifySaveButton;
+    public MenuButton? modifySaveButton;
     public override bool DelayBuild => true;
     public HKToolSettingsMenu(MenuScreen returnScreen) : base(returnScreen, "HKTool")
     {
-        SaveModifyMenu.instance = new(this);
         LogMenu.instance = new(this);
+        TestMenu.instance = new(this);
     }
     protected override void OnEnterMenu()
     {
@@ -34,14 +34,6 @@ class HKToolSettingsMenu : CustomMenu
                 DebugTools.DebugView.IsEnable = !DebugTools.DebugView.IsEnable;
             }, MenuResources.Perpetua);
 
-        modifySaveButton = AddButton("HKTool.Menu.ModifySaveTitle".Get(), "",
-        () =>
-        {
-            if (SaveModifyMenu.instance != null)
-            {
-                GoToMenu(SaveModifyMenu.instance);
-            }
-        }, MenuResources.Perpetua);
         AddButton("HKTool.LogMenu.Title".Get(), "",
         () => 
         {
@@ -104,6 +96,11 @@ class HKToolSettingsMenu : CustomMenu
                     }
                     Back();
                 }
+            }, MenuResources.Perpetua);
+        AddButton("Test Options", "",
+            () =>
+            {
+                if(TestMenu.instance is not null) GoToMenu(TestMenu.instance);
             }, MenuResources.Perpetua);
         if (HKToolMod.IsDebugMode)
         {

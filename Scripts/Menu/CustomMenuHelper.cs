@@ -3,21 +3,21 @@ namespace HKTool.Menu;
 
 public static class CutomMenuHelper
 {
-    public static Text GetLabelText(this MenuButton button)
+    public static Text? GetLabelText(this MenuButton button)
     {
         var l = button.flashEffect.transform.parent;
         return l?.GetComponent<Text>();
     }
-    public static Text GetLabelText(this MenuOptionHorizontal option)
+    public static Text? GetLabelText(this MenuOptionHorizontal option)
     {
         var l = option.optionText.transform.parent.Find("Label");
         return l?.GetComponent<Text>();
     }
-    public static Text GetDescriptionText(this MenuSelectable button)
+    public static Text? GetDescriptionText(this MenuSelectable button)
     {
         return button.descriptionText?.GetComponent<Text>();
     }
-    public static void SetInteractable(this MenuButton element, bool interactable, string desc = "")
+    public static void SetInteractable(this MenuButton element, bool interactable, string? desc = "")
     {
         var last = element.interactable;
         element.interactable = interactable;

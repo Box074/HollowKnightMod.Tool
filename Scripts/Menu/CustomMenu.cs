@@ -3,6 +3,8 @@ namespace HKTool.Menu;
 
 public abstract class CustomMenu : BindI18n
 {
+    public static Font FontPerpetua => MenuResources.Perpetua;
+    public static Font FontTrajanBold => MenuResources.TrajanBold;
     internal readonly static List<CustomMenu> menus = new();
     static CustomMenu()
     {
@@ -52,19 +54,19 @@ public abstract class CustomMenu : BindI18n
     public virtual bool DelayBuild => false;
     public bool IsBuilt { get; private set; } = false;
     public MenuScreen returnScreen { get; private set; }
-    private string _title;
+    private string _title = "";
     public virtual string title => _title;
     public MenuScreen menuScreen { get; private set; }
-    protected ContentArea content { get; private set; }
-    public virtual Font titleFont => MenuResources.TrajanBold;
-    public virtual Font backButtonFont => MenuResources.TrajanBold;
+    protected ContentArea? content { get; private set; }
+    public virtual Font titleFont => FontTrajanBold;
+    public virtual Font backButtonFont => FontTrajanBold;
     public virtual bool HasBackButton => true;
     [Obsolete]
     public virtual int itemCount { get; } = 1;
-    public MenuButton backButton => _backButton;
+    public MenuButton? backButton => _backButton;
     public Text titleText { get; private set; }
     public bool autoRefresh { get; set; } = false;
-    private MenuButton _backButton;
+    private MenuButton? _backButton;
     private
     protected readonly List<MenuSetting> needRefresh = new();
     protected virtual void OnEnterMenu()
@@ -122,7 +124,8 @@ public abstract class CustomMenu : BindI18n
         titleText.font = titleFont ?? MenuResources.TrajanBold;
         if (HasBackButton)
         {
-            backButton.GetLabelText().text = Language.Language.Get("NAV_BACK", "MainMenu");
+            var labelT = backButton?.GetLabelText();
+            if(labelT is not null) labelT.text = Language.Language.Get("NAV_BACK", "MainMenu");
         }
     }
     protected CustomMenu(MenuScreen returnScreen)
@@ -184,11 +187,11 @@ public abstract class CustomMenu : BindI18n
     {
         _title = title;
     }
-    protected MenuButton AddButton(string label, string desc, Action onSubmit, Font font = null)
+    protected MenuButton AddButton(string label, string desc, Action onSubmit, Font? font = null)
     {
         return AddButton(label, desc, (_) => onSubmit(), font);
     }
-    protected MenuButton AddButton(string label, string desc, Action<MenuButton> onSubmit, Font font = null)
+    protected MenuButton AddButton(string label, string desc, Action<MenuButton> onSubmit, Font? font = null)
     {
         content.AddMenuButton(label, new MenuButtonConfig()
         {
@@ -227,7 +230,7 @@ public abstract class CustomMenu : BindI18n
         needRefresh.Add(menuSetting);
     }
     protected MenuOptionHorizontal AddOption(string label, string desc, string[] values,
-        Action<MenuSetting, int> onChange, Func<MenuSetting, int> onRefresh, Font font = default)
+        Action<MenuSetting, int> onChange, Func<MenuSetting, int> onRefresh, Font? font = default)
     {
         content.AddHorizontalOption(label, new HorizontalOptionConfig()
         {
@@ -259,20 +262,20 @@ public abstract class CustomMenu : BindI18n
         AddRefreshableComponent(option.menuSetting);
         return option;
     }
-    protected void AddBoolOption(string label, string desc, Action<bool> onChange, Func<bool> onRefresh, Font font = default)
+    protected void AddBoolOption(string label, string desc, Action<bool> onChange, Func<bool> onRefresh, Font? font = default)
     {
         AddOption(label, desc, new string[] { "HKTool.Menu.Bool.False".Get(), "HKTool.Menu.Bool.True".Get() },
             (id) => { onChange(id == 1); }, () => onRefresh() ? 1 : 0, font);
     }
     protected MenuOptionHorizontal AddOption(string label, string desc, string[] values,
-        Action<int> onChange, Func<int> onRefresh, Font font = default) => AddOption(label, desc, values, (_, id) => onChange(id),
+        Action<int> onChange, Func<int> onRefresh, Font? font = default) => AddOption(label, desc, values, (_, id) => onChange(id),
             (_) => onRefresh(), font);
     protected MenuOptionHorizontal AddOption(string label, string desc,
-        Action<int> onChange, Func<int> onRefresh, Font font = null, params string[] values) =>
+        Action<int> onChange, Func<int> onRefresh, Font? font = null, params string[] values) =>
             AddOption(label, desc, values, onChange, onRefresh, font);
     protected MenuOptionHorizontal AddOption(string label, string desc,
         Action<MenuSetting, int> onChange, Func<MenuSetting, int> onRefresh,
-        Font font = null, params string[] values) => AddOption(label, desc, values, onChange, onRefresh, font);
+        Font? font = null, params string[] values) => AddOption(label, desc, values, onChange, onRefresh, font);
     protected virtual void Back() => GoToMenu(returnScreen);
     protected void GoToMenu(MenuScreen menu)
     {

@@ -1,5 +1,4 @@
 
-
 namespace HKTool.Unity;
     [CreateAssetMenu]
     public class FakeScriptData : ScriptableObject
@@ -12,11 +11,11 @@ namespace HKTool.Unity;
         [System.Serializable]
         public class FieldData 
         {
-            public string name;
+            public string name = "";
             public FieldType fieldType;
-            public string type;
+            public string type = "";
         }
-        public string scriptFullName;
-        public FieldData[] fields;
+        public string scriptFullName = "";
+        public FieldData[]? fields;
     }
 

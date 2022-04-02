@@ -5,7 +5,9 @@ class LogMenu : CustomMenu
 {
     public override Font titleFont => MenuResources.Perpetua;
     public static HKToolSettings settings => HKToolMod.settings;
-    public static LogMenu instance = null;
+    #pragma warning disable CS8618
+    public static LogMenu instance;
+    #pragma warning restore CS8618
     public override bool DelayBuild => true;
     public LogMenu(MenuScreen rs) : base(rs)
     {
@@ -32,7 +34,8 @@ class LogMenu : CustomMenu
             (int val) =>
             {
                 Application.SetStackTraceLogType((LogType)id, (StackTraceLogType)val);
-                HKToolMod.devSettings.UnityLogStackTraceType[id] = (StackTraceLogType)val;
+                if(HKToolMod.devSettings.UnityLogStackTraceType is not null)
+                    HKToolMod.devSettings.UnityLogStackTraceType[id] = (StackTraceLogType)val;
             },
             () =>
             {

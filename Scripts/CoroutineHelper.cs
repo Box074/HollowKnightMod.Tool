@@ -8,17 +8,17 @@ public class CoroutineInfo
     {
         Ready, Execute, Pause, Done, Exception
     }
-    public GameObject AttendGameObject { get; private set; } = null;
-    public Exception LastException { get; internal set; } = null;
+    public GameObject? AttendGameObject { get; private set; } = null;
+    public Exception? LastException { get; internal set; } = null;
     public bool IsAttendGameObject { get; private set; } = false;
     public bool IsFinished => State == CoroutineState.Done || State == CoroutineState.Exception;
-    public IEnumerator Coroutine { get; internal set; } = null;
+    public IEnumerator? Coroutine { get; internal set; } = null;
     public CoroutineState State { get; internal set; } = CoroutineState.Ready;
     public bool IsPause { get; set; }
     public void Pause() => IsPause = true;
     public void Continue() => IsPause = false;
-    internal Coroutine _cor = null;
-    public CoroutineInfo(IEnumerator coroutine, GameObject attendGameObject = null)
+    internal Coroutine? _cor = null;
+    public CoroutineInfo(IEnumerator coroutine, GameObject? attendGameObject = null)
     {
         Coroutine = coroutine;
         if (attendGameObject != null)
@@ -30,7 +30,7 @@ public class CoroutineInfo
 }
 public static class CoroutineHelper
 {
-    public static CoroutineInfo CurrentCoroutine { get; private set; } = null;
+    public static CoroutineInfo? CurrentCoroutine { get; private set; } = null;
     private class CoroutineHandler : SingleMonoBehaviour<CoroutineHandler>
     {
         public readonly static List<CoroutineInfo> coroutines = new();
@@ -46,7 +46,7 @@ public static class CoroutineHelper
             {
                 info.State = CoroutineInfo.CoroutineState.Execute;
                 var cor = info.Coroutine;
-                while (!info.IsFinished)
+                while (!info.IsFinished && cor is not null)
                 {
                     if (info.IsPause)
                     {
@@ -108,7 +108,7 @@ public static class CoroutineHelper
         {
             if (info.IsAttendGameObject)
             {
-                if (!info.AttendGameObject.activeInHierarchy)
+                if (!(info.AttendGameObject?.activeInHierarchy ?? true))
                 {
                     wait.Add(info);
                     return;

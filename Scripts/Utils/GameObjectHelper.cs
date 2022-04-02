@@ -19,7 +19,7 @@ public static class GameObjectHelper
             foreach (var v2 in v.ForEachChildren()) yield return v2;
         }
     }
-    public static GameObject FindGameObject(this Scene scene, string name)
+    public static GameObject? FindGameObject(this Scene scene, string name)
     {
         var p = name.Split('/');
         if (p.Length == 1)
@@ -36,7 +36,7 @@ public static class GameObjectHelper
         }
         return c;
     }
-    public static GameObject FindChildWithPath(this GameObject root, params string[] relativePath)
+    public static GameObject? FindChildWithPath(this GameObject root, params string[] relativePath)
     {
         var c = root;
         foreach (var v in relativePath)
@@ -50,14 +50,15 @@ public static class GameObjectHelper
     {
         StringBuilder sb = new StringBuilder();
         bool first = true;
-        while (go != null)
+        GameObject? go1 = go;
+        while (go1 != null)
         {
             if (!first)
             {
                 sb.Insert(0, '/');
             }
             sb.Insert(0, go.name);
-            go = go.transform.parent?.gameObject;
+            go1 = go.transform.parent?.gameObject;
             first = false;
         }
         return sb.ToString();

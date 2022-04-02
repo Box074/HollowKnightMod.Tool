@@ -8,7 +8,7 @@ public static class ReflectionHelper
     public static ReflectionObject CreateReflectionObject(this object obj) => new ReflectionObject(obj);
     public static ReflectionObject CreateReflectionObject(this Type type) => new ReflectionObject(type);
     public static ReflectionObject CreateReflectionObject(this ReflectionObject obj) => obj;
-    public static Type FindType(string fullname)
+    public static Type? FindType(string fullname)
     {
         foreach (var v in AppDomain.CurrentDomain.GetAssemblies())
         {
@@ -17,10 +17,10 @@ public static class ReflectionHelper
         }
         return null;
     }
-    public static object FastInvoke(this MethodInfo m, object @this, params object[] args) => FastReflection.CallMethod(@this, m, args);
-    public static object FastGet(this FieldInfo f, object @this) => FastReflection.GetField(@this, f);
-    public static void FastSet(this FieldInfo f, object @this, object val) => FastReflection.SetField(@this, f, val);
-    public static object FastGet(this PropertyInfo p, object @this) => p.GetMethod.FastInvoke(@this);
-    public static void FastSet(this PropertyInfo p, object @this, object val) => p.SetMethod.FastInvoke(@this, val);
+    public static object? FastInvoke(this MethodInfo m, object? @this, params object?[]? args) => FastReflection.CallMethod(@this, m, args);
+    public static object? FastGet(this FieldInfo f, object? @this) => FastReflection.GetField(@this, f);
+    public static void FastSet(this FieldInfo f, object? @this, object? val) => FastReflection.SetField(@this, f, val);
+    public static object? FastGet(this PropertyInfo p, object? @this) => p.GetMethod.FastInvoke(@this);
+    public static void FastSet(this PropertyInfo p, object? @this, object? val) => p.SetMethod.FastInvoke(@this, val);
 }
 

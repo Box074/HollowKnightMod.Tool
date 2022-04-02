@@ -3,7 +3,7 @@
 namespace HKTool;
 public class SingleMonoBehaviour<T> : MonoBehaviour where T : SingleMonoBehaviour<T>
 {
-    private static T _instance;
+    private static T? _instance;
 
     public static T Instance
     {

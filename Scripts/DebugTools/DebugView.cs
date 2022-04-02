@@ -16,7 +16,7 @@ class DebugView : MonoBehaviour
     public static Vector2 vpos = new Vector2(45, 72);
     public static Vector2 vsize = new Vector2(Screen.width * 0.3f, Screen.height - 90);
     public static Rect wrect = new Rect(vpos, vsize);
-    private static DebugView _instance;
+    private static DebugView? _instance;
     public static bool IsEnable { get; set; } = false;
     public static readonly List<IDebugViewBase> debugViews = new List<IDebugViewBase>();
 

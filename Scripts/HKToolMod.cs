@@ -28,7 +28,6 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
     public HKToolMod() : base("HKTool")
     {
         ModListMenuHelper.Init();
-        HKToolResourcesAPI.Init();
 
         IsDebugMode = settings.DevMode;
         try
@@ -133,7 +132,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
     public static HKToolSettings settings = new HKToolSettings();
     public static HKToolDebugConfig devSettings => settings.DebugConfig;
     public bool ToggleButtonInsideMenu => true;
-    public static HKToolSettingsMenu SettingsMenu;
+    public static HKToolSettingsMenu? SettingsMenu;
     public void SaveSettings() => SaveGlobalSettings();
     public MenuScreen GetMenuScreen(MenuScreen modListMenu, ModToggleDelegates? toggleDelegates)
     {

@@ -70,7 +70,7 @@ static class FastReflection
         }
         return setter;
     }
-    internal static object CallMethod(object @this, MethodInfo method, params object[] args)
+    internal static object CallMethod(object? @this, MethodInfo method, params object?[]? args)
     {
         if (method is null) throw new ArgumentNullException(nameof(method));
         if (!mcaller.TryGetValue(method, out var caller))
@@ -80,7 +80,7 @@ static class FastReflection
         }
         return caller(@this, args);
     }
-    internal static object GetField(object @this, FieldInfo field)
+    internal static object GetField(object? @this, FieldInfo field)
     {
         if (field is null) throw new ArgumentNullException(nameof(field));
         try
@@ -93,7 +93,7 @@ static class FastReflection
             return field.GetValue(@this);
         }
     }
-    internal static void SetField(object @this, FieldInfo field, object val)
+    internal static void SetField(object? @this, FieldInfo field, object? val)
     {
         if (field is null) throw new ArgumentNullException(nameof(field));
         try

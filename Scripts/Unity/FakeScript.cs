@@ -1,46 +1,45 @@
 
-
 namespace HKTool.Unity;
 [System.Serializable]
 public class FakeScriptDataPairUnityObject
 {
-    public string name;
-    public UnityEngine.Object obj;
+    public string name = "";
+    public UnityEngine.Object? obj;
 }
 [System.Serializable]
 public class FakeScriptDataPairComponent
 {
-    public string name;
-    public Component component;
+    public string name = "";
+    public Component? component;
 }
 [System.Serializable]
 public class FakeScriptDataPairGameObject
 {
-    public string name;
-    public GameObject go;
+    public string name = "";
+    public GameObject? go;
 }
 [System.Serializable]
 public class FakeScriptDataPairFakeScript
 {
-    public string name;
-    public FakeScript script;
+    public string name = "";
+    public FakeScript? script;
 }
 [System.Serializable]
 public class FakeScriptDataPairN
 {
-    public string name;
-    public byte[] data;
+    public string name = "";
+    public byte[]? data;
 }
 [System.Serializable]
 public class FakeScriptDataPairVector
 {
-    public string name;
+    public string name = "";
     public Vector4 data;
 }
 [System.Serializable]
 public class FakeScriptDataPairQuaternion
 {
-    public string name;
+    public string name = "";
     public Vector4 data;
 }
 public static class FakeScriptHelper
@@ -66,8 +65,8 @@ public class FakeScript : MonoBehaviour
     public Dictionary<string, object> editorData = new Dictionary<string, object>();
     private static Dictionary<string, Type> typeCache = new Dictionary<string, Type>();
     //[HideInInspector]
-    public FakeScriptData scriptData;
-    private Component _instance;
+    public FakeScriptData? scriptData;
+    private Component? _instance;
     public Component instance
     {
         get
@@ -77,14 +76,11 @@ public class FakeScript : MonoBehaviour
             {
                 LoadData();
             }
-            else
-            {
-
-            }
+            if(_instance == null) throw new NullReferenceException();
             return _instance;
         }
     }
-    private void ReadData(Dictionary<string, object> dst)
+    private void ReadData(Dictionary<string, object?> dst)
     {
         foreach (var v in objects) dst[v.name] = v.obj;
         foreach (var v in gameObjects) dst[v.name] = v.go;
@@ -98,7 +94,8 @@ public class FakeScript : MonoBehaviour
         }
         foreach (var v in vectors)
         {
-            var vt = scriptData.fields.FirstOrDefault(x => x.name == v.name);
+            var vt = scriptData?.fields?.FirstOrDefault(x => x.name == v.name);
+            if(vt is null) continue;
             if (vt.fieldType == FakeScriptData.FieldType.Vector2)
             {
                 dst[v.name] = new Vector2(v.data.x, v.data.y);
@@ -118,7 +115,8 @@ public class FakeScript : MonoBehaviour
         }
         foreach (var v in data)
         {
-            var vt = scriptData.fields.FirstOrDefault(x => x.name == v.name);
+            var vt = scriptData?.fields?.FirstOrDefault(x => x.name == v.name);
+            if(vt is null) continue;
             if (vt.fieldType == FakeScriptData.FieldType.String)
             {
                 dst[v.name] = Encoding.UTF8.GetString(v.data);
@@ -137,23 +135,20 @@ public class FakeScript : MonoBehaviour
             }
         }
     }
-    private void LoadDataInEditor()
-    {
-        ReadData(editorData);
-    }
+
     private void LoadData()
     {
-        if (!typeCache.TryGetValue(scriptData.scriptFullName, out var type))
+        if (!typeCache.TryGetValue(scriptData?.scriptFullName ?? "", out var type))
         {
             foreach (var v in AppDomain.CurrentDomain.GetAssemblies())
             {
-                type = v.GetType(scriptData.scriptFullName);
+                type = v.GetType(scriptData?.scriptFullName ?? "");
                 if (type != null) break;
             }
             if (type == null) throw new MissingReferenceException();
         }
         _instance = gameObject.AddComponent(type);
-        Dictionary<string, object> sdata = new Dictionary<string, object>();
+        Dictionary<string, object?> sdata = new Dictionary<string, object?>();
         ReadData(sdata);
         foreach (var v in type.GetRuntimeFields())
         {
@@ -174,7 +169,7 @@ public class FakeScript : MonoBehaviour
             }
         }
     }
-    public object GetData(string name)
+    public object? GetData(string name)
     {
         if (Application.isEditor)
         {
@@ -201,7 +196,7 @@ public class FakeScript : MonoBehaviour
     {
         if (Application.isEditor)
         {
-            LoadDataInEditor();
+            
         }
         else
         {

@@ -4,10 +4,10 @@ namespace HKTool.Reflection;
 public class ReflectionObject
 {
 
-    public Type objType = null;
-    public object obj = null;
-    private Dictionary<string, Func<object>> getterCache = new();
-    private Dictionary<string, Action<object>> setterCache = new();
+    public Type objType;
+    public object? obj = null;
+    private Dictionary<string, Func<object?>> getterCache = new();
+    private Dictionary<string, Action<object?>> setterCache = new();
     public ReflectionObject(object o)
     {
         if (o is null) throw new ArgumentNullException(nameof(o));
@@ -21,40 +21,40 @@ public class ReflectionObject
         obj = null;
         objType = t;
     }
-    public T As<T>()
+    public T? As<T>()
     {
-        return (T)obj;
+        return (T?)obj;
     }
 
-    public ReflectionObject GetMemberData(string name)
+    public ReflectionObject? GetMemberData(string name)
     {
         var r = GetMemberData<object>(name);
         return r is null ? null : new ReflectionObject(r);
     }
 
-    public T GetMemberData<T>(string name)
+    public T? GetMemberData<T>(string name)
     {
         if(getterCache.TryGetValue(name, out var getter))
         {
-            return (T)getter();
+            return (T?)getter();
         }
         if(objType is null) throw new InvalidOperationException();
-        FieldInfo f = objType.GetField(name, ReflectionHelper.All);
+        FieldInfo? f = objType.GetField(name, ReflectionHelper.All);
         if (f != null)
         {
             getterCache.Add(name, () => f.FastGet(obj));
-            return (T)f.FastGet(obj);
+            return (T?)f.FastGet(obj);
         }
-        PropertyInfo p = objType.GetProperty(name, ReflectionHelper.All);
+        PropertyInfo? p = objType.GetProperty(name, ReflectionHelper.All);
         if (p != null)
         {
             getterCache.Add(name, () => p.GetMethod.FastInvoke(obj, null));
-            return (T)p.GetMethod.FastInvoke(obj, null);
+            return (T?)p.GetMethod.FastInvoke(obj, null);
         }
         throw new MissingMemberException(objType.FullName, name);
     }
 
-    public object GetObject()
+    public object? GetObject()
     {
         return obj;
     }
@@ -70,11 +70,11 @@ public class ReflectionObject
         return objType.GetMethod(name, ReflectionHelper.All, null,
             CallingConventions.Any, pt, null) ?? throw new MissingMethodException(objType.FullName, name);
     }
-    private MethodInfo FindMethod(string name, params object[] args)
+    private MethodInfo FindMethod(string name, params object?[] args)
     {
         return FindMethod(name, args.Select(x => x?.GetType() ?? typeof(object)).ToArray());
     }
-    public T InvokeMethod<T>(string name, params object[] args)
+    public T? InvokeMethod<T>(string name, params object?[] args)
     {
         var m = FindMethod(name, args);
         if (m.ReturnType == typeof(void))
@@ -84,11 +84,11 @@ public class ReflectionObject
         }
         else
         {
-            return (T)m.FastInvoke(obj, args);
+            return (T?)m.FastInvoke(obj, args);
         }
     }
 
-    public void SetMemberData(string name, object data)
+    public void SetMemberData(string name, object? data)
     {
         if(setterCache.TryGetValue(name, out var setter))
         {
@@ -113,17 +113,17 @@ public class ReflectionObject
         throw new MissingMemberException(objType.FullName, name);
     }
 
-    public void SetMemberData<T>(string name, T data)
+    public void SetMemberData<T>(string name, T? data)
     {
-        SetMemberData(name, (object)data);
+        SetMemberData(name, (object?)data);
     }
 
-    public void SetMemberData(string name, ReflectionObject data)
+    public void SetMemberData(string name, ReflectionObject? data)
     {
         SetMemberData(name, data?.GetObject());
     }
 
-    public ReflectionObject this[string name]
+    public ReflectionObject? this[string name]
     {
         get
         {
@@ -134,7 +134,7 @@ public class ReflectionObject
             SetMemberData(name, value);
         }
     }
-    public ReflectionObject InvokeMethod(string name, params object[] args)
+    public ReflectionObject? InvokeMethod(string name, params object?[] args)
     {
         var r = InvokeMethod<object>(name, args);
         if (r == null)
@@ -146,17 +146,17 @@ public class ReflectionObject
             return new ReflectionObject(r);
         }
     }
-    public object InvokeMethod(string name, Type[] genTypes, params object[] args)
+    public object? InvokeMethod(string name, Type[] genTypes, params object?[] args)
     {
         var m = FindMethod(name, args).MakeGenericMethod(genTypes);
         return m.FastInvoke(obj, args);
     }
-    public T InvokeMethod<T>(string name, Type[] genTypes, params object[] args)
+    public T? InvokeMethod<T>(string name, Type[] genTypes, params object?[] args)
     {
-        return (T)InvokeMethod(name, genTypes, args);
+        return (T?)InvokeMethod(name, genTypes, args);
     }
 
-    public ReflectionObject CreateInstance(params object[] args)
+    public ReflectionObject CreateInstance(params object?[] args)
     {
         return Activator.CreateInstance(objType, args).CreateReflectionObject();
     }

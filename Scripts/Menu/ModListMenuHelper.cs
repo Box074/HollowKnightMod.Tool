@@ -3,12 +3,12 @@ namespace HKTool.Menu;
 
 public static class ModListMenuHelper
 {
-    public static ReflectionObject modListMenu { get; private set; }
+    public static ReflectionObject? modListMenu { get; private set; }
     private static Dictionary<string, MenuButton> modButtonList = new();
-    public static MenuScreen modListMenuScreen => modListMenu["screen"].As<MenuScreen>();
+    public static MenuScreen modListMenuScreen => modListMenu?["screen"]?.As<MenuScreen>() ?? throw new NullReferenceException();
     private static bool modListBuildFinished = false;
     public static bool ModListMenuBuildComplete => modListBuildFinished;
-    private static event Action<MenuScreen> _onAfterBuildModListMenuComplete;
+    private static event Action<MenuScreen>? _onAfterBuildModListMenuComplete;
     public static event Action<MenuScreen> OnAfterBuildModListMenuComplete 
     {
         add
@@ -69,7 +69,7 @@ public static class ModListMenuHelper
     {
         if(!modListBuildFinished) throw new InvalidOperationException("HKTool.Error.TryGetInstanceWithoutInit".GetFormat("ModListMenu"));
     }
-    public static MenuButton FindButtonInMenuListMenu(string modName)
+    public static MenuButton? FindButtonInMenuListMenu(string modName)
     {
         if(modButtonList.TryGetValue(modName + "_Settings", out var v)) return v;
         return null;
@@ -111,7 +111,8 @@ public static class ModListMenuHelper
     internal static void Init()
     {
         HookEndpointManager.Add(
-            HReflectionHelper.FindType("Modding.ModListMenu").GetConstructor(Type.EmptyTypes),
+            HReflectionHelper.FindType("Modding.ModListMenu")?.GetConstructor(Type.EmptyTypes)
+            ?? throw new NullReferenceException(),
             (Action<object> orig, object self) =>
             {
                 modListMenu = self.CreateReflectionObject();

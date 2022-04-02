@@ -18,7 +18,7 @@ public abstract class ModBase : Mod, IHKToolMod
     }
     public virtual string MenuButtonName => GetName();
     public virtual Font MenuButtonLabelFont => MenuResources.TrajanBold;
-    public virtual Version HKToolMinVersion
+    public virtual Version? HKToolMinVersion
     {
         get
         {
@@ -27,9 +27,9 @@ public abstract class ModBase : Mod, IHKToolMod
             return Version.Parse(ver);
         }
     }
-    public MenuButton ModListMenuButton { get; private set; }
+    public MenuButton? ModListMenuButton { get; private set; }
     protected virtual bool ShowDebugView => true;
-    private void CheckHKToolVersion(string name = null)
+    private void CheckHKToolVersion(string? name = null)
     {
         if (HKToolMinVersion is null) return;
         var hkv = typeof(HKToolMod).Assembly.GetName().Version;
@@ -77,11 +77,13 @@ public abstract class ModBase : Mod, IHKToolMod
     }
     protected virtual void AfterCreateModListButton(MenuButton button)
     {
-        button.GetLabelText().text = MenuButtonName;
-        button.GetLabelText().font = MenuButtonLabelFont;
+        var labelT = button.GetLabelText();
+        if(labelT is null) return;
+        labelT.text = MenuButtonName;
+        labelT.font = MenuButtonLabelFont;
     }
     public virtual I18n I18n => _i18n.Value;
-    public byte[] GetEmbeddedResource(string name) => EmbeddedResHelper.GetBytes(GetType().Assembly, name);
+    public byte[]? GetEmbeddedResource(string name) => EmbeddedResHelper.GetBytes(GetType().Assembly, name);
     public Texture2D LoadTexture2D(string name)
     {
         Texture2D tex = new Texture2D(1, 1);
@@ -93,7 +95,7 @@ public abstract class ModBase : Mod, IHKToolMod
         return AssetBundle.LoadFromMemory(GetEmbeddedResource(name));
     }
 
-    public static ModBase FindMod(Type type)
+    public static ModBase? FindMod(Type type)
     {
         if (ModManager.instanceMap.TryGetValue(type, out var v)) return v;
         return null;
@@ -194,7 +196,7 @@ public abstract class ModBase : Mod, IHKToolMod
             needHookGetPreloads = true;
         }
     }
-    public ModBase(string name = null) : base(name)
+    public ModBase(string? name = null) : base(name)
     {
         CheckHKToolVersion(name);
         OnCheckDependencies();
@@ -211,8 +213,12 @@ public abstract class ModBase : Mod, IHKToolMod
             {
                 ModListMenuButton = ModListMenuHelper.FindButtonInMenuListMenu(GetName());
                 if (ModListMenuButton is null) return;
-                ModListMenuButton.GetLabelText().text = MenuButtonName;
-                ModListMenuButton.GetLabelText().font = MenuButtonLabelFont;
+                var buttonText = ModListMenuButton.GetLabelText();
+                if(buttonText is not null)
+                {
+                    buttonText.text = MenuButtonName;
+                    buttonText.font = MenuButtonLabelFont;
+                }
                 AfterCreateModListButton(ModListMenuButton);
             };
         }
@@ -290,15 +296,16 @@ public abstract class ModBase : Mod, IHKToolMod
             {
                 I18n.OnLanguageSwitch += () =>
                 {
-                    ModListMenuButton.GetLabelText().text = MenuButtonName;
+                    var buttonText = ModListMenuButton?.GetLabelText();
+                    if(buttonText is not null) buttonText.text = MenuButtonName;
                 };
             }
         }
     }
     private readonly Lazy<I18n> _i18n;
     [Obsolete("Please override LanguagesEx instead of Languages")]
-    protected virtual (Language.LanguageCode, string)[] Languages => null;
-    protected virtual List<(SupportedLanguages, string)> LanguagesEx => null;
+    protected virtual (Language.LanguageCode, string)[]? Languages => null;
+    protected virtual List<(SupportedLanguages, string)>? LanguagesEx => null;
     protected virtual SupportedLanguages DefaultLanguageCode => SupportedLanguages.EN;
     public virtual string GetViewName() => GetName();
     public virtual bool FullScreen => false;
@@ -360,11 +367,12 @@ public abstract class ModBase<T> : ModBase where T : ModBase<T>
                     PreloadModBeforeModLoader();
                 }
             }
+            if(_instance is null) throw new InvalidOperationException("HKTool.Error.GetModInstaceBeforeLoad".GetFormat(typeof(T).Name)); 
             return _instance;
         }
     }
-    private static T _instance = null;
-    public ModBase(string name = null) : base(name)
+    private static T? _instance = null;
+    public ModBase(string? name = null) : base(name)
     {
         _instance = (T)this;
     }

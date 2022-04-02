@@ -20,7 +20,7 @@ public static class EmbeddedResHelper
         using (var stream = ass.GetManifestResourceStream(name))
         {
             if(stream == null) throw new FileNotFoundException($"\"{name}\" in {ass.FullName}");
-            byte[] data = null;
+            byte[] data;
             if (ass.IsDefined(typeof(EmbeddedResourceCompressionAttribute)))
             {
                 data = LoadCompression(stream);

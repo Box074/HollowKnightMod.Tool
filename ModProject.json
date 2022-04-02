@@ -11,9 +11,9 @@
   "Guid": "593a44ac-8fc9-4543-8be1-8b2dcc4af8ba",
   "DefaultNamespace": "HKTool",
   "DependenciesDir": ".\\Dependencies\\",
-  "ModdingAPIVersion": "1.5.78.11833-68",
   "IgnoreDlls": [ "HKTool.dll" ],
   "UseGZip": true,
+  "CreateZip": true,
   "WebDependencies": [ 
     
   ]

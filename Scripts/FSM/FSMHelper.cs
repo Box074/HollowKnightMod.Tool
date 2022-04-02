@@ -8,11 +8,11 @@ public static class FSMHelper
     {
         return PlayMakerFSM.FsmList.Select(x => x.Fsm).Where(x => x.Name == name).ToArray();
     }
-    public static Fsm FindFsm(string name)
+    public static Fsm? FindFsm(string name)
     {
         return PlayMakerFSM.FsmList.FirstOrDefault(x => x.Fsm.Name == name)?.Fsm;
     }
-    public static FsmState FindState(this GameObject go, string name)
+    public static FsmState? FindState(this GameObject go, string name)
     {
         foreach (var v in go.GetComponents<PlayMakerFSM>())
         {
@@ -73,14 +73,14 @@ public static class FSMHelper
     }
     public static FSMPatch CreatePatch(this Fsm fsm)
     {
-        return new FSMPatch().Init(fsm);
+        return new FSMPatch(fsm);
     }
     public static FsmState InsertFSMState(this Fsm fsm, FsmState state)
     {
         fsm.States = fsm.States.Append(state).ToArray();
         return state;
     }
-    public static FsmState GetFSMState(this GameObject go, string state, string fsm = null)
+    public static FsmState? GetFSMState(this GameObject go, string state, string? fsm = null)
     {
         if (!string.IsNullOrEmpty(fsm))
         {

@@ -6,10 +6,10 @@ public abstract class FsmFilter : IFsmFilter
 }
 public class FsmNameFilterRegex : FsmFilter
 {
-    public readonly Regex sceneName;
-    public readonly Regex objName;
-    public readonly Regex fsmName;
-    public FsmNameFilterRegex(Regex sceneName = null, Regex objName = null, Regex fsmName = null)
+    public readonly Regex? sceneName;
+    public readonly Regex? objName;
+    public readonly Regex? fsmName;
+    public FsmNameFilterRegex(Regex? sceneName = null, Regex? objName = null, Regex? fsmName = null)
     {
         this.sceneName = sceneName;
         this.objName = objName;
@@ -25,10 +25,10 @@ public class FsmNameFilterRegex : FsmFilter
 }
 public class FsmNameFilter : FsmFilter
 {
-    public readonly string sceneName;
-    public readonly string objName;
-    public readonly string fsmName;
-    public FsmNameFilter(string sceneName = null, string objName = null, string fsmName = null)
+    public readonly string? sceneName;
+    public readonly string? objName;
+    public readonly string? fsmName;
+    public FsmNameFilter(string? sceneName = null, string? objName = null, string? fsmName = null)
     {
         this.sceneName = sceneName;
         this.objName = objName;

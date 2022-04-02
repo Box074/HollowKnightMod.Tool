@@ -4,7 +4,7 @@ namespace HKTool.Mono;
 public static class MonoNative
 {
     public static bool isSupport => _current is not null;
-    public static IMonoNative current
+    public static IMonoNative? current
     {
         get
         {
@@ -20,7 +20,7 @@ public static class MonoNative
             return _mono_handle;
         }
     }
-    private static IMonoNative _current = null;
+    private static IMonoNative? _current = null;
     private static IntPtr _mono_handle;
     static MonoNative()
     {
@@ -42,7 +42,7 @@ public static class MonoNative
         Init();
     }
     #region Get Function
-    public static bool TryGetFunction<T>(IntPtr handle, string name, out T d) where T : Delegate
+    public static bool TryGetFunction<T>(IntPtr handle, string name, out T? d) where T : Delegate
     {
         if (handle == IntPtr.Zero) throw new ArgumentException(nameof(handle));
         try
@@ -56,9 +56,14 @@ public static class MonoNative
             return false;
         }
     }
-    public static void GetFunction<T>(IntPtr handle, string name, out T d) where T : Delegate
+    public static void GetFunction<T>(IntPtr handle, string name, out T? d) where T : Delegate
     {
         if (handle == IntPtr.Zero) throw new ArgumentException(nameof(handle));
+        if (current is null)
+        {
+            d = default;
+            return;
+        }
         var entry = current.GetFunction(handle, name);
         if (entry == IntPtr.Zero)
         {
@@ -66,11 +71,11 @@ public static class MonoNative
         }
         d = Marshal.GetDelegateForFunctionPointer<T>(entry);
     }
-    public static bool TryGetMonoFunc<T>(string name, out T d) where T : Delegate
+    public static bool TryGetMonoFunc<T>(string name, out T? d) where T : Delegate
     {
         return TryGetFunction(mono, name, out d);
     }
-    public static void GetMonoFunc<T>(string name, out T d) where T : Delegate
+    public static void GetMonoFunc<T>(string name, out T? d) where T : Delegate
     {
         GetFunction(mono, name, out d);
     }

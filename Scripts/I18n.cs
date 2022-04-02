@@ -7,15 +7,15 @@ public class I18n
     internal static List<IBindI18n> waitBinds = new();
     public static void BeginBind(IBindI18n bind) => waitBinds.Add(bind);
     public static void EndBind(IBindI18n bind) => waitBinds.RemoveAll(x => ReferenceEquals(x, bind));
-    public readonly string modName;
-    public readonly string modDir;
-    public event Action OnLanguageSwitch;
+    public readonly string? modName;
+    public readonly string? modDir;
+    public event Action? OnLanguageSwitch;
     public LanguageCode DefaultLanguage;
     public LanguageCode? CurrentCode { get; private set; }
     public Dictionary<string, string> Current
     { get; private set; } = new Dictionary<string, string>();
     public Dictionary<LanguageCode, string> Languages { get; private set; } = new Dictionary<LanguageCode, string>();
-    public I18n(string modName = "", string modDir = "", LanguageCode defaultLanguage = LanguageCode.EN)
+    public I18n(string? modName = "", string? modDir = "", LanguageCode defaultLanguage = LanguageCode.EN)
     {
         this.modName = modName;
         this.modDir = modDir;

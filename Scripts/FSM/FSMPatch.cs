@@ -2,26 +2,21 @@
 namespace HKTool.FSM;
 public class FSMPatch : IPatch
 {
-    internal FSMPatch()
-    {
-
-    }
-    public Fsm TargetFSM { get; private set; }
-    public FsmState CurrentState { get; private set; }
-    public List<FsmState> States { get; private set; }
-    public List<FsmTransition> Transitions { get; private set; }
-    public List<FsmStateAction> Actions { get; private set; }
-    public List<(FsmTransition, string)> DelayBindTransitions { get; private set; } = new List<(FsmTransition, string)>();
-    public FsmStateAction LastOperationAction { get; private set; }
-    private bool isClose = false;
-    internal FSMPatch Init(Fsm fsm)
+    internal FSMPatch(Fsm fsm)
     {
         TargetFSM = fsm;
         States = fsm.States.ToList();
         EditState(fsm.StartState);
         Modding.Logger.Log($"State Count:  {States.Count} Name: { fsm.GameObject.name }");
-        return this;
     }
+    public Fsm TargetFSM { get; private set; }
+    public FsmState? CurrentState { get; private set; }
+    public List<FsmState> States { get; private set; } = new();
+    public List<FsmTransition> Transitions { get; private set; } = new();
+    public List<FsmStateAction> Actions { get; private set; } = new();
+    public List<(FsmTransition, string)> DelayBindTransitions { get; private set; } = new List<(FsmTransition, string)>();
+    public FsmStateAction? LastOperationAction { get; private set; }
+    private bool isClose = false;
     ~FSMPatch()
     {
         if (!isClose)
@@ -78,10 +73,6 @@ public class FSMPatch : IPatch
         if (isClose) return;
         FlushFsm();
         isClose = true;
-        TargetFSM = null;
-        States = null;
-        Actions = null;
-        Transitions = null;
         GC.SuppressFinalize(this);
     }
     public FSMPatch EditState(string name)

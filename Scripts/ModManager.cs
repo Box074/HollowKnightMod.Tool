@@ -16,7 +16,6 @@ static class ModManager
         ModHooks.FinishedLoadingModsHook += () =>
         {
             skipMods.Clear();
-            skipMods = null;
         };
         HookEndpointManager.Add
         (
@@ -24,9 +23,10 @@ static class ModManager
             {
                 typeof(Type[])
             }),
-            (Func<Type, Type[], ConstructorInfo> orig, Type self, Type[] types) =>
+            (Func<Type, Type[]?, ConstructorInfo> orig, Type self, Type[]? types) =>
             {
                 if (modLoaded || skipMods is null || !self.IsSubclassOf(typeof(ModBase))) return orig(self, types);
+                if(types is null) return orig(self, types);
                 if ((types?.Length ?? -1) == 0 && skipMods.Contains(self)) return null;
                 else return orig(self, types);
             }
@@ -41,7 +41,7 @@ static class ModManager
                 if (modErrors.Count == 0) return;
                 var vd = RModLoader.GetMemberData<ModVersionDraw>("modVersionDraw");
                 var sb = new StringBuilder();
-                sb.AppendLine(vd.drawString);
+                sb.AppendLine(vd?.drawString ?? "");
                 sb.AppendLine();
                 foreach (var v in modErrors)
                 {
@@ -51,7 +51,7 @@ static class ModManager
                     sb.Append(v.Item2);
                     sb.AppendLine("</color>");
                 }
-                vd.drawString = sb.ToString();
+                if(vd is not null) vd.drawString = sb.ToString();
             }
         );
         HookEndpointManager.Add(
@@ -126,7 +126,7 @@ static class ModManager
             RModLoader.InvokeMethod("UpdateModText");
         }
     }
-    public static void NewMod(ModBase mod, string name = null)
+    public static void NewMod(ModBase mod, string? name = null)
     {
         if (mod is null) return;
         if (modsTable.Contains(mod)) return;

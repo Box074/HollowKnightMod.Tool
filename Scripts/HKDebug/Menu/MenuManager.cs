@@ -5,7 +5,7 @@ public delegate void ButtonSubmit(ButtonInfo button);
 public class ButtonInfo
 {
     public string label = "";
-    public ButtonSubmit submit = null;
+    public ButtonSubmit? submit = null;
 }
 public class ButtonGroup
 {

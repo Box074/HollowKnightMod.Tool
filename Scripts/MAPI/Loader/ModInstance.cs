@@ -5,11 +5,11 @@ public class ModInstance
 {
     public static Type TModInstance = ModLoaderHelper.TModLoader.GetNestedType("ModInstance");
     public static Type TModErrorState = ModLoaderHelper.TModLoader.GetNestedType("ModErrorState");
-	public IMod Mod;
-	public string Name;
+	public IMod? Mod = null;
+	public string Name = "";
 	public ModErrorState? Error;
-	public bool Enabled;
-    private object bindMi = null;
+	public bool Enabled = false;
+    private object? bindMi = null;
     public ModInstance()
     {
 
@@ -22,9 +22,9 @@ public class ModInstance
     {
         bindMi = src;
         var r = src.CreateReflectionObject();
-        Mod = r["Mod"].As<IMod>();
-        Name = r["Name"].As<string>();
-        Enabled = r["Enabled"].As<bool>();
+        Mod = r["Mod"]?.As<IMod>();
+        Name = r["Name"]?.As<string>() ?? "";
+        Enabled = r["Enabled"]?.As<bool>() ?? false;
         var err = r["Error"];
         if(err is null)
         {
@@ -32,12 +32,13 @@ public class ModInstance
         }
         else
         {
-            Error = (ModErrorState)((IConvertible)err.As<Enum>()).ToInt32(null);
+            Error = (ModErrorState?)((IConvertible?)err?.As<Enum>())?.ToInt32(null);
         }
     }
-    public void Write(object dst = null)
+    public void Write(object? dst = null)
     {
         if(dst is null) dst = bindMi;
+        if(dst is null) return;
         var r = dst.CreateReflectionObject();
         r.SetMemberData("Mod", Mod);
         r.SetMemberData("Name", Name);
