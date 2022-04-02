@@ -32,7 +32,7 @@ jobs:
         path: ./
     - name: Build
       run: |
-        dotnet ./HKToolUtils/HKToolUtils.zip buildInGithub . > .\Info.txt
+        dotnet ./HKToolUtils/HKToolUtils.dll buildInGithub . > .\Info.txt
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
