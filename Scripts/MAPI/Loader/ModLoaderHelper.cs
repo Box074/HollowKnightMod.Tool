@@ -23,8 +23,9 @@ public static class ModLoaderHelper
     private static Lazy<bool> _hasModLoadState = 
         new(() => RModLoader?.GetObjectType()?.GetNestedType("ModLoadState") is not null);
     public static bool HasModLoadState => _hasModLoadState.Value;
-    public readonly static ReflectionObject RModLoader = new(TModLoader ?? throw new NullReferenceException());
     public static Type TModLoader = HKTool.Reflection.ReflectionHelper.FindType("Modding.ModLoader") ?? throw new TypeLoadException();
+    public readonly static ReflectionObject RModLoader = new(TModLoader ?? throw new NullReferenceException());
+    
     public static MethodInfo MAddModInstance = 
         TModLoader.GetMethod("TryAddModInstance", HReflectionHelper.All) ?? TModLoader.GetMethod("AddModInstance", HReflectionHelper.All);
     public static void AddModInstance(Type type, ModInstance mi)

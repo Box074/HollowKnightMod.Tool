@@ -5,7 +5,7 @@ public static class GameObjectHelper
     public static IEnumerable<GameObject> ForEachChildren(this GameObject parent)
     {
         if (parent == null) throw new ArgumentNullException(nameof(parent));
-        foreach (var v in parent.GetComponentsInChildren<Transform>()) yield return v.gameObject;
+        foreach (var v in parent.GetComponentsInChildren<Transform>(true)) yield return v.gameObject;
     }
     public static GameObject FindChild(this GameObject parent, string name)
     {
