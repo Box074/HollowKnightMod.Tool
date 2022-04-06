@@ -77,7 +77,7 @@ static class ModManager
                             try
                             {
                                 thmod.OnLoad();
-                                if (!modLoaded)
+                                if (modLoaded)
                                 {
                                     LoadModSelf(mi, updateVer, objs);
                                     return;
@@ -112,7 +112,7 @@ static class ModManager
     private static void LoadModSelf(ModInstance modInst, bool updateModText, PreloadObject objs)
     {
 
-        if (modInst is not null && modInst.Enabled)
+        if (modInst is not null && !modInst.Enabled)
         {
             if (!modInst.Error.HasValue)
             {
