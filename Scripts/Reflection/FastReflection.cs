@@ -23,6 +23,10 @@ static class FastReflection
             if (!field.IsStatic)
             {
                 il.Emit(OpCodes.Ldarg_0);
+                if(field.DeclaringType.IsValueType)
+                {
+                    il.Emit(OpCodes.Unbox_Any, field.DeclaringType);
+                }
                 il.Emit(OpCodes.Ldfld, field);
             }
             else
@@ -60,6 +64,10 @@ static class FastReflection
             else
             {
                 il.Emit(OpCodes.Ldarg_0);
+                if(field.DeclaringType.IsValueType)
+                {
+                    il.Emit(OpCodes.Unbox_Any, field.DeclaringType);
+                }
                 il.Emit(OpCodes.Ldarg_1);
                 if(field.FieldType.IsValueType) il.Emit(OpCodes.Unbox_Any, field.FieldType);
                 il.Emit(OpCodes.Stfld, field);
