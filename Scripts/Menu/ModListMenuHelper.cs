@@ -1,6 +1,7 @@
 
 namespace HKTool.Menu;
 
+[ModuleDefine("HKTool.ModListMenuHelper", "0.1")]
 public static class ModListMenuHelper
 {
     public static ReflectionObject? modListMenu { get; private set; }

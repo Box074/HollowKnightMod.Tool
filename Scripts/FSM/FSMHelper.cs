@@ -2,6 +2,8 @@
 namespace HKTool.FSM;
 public delegate FsmStateAction ForEachFsmStateActionDelegate<T>(T action) where T : FsmStateAction;
 public delegate FsmTransition ForEachFsmTransitionDelegate(FsmTransition transition);
+
+[ModuleDefine("HKTool.FsmFilter", "0.1")]
 public static class FSMHelper
 {
     public static Fsm[] FindFsms(string name)

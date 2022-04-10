@@ -2,6 +2,8 @@ HKTool.Error.ModMultiInstance=A second instance of {0} was created by mistake, p
 HKTool.ErrorShow.ModMultiInstance=The mod was loaded repeatedly (current mod location: {0})
 HKTool.Error.NeedLibraryVersion=Requires version of {0} >= {1}
 HKTool.Error.NeedLibrary=Requires dependency {0}
+HKTool.Error.NeedModule=Module {0} not found
+HKTool.Error.NeedModuleEx=Module {0} not found, version {1}
 HKTool.Error.GetModInstaceBeforeLoad=Trying to get an instance of {0} before loading it
 HKTool.Error.TryGetInstanceWithoutInit=Attempting to get an instance of {0} before its initialization is complete 
 HKTool.MissingPreloadObjectException=Preload object not found ("{0}", "{1}")

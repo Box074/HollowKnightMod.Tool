@@ -27,6 +27,7 @@ public abstract class ModBase : Mod, IHKToolMod
             return Version.Parse(ver);
         }
     }
+    public virtual List<(string, string)>? needModules => null;
     public MenuButton? ModListMenuButton { get; private set; }
     protected virtual bool ShowDebugView => true;
     private void CheckHKToolVersion(string? name = null)
@@ -36,6 +37,18 @@ public abstract class ModBase : Mod, IHKToolMod
         if (hkv < HKToolMinVersion)
         {
             TooOldDependency("HKTool", HKToolMinVersion);
+        }
+        var nm = needModules;
+        if (nm is null) return;
+        foreach (var v in nm)
+        {
+            if (!ModuleManager.HasModule(v.Item1, string.IsNullOrEmpty(v.Item2) ? null : new Version(v.Item2)))
+            {
+                var err = (string.IsNullOrEmpty(v.Item2) ? "HKTool.Error.NeedModule" : "HKTool.Error.NeedModuleEx")
+                .GetFormat(v.Item1.ToString(), v.Item2.ToString());
+                LogError(err);
+                throw new NotSupportedException(err);
+            }
         }
     }
     public override string GetVersion()
@@ -78,7 +91,7 @@ public abstract class ModBase : Mod, IHKToolMod
     protected virtual void AfterCreateModListButton(MenuButton button)
     {
         var labelT = button.GetLabelText();
-        if(labelT is null) return;
+        if (labelT is null) return;
         labelT.text = MenuButtonName;
         labelT.font = MenuButtonLabelFont;
     }
@@ -134,13 +147,13 @@ public abstract class ModBase : Mod, IHKToolMod
         {
             if (!go.TryGetValue(v.Value.Item1, out var scene))
             {
-                if(v.Value.Item3) throw new MissingPreloadObjectException();
+                if (v.Value.Item3) throw new MissingPreloadObjectException();
                 LogWarn("Missing Scene: " + v.Value.Item1);
                 continue;
             }
             if (!scene.TryGetValue(v.Value.Item2, out var obj))
             {
-                if(v.Value.Item3) throw new MissingPreloadObjectException();
+                if (v.Value.Item3) throw new MissingPreloadObjectException();
                 LogWarn("Missing Object: " + v.Value.Item2);
                 continue;
             }
@@ -214,7 +227,7 @@ public abstract class ModBase : Mod, IHKToolMod
                 ModListMenuButton = ModListMenuHelper.FindButtonInMenuListMenu(GetName());
                 if (ModListMenuButton is null) return;
                 var buttonText = ModListMenuButton.GetLabelText();
-                if(buttonText is not null)
+                if (buttonText is not null)
                 {
                     buttonText.text = MenuButtonName;
                     buttonText.font = MenuButtonLabelFont;
@@ -297,7 +310,7 @@ public abstract class ModBase : Mod, IHKToolMod
                 I18n.OnLanguageSwitch += () =>
                 {
                     var buttonText = ModListMenuButton?.GetLabelText();
-                    if(buttonText is not null) buttonText.text = MenuButtonName;
+                    if (buttonText is not null) buttonText.text = MenuButtonName;
                 };
             }
         }
@@ -367,7 +380,7 @@ public abstract class ModBase<T> : ModBase where T : ModBase<T>
                     PreloadModBeforeModLoader();
                 }
             }
-            if(_instance is null) throw new InvalidOperationException("HKTool.Error.GetModInstaceBeforeLoad".GetFormat(typeof(T).Name)); 
+            if (_instance is null) throw new InvalidOperationException("HKTool.Error.GetModInstaceBeforeLoad".GetFormat(typeof(T).Name));
             return _instance;
         }
     }

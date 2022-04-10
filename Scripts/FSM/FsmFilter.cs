@@ -1,5 +1,7 @@
 ﻿
 namespace HKTool.FSM;
+
+[ModuleDefine("HKTool.FsmFilter", "0.1")]
 public abstract class FsmFilter : IFsmFilter
 {
     public abstract bool Filter(PlayMakerFSM pm);

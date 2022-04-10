@@ -1,6 +1,6 @@
 ﻿
 namespace HKTool.FSM;
-
+[ModuleDefine("HKTool.FsmWatcher", "0.1")]
 public class FsmWatcher : WatcherBase<FsmWatcher, PlayMakerFSM, FSMPatch>
 {
     static FsmWatcher()

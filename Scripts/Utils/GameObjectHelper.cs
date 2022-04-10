@@ -1,5 +1,7 @@
 ﻿
 namespace HKTool.Utils;
+
+[ModuleDefine("HKTool.GameObjectHelper", "0.1")]
 public static class GameObjectHelper
 {
     public static IEnumerable<GameObject> ForEachChildren(this GameObject parent)
