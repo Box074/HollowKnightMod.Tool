@@ -13,11 +13,57 @@ public class CoroutineInfo
     public bool IsAttendGameObject { get; private set; } = false;
     public bool IsFinished => State == CoroutineState.Done || State == CoroutineState.Exception;
     public IEnumerator? Coroutine { get; internal set; } = null;
-    public CoroutineState State { get; internal set; } = CoroutineState.Ready;
+    public CoroutineState State 
+    {
+        get
+        {
+            return state;
+        }
+        internal set
+        {
+            state = value;
+            if(state == CoroutineState.Done || state == CoroutineState.Exception)
+            {
+                OnFinished();
+            }
+        }
+    }
+    private CoroutineState state = CoroutineState.Ready;
     public bool IsPause { get; set; }
     public void Pause() => IsPause = true;
     public void Continue() => IsPause = false;
+    public void Stop() => State = CoroutineState.Done;
+    public event Action<CoroutineInfo, Exception> onException = (_, _1) => {};
+    public event Action<CoroutineInfo> onFinished= (_) => {};
     internal Coroutine? _cor = null;
+    internal void OnExcpetion(Exception e)
+    {
+        foreach(var v in onException.GetInvocationList())
+        {
+            try
+            {
+                v.DynamicInvoke(this, e);
+            }
+            catch(Exception)
+            {
+
+            }
+        }
+    }
+    internal void OnFinished()
+    {
+        foreach(var v in onFinished.GetInvocationList())
+        {
+            try
+            {
+                v.DynamicInvoke(this);
+            }
+            catch(Exception)
+            {
+
+            }
+        }
+    }
     public CoroutineInfo(IEnumerator coroutine, GameObject? attendGameObject = null)
     {
         Coroutine = coroutine;
@@ -83,6 +129,7 @@ public static class CoroutineHelper
                         Debug.LogError(e);
                         CurrentCoroutine = null;
                         info.LastException = e;
+                        info.OnExcpetion(e);
                         info.State = CoroutineInfo.CoroutineState.Exception;
                         result = false;
                     }
