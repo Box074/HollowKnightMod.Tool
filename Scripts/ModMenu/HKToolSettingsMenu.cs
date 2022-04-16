@@ -62,6 +62,11 @@ class HKToolSettingsMenu : CustomMenu
                     Back();
                 }
             }, MenuResources.Perpetua);
+            AddButton("Test Options", "",
+            () =>
+            {
+                if(TestMenu.instance is not null) GoToMenu(TestMenu.instance);
+            }, MenuResources.Perpetua);
     }
     protected override void Build(ContentArea contentArea)
     {
@@ -97,11 +102,7 @@ class HKToolSettingsMenu : CustomMenu
                     Back();
                 }
             }, MenuResources.Perpetua);
-        AddButton("Test Options", "",
-            () =>
-            {
-                if(TestMenu.instance is not null) GoToMenu(TestMenu.instance);
-            }, MenuResources.Perpetua);
+        
         if (HKToolMod.IsDebugMode)
         {
             DebugOptions();

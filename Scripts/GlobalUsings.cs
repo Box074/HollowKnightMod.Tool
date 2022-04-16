@@ -29,6 +29,7 @@ global using Language;
 global using HKTool;
 global using HKTool.DebugTools;
 global using HKTool.FSM;
+global using HKTool.FSM.CSFsm;
 global using HKTool.Reflection;
 global using HKTool.Menu;
 global using HKTool.ModMenu;

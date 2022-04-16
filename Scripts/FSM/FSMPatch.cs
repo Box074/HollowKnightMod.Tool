@@ -16,7 +16,6 @@ public class FSMPatch : IPatch
     public List<FsmState> States { get; private set; } = new();
     public List<FsmTransition> Transitions { get; private set; } = new();
     public List<FsmStateAction> Actions { get; private set; } = new();
-    public List<(FsmTransition, string)> DelayBindTransitions { get; private set; } = new List<(FsmTransition, string)>();
     public FsmStateAction? LastOperationAction { get; private set; }
     private bool isClose = false;
     ~FSMPatch()
@@ -46,23 +45,22 @@ public class FSMPatch : IPatch
     public FSMPatch FlushFsm()
     {
         TestIsClose();
-        foreach (var v in DelayBindTransitions)
-        {
-            var s = FindState(v.Item2);
-            if (s == null) throw new InvalidOperationException();
-            v.Item1.ToState = s.Name;
-            v.Item1.ToFsmState = s;
-        }
-        DelayBindTransitions.Clear();
         FlushState();
         TargetFSM.States = States.ToArray();
+        foreach(var v in States)
+        {
+            foreach(var t in v.Transitions)
+            {
+                t.ToFsmState = TargetFSM.GetState(t.ToState);
+            }
+        }
         return this;
     }
     public FSMPatch DelayBindTransition(FsmTransition transition, string stateName)
     {
         if (transition == null) throw new ArgumentNullException(nameof(transition));
         if (string.IsNullOrEmpty(stateName)) throw new ArgumentException();
-        DelayBindTransitions.Add((transition, stateName));
+        transition.ToState = stateName;
         return this;
     }
     public FSMPatch DelayBindTransition(string eventName, string stateName)

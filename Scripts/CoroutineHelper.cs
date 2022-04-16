@@ -13,7 +13,7 @@ public class CoroutineInfo
     public bool IsAttendGameObject { get; private set; } = false;
     public bool IsFinished => State == CoroutineState.Done || State == CoroutineState.Exception;
     public IEnumerator? Coroutine { get; internal set; } = null;
-    public CoroutineState State 
+    public CoroutineState State
     {
         get
         {
@@ -22,7 +22,7 @@ public class CoroutineInfo
         internal set
         {
             state = value;
-            if(state == CoroutineState.Done || state == CoroutineState.Exception)
+            if (state == CoroutineState.Done || state == CoroutineState.Exception)
             {
                 OnFinished();
             }
@@ -33,18 +33,18 @@ public class CoroutineInfo
     public void Pause() => IsPause = true;
     public void Continue() => IsPause = false;
     public void Stop() => State = CoroutineState.Done;
-    public event Action<CoroutineInfo, Exception> onException = (_, _1) => {};
-    public event Action<CoroutineInfo> onFinished= (_) => {};
+    public event Action<CoroutineInfo, Exception> onException = (_, _1) => { };
+    public event Action<CoroutineInfo> onFinished = (_) => { };
     internal Coroutine? _cor = null;
     internal void OnExcpetion(Exception e)
     {
-        foreach(var v in onException.GetInvocationList())
+        foreach (var v in onException.GetInvocationList())
         {
             try
             {
                 v.DynamicInvoke(this, e);
             }
-            catch(Exception)
+            catch (Exception)
             {
 
             }
@@ -52,13 +52,13 @@ public class CoroutineInfo
     }
     internal void OnFinished()
     {
-        foreach(var v in onFinished.GetInvocationList())
+        foreach (var v in onFinished.GetInvocationList())
         {
             try
             {
                 v.DynamicInvoke(this);
             }
-            catch(Exception)
+            catch (Exception)
             {
 
             }
@@ -85,10 +85,11 @@ public static class CoroutineHelper
         public readonly static Queue<CoroutineInfo> queue = new();
         public void AddCor(CoroutineInfo info)
         {
-            queue.Enqueue(info);
+            lock (queue) queue.Enqueue(info);
         }
         private IEnumerator CoroutineExecuter(CoroutineInfo info)
         {
+            yield return null;
             if (info.State == CoroutineInfo.CoroutineState.Ready || info.State == CoroutineInfo.CoroutineState.Pause)
             {
                 info.State = CoroutineInfo.CoroutineState.Execute;
@@ -193,13 +194,16 @@ public static class CoroutineHelper
         }
         private void Update()
         {
-            if (queue.Count > 0)
+            lock (queue)
             {
-                foreach (var v in queue)
+                if (queue.Count > 0)
                 {
-                    StartCor(v);
+                    foreach (var v in queue)
+                    {
+                        StartCor(v);
+                    }
+                    queue.Clear();
                 }
-                queue.Clear();
             }
             for (int i = 0; i < wait.Count; i++)
             {
