@@ -31,37 +31,44 @@ class DebugModsLoader
 
     public static void LoadMod(Assembly ass)
     {
-        foreach (var type in ass.GetTypes())
+        try
         {
-            if (type.IsClass && !type.IsAbstract && type.IsSubclassOf(typeof(Mod)))
+            foreach (var type in ass.GetTypes())
             {
-                try
+                if (type.IsClass && !type.IsAbstract && type.IsSubclassOf(typeof(Mod)))
                 {
-                    ConstructorInfo constructor = type.GetConstructor(new Type[0]);
-                    if ((constructor?.Invoke(new object[0])) is Mod mod)
+                    try
                     {
-                        DebugMods.Add(mod);
+                        ConstructorInfo constructor = type.GetConstructor(new Type[0]);
+                        if ((constructor?.Invoke(new object[0])) is Mod mod)
+                        {
+                            DebugMods.Add(mod);
+                            ModLoaderHelper.AddModInstance(type, new()
+                            {
+                                Mod = mod,
+                                Enabled = false,
+                                Error = null,
+                                Name = mod.GetName()
+                            });
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        LogError(e);
                         ModLoaderHelper.AddModInstance(type, new()
                         {
-                            Mod = mod,
+                            Mod = null,
                             Enabled = false,
-                            Error = null,
-                            Name = mod.GetName()
+                            Error = ModErrorState.Construct,
+                            Name = type.Name
                         });
                     }
                 }
-                catch (Exception e)
-                {
-                    LogError(e);
-                    ModLoaderHelper.AddModInstance(type, new()
-                    {
-                        Mod = null,
-                        Enabled = false,
-                        Error = ModErrorState.Construct,
-                        Name = type.Name
-                    });
-                }
             }
+        }
+        catch (Exception e)
+        {
+            LogError(e);
         }
     }
 
