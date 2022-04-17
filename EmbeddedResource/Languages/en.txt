@@ -34,56 +34,6 @@ HKTool.Menu.ULST=Stack Trace Type({0})
 
 HKTool.DebugMenu.Back=Back
 
-HKTool.Menu.ModifySaveTitle=Edit Save
-HKTool.Menu.ModifySaveSlot=Save {0}
-HKTool.Menu.ModifySave.AllOptions=All Bool Options
-HKTool.Menu.ModifySave.Charms=Charms
-HKTool.Menu.ModifySave.Skills=Skills
-HKTool.Menu.ModifySave.Misc=Misc
-
-HKTool.Menu.ModifySave.CharmGot=Got {1}(#{0})
-HKTool.Menu.ModifySave.CharmEquipped=Equipped {1}(#{0})
-HKTool.Menu.ModifySave.CharmNew=New: {1}(#{0})
-
-HKTool.Menu.ModifySave.SpecailCharmState={1}(#{0}) state
-HKTool.Menu.ModifySave.SCS.N=None
-HKTool.Menu.ModifySave.SCS.B=Broken
-HKTool.Menu.ModifySave.SCS.S=Unbreakable
-
-
-HKTool.Menu.ModifySave.GrimmChildLevel=GrimmChild Level
-
-HKTool.Menu.ModifySave.KingsoulState=King Soul State
-HKTool.Menu.ModifySave.KS.L0=White Fragment(1)
-HKTool.Menu.ModifySave.KS.L1=White Fragment(2)
-HKTool.Menu.ModifySave.KS.L2=King Soul(3)
-HKTool.Menu.ModifySave.KS.L3=Void Heart(4)
-
-HKTool.Menu.ModifySave.HasDash=Has Dash
-HKTool.Menu.ModifySave.HasBlackDash=Has Shadow Dash
-HKTool.Menu.ModifySave.HasDashSlash=Has Dash Slash
-HKTool.Menu.ModifySave.HasGreatSlash=Has Great Slash
-HKTool.Menu.ModifySave.HasCycloneSlash=Has Cyclone
-HKTool.Menu.ModifySave.HasDoubleJump=Has Double Jump
-HKTool.Menu.ModifySave.HasInvJump=Infinite Air Jump
-HKTool.Menu.ModifySave.HasWallJump=Has Mantis Claw
-HKTool.Menu.ModifySave.HasSuperDash=Has Super Dash
-HKTool.Menu.ModifySave.HasDreamNail=Has Dream Nail
-HKTool.Menu.ModifySave.HasDreamNailP=Dream Nail Upgraded
-HKTool.Menu.ModifySave.HasDreamGate=Has Dream Gate
-HKTool.Menu.ModifySave.HasSwimming=Has Isma's Tear
-HKTool.Menu.ModifySave.HasLantern=Has Lumafly Lantern
-
-HKTool.Menu.ModifySave.FireballLevel=Fireball Level
-HKTool.Menu.ModifySave.QuakeLevel=Quake Level
-HKTool.Menu.ModifySave.ScreamLevel=Scream Level
-
-HKTool.Menu.GameMode=Game Mode
-HKTool.Menu.GM.0=Default
-HKTool.Menu.GM.1=Steel Soul
-HKTool.Menu.GM.2=Steel Soul(Dead)
-HKTool.Menu.GM.GodSeeker=Godseeker Mode
-
 HKTool.LogMenu.Title=Log
 HKTool.LogMenu.RLogLabel=Redirect UnityLog to ModLog({0})
 HKTool.LogMenu.MAPILogLevel=MAPI logging output level

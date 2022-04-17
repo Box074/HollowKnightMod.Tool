@@ -34,56 +34,6 @@ HKTool.Menu.ULST=Unity栈追踪等级({0})
 
 HKTool.DebugMenu.Back=返回
 
-HKTool.Menu.ModifySaveTitle=存档编辑
-HKTool.Menu.ModifySaveSlot=存档{0}
-HKTool.Menu.ModifySave.AllOptions=所有选项
-HKTool.Menu.ModifySave.Charms=护符
-HKTool.Menu.ModifySave.Skills=能力
-HKTool.Menu.ModifySave.Misc=杂项
-
-HKTool.Menu.ModifySave.CharmGot=拥有{1}(#{0})
-HKTool.Menu.ModifySave.CharmEquipped=正在佩戴: {1}(#{0})
-HKTool.Menu.ModifySave.CharmNew=新的: {1}(#{0})
-
-HKTool.Menu.ModifySave.SpecailCharmState=特殊状态{1}(#{0})
-HKTool.Menu.ModifySave.SCS.N=无
-HKTool.Menu.ModifySave.SCS.B=损坏
-HKTool.Menu.ModifySave.SCS.S=坚固
-
-
-HKTool.Menu.ModifySave.GrimmChildLevel=格林之子状态
-
-HKTool.Menu.ModifySave.KingsoulState=国王之魂状态
-HKTool.Menu.ModifySave.KS.L0=白色碎片(1)
-HKTool.Menu.ModifySave.KS.L1=白色碎片(2)
-HKTool.Menu.ModifySave.KS.L2=国王之魂(3)
-HKTool.Menu.ModifySave.KS.L3=虚空之心(4)
-
-HKTool.Menu.ModifySave.HasDash=拥有冲刺
-HKTool.Menu.ModifySave.HasBlackDash=拥有黑冲
-HKTool.Menu.ModifySave.HasDashSlash=拥有冲刺斩
-HKTool.Menu.ModifySave.HasGreatSlash=拥有强力劈砍
-HKTool.Menu.ModifySave.HasCycloneSlash=拥有旋风斩
-HKTool.Menu.ModifySave.HasDoubleJump=拥有二段跳
-HKTool.Menu.ModifySave.HasInvJump=可以无限跳跃
-HKTool.Menu.ModifySave.HasWallJump=拥有螳螂爪
-HKTool.Menu.ModifySave.HasSuperDash=拥有超冲
-HKTool.Menu.ModifySave.HasDreamNail=拥有梦之钉
-HKTool.Menu.ModifySave.HasDreamNailP=觉醒的梦钉
-HKTool.Menu.ModifySave.HasDreamGate=拥有梦之门
-HKTool.Menu.ModifySave.HasSwimming=拥有酸泳
-HKTool.Menu.ModifySave.HasLantern=有灯
-
-HKTool.Menu.ModifySave.FireballLevel=复仇之魂等级
-HKTool.Menu.ModifySave.QuakeLevel=下砸等级
-HKTool.Menu.ModifySave.ScreamLevel=吼等级
-
-HKTool.Menu.GameMode=游戏模式
-HKTool.Menu.GM.0=普通
-HKTool.Menu.GM.1=钢魂
-HKTool.Menu.GM.2=钢魂(死亡)
-HKTool.Menu.GM.GodSeeker=寻神者模式
-
 HKTool.LogMenu.Title=日志
 HKTool.LogMenu.RLogLabel=重定向Unity日志输出({0})
 HKTool.LogMenu.MAPILogLevel=MAPI日志输出等级
