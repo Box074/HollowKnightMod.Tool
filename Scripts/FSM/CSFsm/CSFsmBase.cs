@@ -1,7 +1,7 @@
 
 namespace HKTool.FSM.CSFsm;
 
-[ModuleDefine("CSFsm", "1.0")]
+[ModuleDefine("CSFsm", "1.1")]
 public abstract class CSFsmBase
 {
     [AttributeUsage(AttributeTargets.Method)]

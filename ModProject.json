@@ -1,6 +1,6 @@
 {
   "ProjectName": "HKTool",
-  "ModVersion": "1.6.0.0",
+  "ModVersion": "1.6.1.0",
   "CSharpVersion": "latest",
   "CodeDir": ".\\Scripts\\",
   "EmbeddedResourceDir": ".\\EmbeddedResource\\",
