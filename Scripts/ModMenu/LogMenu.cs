@@ -6,7 +6,7 @@ class LogMenu : CustomMenu
     public override Font titleFont => MenuResources.Perpetua;
     public static HKToolSettings settings => HKToolMod.settings;
     #pragma warning disable CS8618
-    public static LogMenu instance;
+    public static LogMenu? instance;
     #pragma warning restore CS8618
     public override bool DelayBuild => true;
     public LogMenu(MenuScreen rs) : base(rs)

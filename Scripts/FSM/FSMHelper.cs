@@ -3,9 +3,18 @@ namespace HKTool.FSM;
 public delegate FsmStateAction ForEachFsmStateActionDelegate<T>(T action) where T : FsmStateAction;
 public delegate FsmTransition ForEachFsmTransitionDelegate(FsmTransition transition);
 
-[ModuleDefine("HKTool.FsmFilter", "0.1")]
+[ModuleDefine("HKTool.FsmHelper", "0.1")]
 public static class FSMHelper
 {
+    public static PropertyInfo GetVariableArray(VariableType type)
+    {
+        string name = type switch
+        {
+            _ => type.ToString() + "Variables"
+        };
+        return typeof(FsmVariables).GetProperty(name) ?? throw new InvalidOperationException();
+    }
+
     public static Fsm[] FindFsms(string name)
     {
         return PlayMakerFSM.FsmList.Select(x => x.Fsm).Where(x => x.Name == name).ToArray();

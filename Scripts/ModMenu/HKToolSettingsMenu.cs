@@ -6,24 +6,11 @@ class HKToolSettingsMenu : CustomMenu
     public static bool init = false;
     public override Font titleFont => MenuResources.Perpetua;
     public static HKToolSettings settings => HKToolMod.settings;
-    public MenuButton? modifySaveButton;
     public override bool DelayBuild => true;
     public HKToolSettingsMenu(MenuScreen returnScreen) : base(returnScreen, "HKTool")
     {
         LogMenu.instance = new(this);
         TestMenu.instance = new(this);
-    }
-    protected override void OnEnterMenu()
-    {
-        if(modifySaveButton is null) return;
-        if(GameManager.instance.gameState != GameState.MAIN_MENU)
-        {
-            modifySaveButton.SetInteractable(false, "HKTool.Menu.OnlyMainMenu".Get());
-        }
-        else
-        {
-            modifySaveButton.SetInteractable(true);
-        }
     }
     private void DebugOptions()
     {
@@ -37,7 +24,7 @@ class HKToolSettingsMenu : CustomMenu
         AddButton("HKTool.LogMenu.Title".Get(), "",
         () => 
         {
-            LogMenu.instance.Refresh();
+            LogMenu.instance!.Refresh();
             GoToMenu(LogMenu.instance);
         }, MenuResources.Perpetua);
         AddBoolOption("HKTool.I18n.ShowOrigin".Get(),

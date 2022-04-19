@@ -9,12 +9,22 @@ public abstract class CSFsmBase
     {
 
     }
+    [AttributeUsage(AttributeTargets.Field)]
+    protected class FsmVarAttribute : Attribute
+    {
+        public string varName;
+        public FsmVarAttribute([CallerMemberName] string name = "")
+        {
+            varName = name;
+        }
+    }
     private static MethodInfo M_clone = typeof(object).GetMethod("MemberwiseClone", HReflectionHelper.All);
     private class StateInfo
     {
-        public Fsm? fsm;
+        public Fsm? fsm = null;
         public string name = "";
         public List<(string eventName, string toState)> events = new();
+        public List<string> globalEvents = new();
     }
     private Dictionary<MethodInfo, StateInfo> stateCache = new();
     protected static object StartActionContent { get; } = new object();
@@ -22,16 +32,34 @@ public abstract class CSFsmBase
     public PlayMakerFSM? FsmComponent { get; private set; }
     private StateInfo? currentState;
     private FsmStateAction[]? _origActions;
+    private FsmState? _origState;
+    protected FsmState? OrigState
+    {
+        get
+        {
+            CheckInit();
+            if(_origState == null)
+            {
+                _origState = currentState?.fsm?.GetState(currentState?.name);
+            }
+            return _origState;
+        }
+    }
     protected FsmStateAction[] OrigActions
     {
         get
         {
-            if(_origActions == null)
+            CheckInit();
+            if (_origActions == null)
             {
-                _origActions = currentState?.fsm?.GetState(currentState?.name)?.Actions ?? Array.Empty<FsmStateAction>();
+                _origActions = OrigState?.Actions ?? Array.Empty<FsmStateAction>();
             }
             return _origActions;
         }
+    }
+    protected T GetOrigAction<T>(int id) where T : FsmStateAction
+    {
+        return (T)OrigActions[id];
     }
     internal void BindPlayMakerFSM(PlayMakerFSM pm)
     {
@@ -62,22 +90,34 @@ public abstract class CSFsmBase
         CheckInit();
         currentState!.events.Add((eventName, toState));
     }
+    protected void CopyEvent(string eventName)
+    {
+        CheckInit();
+        DefineEvent(eventName, 
+            OrigState?.Transitions?.First(x => x.EventName == eventName).ToState 
+            ?? throw new InvalidOperationException());
+    }
+    protected void DefineGlobalEvent(string eventName)
+    {
+        CheckInit();
+        currentState!.globalEvents.Add(eventName);
+    }
     protected void InvokeAction(FsmStateAction action)
     {
-        if(current is null) return;
+        if (current is null) return;
         var state = current.State;
         var actions = state.Actions;
         Array.Resize(ref actions, actions.Length + 1);
         state.Actions = actions;
         state.Actions[actions.Length - 1] = action;
-        
+
         action.Active = true;
         action.Finished = false;
         action.Init(state);
         action.Entered = true;
         action.OnEnter();
         current.actions.Add(action);
-        if(!action.Finished)
+        if (!action.Finished)
         {
             state.ActiveActions.Add(action);
         }
@@ -85,7 +125,7 @@ public abstract class CSFsmBase
     protected IEnumerator InvokeActionAndWait(FsmStateAction action)
     {
         InvokeAction(action);
-        while(!action.Finished) yield return null;
+        while (!action.Finished) yield return null;
     }
     protected T CloneAndInvokeAction<T>(T action) where T : FsmStateAction
     {
@@ -101,61 +141,90 @@ public abstract class CSFsmBase
     }
     protected void ForceStopAction(FsmStateAction action, bool callOnExit = true)
     {
-        if(action.Finished) return;
-        if(current is null) return;
-        if(current.actions.Remove(action))
+        if (action.Finished) return;
+        if (current is null) return;
+        if (current.actions.Remove(action))
         {
-            for(int i = 0 ; i < current.State.Actions.Length ; i++)
+            for (int i = 0; i < current.State.Actions.Length; i++)
             {
-                if(ReferenceEquals(current.State.Actions[i], action))
+                if (ReferenceEquals(current.State.Actions[i], action))
                 {
                     current.State.Actions[i] = EmptyAction.action;
                     break;
                 }
             }
-            for(int i = 0 ; i < current.State.ActiveActions.Count ; i++)
+            for (int i = 0; i < current.State.ActiveActions.Count; i++)
             {
-                if(ReferenceEquals(current.State.ActiveActions[i], action))
+                if (ReferenceEquals(current.State.ActiveActions[i], action))
                 {
                     current.State.ActiveActions[i] = EmptyAction.action;
                     break;
                 }
             }
         }
-        if(callOnExit)
+        if (callOnExit)
         {
             action.Init(current.State);
             action.OnExit();
         }
     }
-    protected IEnumerator WaitForActionFinish(FsmStateAction action) 
+    protected IEnumerator WaitForActionFinish(FsmStateAction action)
     {
-        while(!action.Finished) yield return null;
+        while (!action.Finished) yield return null;
     }
     protected IEnumerator WaitForAllActions()
     {
-        while(current?.actions?.Any(x => !x.Finished) ?? false) yield return null;
+        while (current?.actions?.Any(x => !x.Finished) ?? false) yield return null;
     }
     private void BindFsm(Fsm fsm)
     {
+        BindVar(fsm);
         var methods = GetType().GetMethods(HReflectionHelper.All);
         List<FsmState> states = new(fsm.States);
-        foreach(var v in methods)
+        int i = 0;
+        foreach (var v in methods)
         {
-            if(!v.IsDefined(typeof(FsmStateAttribute))) continue;
-            var state = BuildState(v, fsm);
+            if (!v.IsDefined(typeof(FsmStateAttribute))) continue;
+            var state = BuildState(v, fsm, i++);
             states.Add(state);
         }
         fsm.States = states.ToArray();
-        foreach(var v in states)
+        foreach (var v in states)
         {
-            foreach(var e in v.Transitions)
+            foreach (var e in v.Transitions)
             {
                 e.ToFsmState = fsm.GetState(e.ToState);
             }
         }
     }
-    private FsmState BuildState(MethodInfo m, Fsm fsm)
+
+    private void BindVar(Fsm fsm)
+    {
+        foreach (var v in GetType().GetFields(HReflectionHelper.All))
+        {
+            if (!v.FieldType.IsSubclassOf(typeof(NamedVariable))) continue;
+            var d = v.GetCustomAttribute<FsmVarAttribute>();
+            var varName = string.IsNullOrEmpty(d.varName) ? v.Name : d.varName;
+            var val = (NamedVariable)v.FastGet(this)!;
+            if (val is null) continue;
+            var p = FSMHelper.GetVariableArray(val.VariableType);
+            var origArr = (NamedVariable[])p.FastGet(fsm.Variables)!;
+            var orig = origArr.FirstOrDefault(x => x.Name == varName);
+            if (orig is null)
+            {
+                var newArr = (NamedVariable[])Array.CreateInstance(p.PropertyType.GetElementType(), origArr.Length + 1);
+                origArr.CopyTo(newArr, 0);
+                newArr[origArr.Length] = val;
+                val.Name = varName;
+                p.FastSet(fsm.Variables, newArr);
+            }
+            else
+            {
+                v.FastSet(this, orig);
+            }
+        }
+    }
+    private FsmState BuildState(MethodInfo m, Fsm fsm, int id)
     {
         var state = new FsmState(fsm);
         try
@@ -163,11 +232,12 @@ public abstract class CSFsmBase
             currentState = new();
             _origActions = null;
             currentState.name = m.Name;
+            currentState.fsm = fsm;
             var ie = (IEnumerator)m.FastInvoke(this)!;
             if (!ie.MoveNext()) throw new InvalidOperationException();
-            if(ie.Current != StartActionContent) throw new InvalidOperationException();
+            if (ie.Current != StartActionContent) throw new InvalidOperationException();
             var trans = new FsmTransition[currentState.events.Count];
-            for(int i = 0 ; i < currentState.events.Count ; i++)
+            for (int i = 0; i < currentState.events.Count; i++)
             {
                 var e = currentState.events[i];
                 trans[i] = new()
@@ -184,15 +254,30 @@ public abstract class CSFsmBase
                 new CSFsmAction()
                 {
                     fsm = this,
-                    template = ie
+                    template = ie,
+                    ActionMethod = ie.GetType().FullName
                 }
             };
-
+            if (currentState.globalEvents.Count != 0)
+            {
+                var gts = new List<FsmTransition>(fsm.GlobalTransitions);
+                foreach (var v in currentState.globalEvents)
+                {
+                    gts.Add(new()
+                    {
+                        FsmEvent = FsmEvent.GetFsmEvent(v),
+                        ToState = currentState.name,
+                        ToFsmState = state
+                    });
+                }
+                fsm.GlobalTransitions = gts.ToArray();
+            }
         }
         finally
         {
             currentState = null;
             _origActions = null;
+            _origState = null;
         }
         return state;
     }
@@ -206,38 +291,44 @@ public abstract class CSFsmBase
     }
     private class CSFsmAction : FsmStateAction
     {
+        [NonSerialized]
         public CSFsmBase? fsm;
+        [NonSerialized]
         public IEnumerator? template;
+        [NonSerialized]
         public IEnumerator? currentAction;
+        [NonSerialized]
         public CoroutineInfo? currentEx;
+        [NonSerialized]
         public List<FsmStateAction> actions = new();
+        public string? ActionMethod;
         public override void OnEnter()
         {
             fsm!.current = this;
             currentEx = ExecuteAction().StartCoroutine();
             currentEx.onFinished += (_) =>
             {
-                if(currentAction is null) return;
+                if (currentAction is null) return;
                 Fsm.Event(FsmEvent.Finished);
             };
         }
         private IEnumerator ExecuteAction()
         {
             currentAction = (IEnumerator)M_clone.FastInvoke(template!)!;
-            while(true)
+            while (true)
             {
-                if(!(fsm?.FsmComponent?.gameObject?.activeInHierarchy ?? false)
+                if (!(fsm?.FsmComponent?.gameObject?.activeInHierarchy ?? false)
                     || !(fsm?.FsmComponent?.enabled ?? false))
-                    {
-                        yield return null;
-                        continue;
-                    }
-                var r = currentAction.MoveNext();
-                if(!r) break;
-                var result = currentAction.Current;
-                if(result is string eventName)
                 {
-                    Fsm.ProcessEvent(FsmEvent.GetFsmEvent(eventName));
+                    yield return null;
+                    continue;
+                }
+                var r = currentAction.MoveNext();
+                if (!r) break;
+                var result = currentAction.Current;
+                if (result is string eventName)
+                {
+                    Fsm.Event(FsmEvent.GetFsmEvent(eventName));
                     yield return null;
                     continue;
                 }
@@ -254,7 +345,7 @@ public abstract class CSFsmBase
             {
                 this
             };
-            foreach(var v in actions)
+            foreach (var v in actions)
             {
                 v.Init(State);
                 v.OnExit();
@@ -265,7 +356,7 @@ public abstract class CSFsmBase
     }
 }
 
-public abstract class CSFsm<T> : CSFsmBase where T : CSFsm<T> , new()
+public abstract class CSFsm<T> : CSFsmBase where T : CSFsm<T>, new()
 {
     public static T Apply(PlayMakerFSM pm)
     {
@@ -278,6 +369,7 @@ public abstract class CSFsm<T> : CSFsmBase where T : CSFsm<T> , new()
         var pm = go.AddComponent<PlayMakerFSM>();
         Apply(pm);
         pm.Fsm.StartState = startState;
+        pm.Fsm.Name = typeof(T).Name;
         pm.SetState(startState);
         return pm;
     }
