@@ -1,7 +1,7 @@
 
 namespace HKTool.FSM.CSFsm;
 
-[ModuleDefine("CSFsm", "1.1")]
+[ModuleDefine("CSFsm", "1.2")]
 public abstract class CSFsmBase
 {
     [AttributeUsage(AttributeTargets.Method)]
@@ -33,7 +33,7 @@ public abstract class CSFsmBase
     private StateInfo? currentState;
     private FsmStateAction[]? _origActions;
     private FsmState? _origState;
-    protected FsmState? OrigState
+    protected FsmState? OriginalState
     {
         get
         {
@@ -45,6 +45,19 @@ public abstract class CSFsmBase
             return _origState;
         }
     }
+    protected FsmStateAction[] OriginalActions
+    {
+        get
+        {
+            CheckInit();
+            if (_origActions == null)
+            {
+                _origActions = OriginalState?.Actions ?? Array.Empty<FsmStateAction>();
+            }
+            return _origActions;
+        }
+    }
+    [Obsolete]
     protected FsmStateAction[] OrigActions
     {
         get
@@ -52,14 +65,19 @@ public abstract class CSFsmBase
             CheckInit();
             if (_origActions == null)
             {
-                _origActions = OrigState?.Actions ?? Array.Empty<FsmStateAction>();
+                _origActions = OriginalState?.Actions ?? Array.Empty<FsmStateAction>();
             }
             return _origActions;
         }
     }
+    protected T GetOriginalAction<T>(int id) where T : FsmStateAction
+    {
+        return (T)OriginalActions[id];
+    }
+    [Obsolete]
     protected T GetOrigAction<T>(int id) where T : FsmStateAction
     {
-        return (T)OrigActions[id];
+        return (T)OriginalActions[id];
     }
     internal void BindPlayMakerFSM(PlayMakerFSM pm)
     {
@@ -94,7 +112,7 @@ public abstract class CSFsmBase
     {
         CheckInit();
         DefineEvent(eventName, 
-            OrigState?.Transitions?.First(x => x.EventName == eventName).ToState 
+            OriginalState?.Transitions?.First(x => x.EventName == eventName).ToState 
             ?? throw new InvalidOperationException());
     }
     protected void DefineGlobalEvent(string eventName)
@@ -181,12 +199,10 @@ public abstract class CSFsmBase
         BindVar(fsm);
         var methods = GetType().GetMethods(HReflectionHelper.All);
         List<FsmState> states = new(fsm.States);
-        int i = 0;
         foreach (var v in methods)
         {
             if (!v.IsDefined(typeof(FsmStateAttribute))) continue;
-            var state = BuildState(v, fsm, i++);
-            states.Add(state);
+            BuildState(v, fsm, states);
         }
         fsm.States = states.ToArray();
         foreach (var v in states)
@@ -224,9 +240,9 @@ public abstract class CSFsmBase
             }
         }
     }
-    private FsmState BuildState(MethodInfo m, Fsm fsm, int id)
+    private FsmState BuildState(MethodInfo m, Fsm fsm, List<FsmState> states)
     {
-        var state = new FsmState(fsm);
+        FsmState state;
         try
         {
             currentState = new();
@@ -246,6 +262,13 @@ public abstract class CSFsmBase
                     ToState = e.toState
                 };
             }
+            
+            state = OriginalState!;
+            if(state == null)
+            {
+                state = new(fsm);
+                states.Add(state);
+            }
             state.Transitions = trans;
             state.Name = currentState.name;
 
@@ -258,6 +281,7 @@ public abstract class CSFsmBase
                     ActionMethod = ie.GetType().FullName
                 }
             };
+            state.IgnoreLoadActionData();
             if (currentState.globalEvents.Count != 0)
             {
                 var gts = new List<FsmTransition>(fsm.GlobalTransitions);

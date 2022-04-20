@@ -3,9 +3,21 @@ namespace HKTool.FSM;
 public delegate FsmStateAction ForEachFsmStateActionDelegate<T>(T action) where T : FsmStateAction;
 public delegate FsmTransition ForEachFsmTransitionDelegate(FsmTransition transition);
 
-[ModuleDefine("HKTool.FsmHelper", "0.1")]
+[ModuleDefine("HKTool.FsmHelper", "0.2")]
 public static class FSMHelper
 {
+    public static void IgnoreLoadActionData(this FsmState state)
+    {
+        foreach(var v in HKToolMod.ignoreLoadActionsState)
+        {
+            if(!v.TryGetTarget(out var s) || ReferenceEquals(s, state))
+            {
+                v.SetTarget(state);
+                return;
+            }
+        }
+        HKToolMod.ignoreLoadActionsState.Add(new(state));
+    }
     public static PropertyInfo GetVariableArray(VariableType type)
     {
         string name = type switch

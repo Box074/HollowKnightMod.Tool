@@ -3,6 +3,18 @@ namespace HKTool;
 [ModAllowEarlyInitialization]
 class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMenuMod
 {
+    public static List<WeakReference<FsmState>> ignoreLoadActionsState = new();
+    static HKToolMod()
+    {
+        On.HutongGames.PlayMaker.FsmState.LoadActions += (orig, self) =>
+        {
+            if(ignoreLoadActionsState.Any(x => x.TryGetTarget(out var state) && ReferenceEquals(state, self)))
+            {
+                return;
+            }
+            orig(self);
+        };
+    }
     private static int? apiVersion = null;
     public static int ModdingAPIVersion
     {
