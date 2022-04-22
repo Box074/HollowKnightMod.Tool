@@ -18,7 +18,7 @@ public abstract class CSFsmBase
             varName = name;
         }
     }
-    private static MethodInfo M_clone = typeof(object).GetMethod("MemberwiseClone", HReflectionHelper.All);
+    
     private class StateInfo
     {
         public Fsm? fsm = null;
@@ -128,7 +128,37 @@ public abstract class CSFsmBase
         Array.Resize(ref actions, actions.Length + 1);
         state.Actions = actions;
         state.Actions[actions.Length - 1] = action;
-
+        InvokePMAction(action);
+    }
+    protected void InvokeActions(FsmStateAction[] actions, int index, int count)
+    {
+        if (current is null) return;
+        if(count > actions.Length) count = actions.Length;
+        var state = current.State;
+        var act = state.Actions;
+        var beg = act.Length;
+        Array.Resize(ref act, act.Length + count);
+        state.Actions = act;
+        for(int i = 0; i < count ; i++)
+        {
+            var action = actions[i + index];
+            if(action is null)
+            {
+                act[beg + i] = EmptyAction.action;
+                continue;
+            }
+            act[beg + i] = action;
+            InvokePMAction(action);
+        }
+    }
+    protected void InvokeActions(FsmStateAction[] actions, int index = 0)
+    {
+        InvokeActions(actions, index, actions.Length - index);
+    }
+    private void InvokePMAction(FsmStateAction action)
+    {
+        if (current is null) return;
+        var state = current.State;
         action.Active = true;
         action.Finished = false;
         action.Init(state);
@@ -147,13 +177,13 @@ public abstract class CSFsmBase
     }
     protected T CloneAndInvokeAction<T>(T action) where T : FsmStateAction
     {
-        var a = (T)M_clone.FastInvoke(action)!;
+        var a = action.MemberwiseClone();
         InvokeAction(a);
         return a;
     }
     protected IEnumerator CloneAndInvokeActionAndWait<T>(T action, out T outAction) where T : FsmStateAction
     {
-        var a = (T)M_clone.FastInvoke(action)!;
+        var a = action.MemberwiseClone();
         outAction = a;
         return InvokeActionAndWait(a);
     }
@@ -193,6 +223,10 @@ public abstract class CSFsmBase
     protected IEnumerator WaitForAllActions()
     {
         while (current?.actions?.Any(x => !x.Finished) ?? false) yield return null;
+    }
+    protected IEnumerator WaitForAllActions(FsmStateAction[] actions)
+    {
+        while (actions.Any(x => !x.Finished)) yield return null;
     }
     private void BindFsm(Fsm fsm)
     {
@@ -278,7 +312,7 @@ public abstract class CSFsmBase
                 {
                     fsm = this,
                     template = ie,
-                    ActionMethod = ie.GetType().FullName
+                    ActionMethod = m.DeclaringType.FullName + "::" + m.Name
                 }
             };
             state.IgnoreLoadActionData();
@@ -338,7 +372,7 @@ public abstract class CSFsmBase
         }
         private IEnumerator ExecuteAction()
         {
-            currentAction = (IEnumerator)M_clone.FastInvoke(template!)!;
+            currentAction = template!.MemberwiseClone();
             while (true)
             {
                 if (!(fsm?.FsmComponent?.gameObject?.activeInHierarchy ?? false)

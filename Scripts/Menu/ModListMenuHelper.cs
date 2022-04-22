@@ -112,8 +112,9 @@ public static class ModListMenuHelper
     internal static void Init()
     {
         HookEndpointManager.Add(
-            HReflectionHelper.FindType("Modding.ModListMenu")?.GetConstructor(Type.EmptyTypes)
-            ?? throw new NullReferenceException(),
+            FindMethodBase("Modding.ModListMenu::.ctor"),
+            //HReflectionHelper.FindType("Modding.ModListMenu")?.GetConstructor(Type.EmptyTypes)
+            //?? throw new NullReferenceException(),
             (Action<object> orig, object self) =>
             {
                 modListMenu = self.CreateReflectionObject();
@@ -121,7 +122,8 @@ public static class ModListMenuHelper
             }
         );
         HookEndpointManager.Add(
-            typeof(UIManager).GetMethod("add_EditMenus"),
+            //typeof(UIManager).GetMethod("add_EditMenus"),
+            FindMethodBase("UIManager::add_EditMenus"),
             (Action<Action> orig, Action action) =>
             {
                 orig(action);

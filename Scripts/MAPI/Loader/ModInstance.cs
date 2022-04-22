@@ -3,8 +3,8 @@ namespace HKTool.MAPI.Loader;
 
 public class ModInstance
 {
-    public static Type TModInstance = ModLoaderHelper.TModLoader.GetNestedType("ModInstance");
-    public static Type TModErrorState = ModLoaderHelper.TModLoader.GetNestedType("ModErrorState");
+    public static Type TModInstance = FindType("Modding.ModLoader+ModInstance")!;
+    public static Type TModErrorState = FindType("Modding.ModLoader+ModErrorState")!;
 	public IMod? Mod = null;
 	public string Name = "";
 	public ModErrorState? Error;

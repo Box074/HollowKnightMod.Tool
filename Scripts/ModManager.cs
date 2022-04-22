@@ -32,9 +32,7 @@ static class ModManager
             }
         );
         HookEndpointManager.Add(
-            RModLoader
-                .GetObjectType()
-                .GetMethod("UpdateModText", BindingFlags.NonPublic | BindingFlags.Static),
+            FindMethodBase("Modding.ModLoader::UpdateModText"),
             (Action orig) =>
             {
                 orig();
@@ -55,7 +53,7 @@ static class ModManager
             }
         );
         HookEndpointManager.Add(
-            RModLoader.GetObjectType().GetMethod("LoadMod", HReflectionHelper.All),
+            FindMethodBase("Modding.ModLoader::LoadMod"),
                 (Action<object, bool, PreloadObject> orig,
                     object mod, bool updateVer, PreloadObject objs
                     ) =>
@@ -98,7 +96,7 @@ static class ModManager
                     }
         );
         HookEndpointManager.Add(
-            typeof(Mod).GetMethod("GetPreloadNames"),
+            FindMethodBase("Modding.Mod::GetPreloadNames"),
             (Func<Mod, List<(string, string)>> orig, Mod self) =>
             {
                 var list = orig(self);
