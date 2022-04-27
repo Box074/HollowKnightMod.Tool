@@ -2,6 +2,28 @@
 namespace HKTool;
 public abstract class ModBase : Mod, IHKToolMod
 {
+    [AttributeUsage(AttributeTargets.Method)]
+    internal protected class PreloadSharedAssetsAttribute : Attribute
+    {
+        private PreloadSharedAssetsAttribute(string name, Type? type = null)
+        {
+            this.name = name;
+            this.targetType = type ?? typeof(GameObject);
+        }
+        public PreloadSharedAssetsAttribute(string sceneName, string name, Type? type = null) : this(name, type)
+        {
+            this.sceneName = sceneName;
+        }
+        public PreloadSharedAssetsAttribute(int id, string name, Type? type = null) : this(name, type)
+        {
+            this.name = name;
+            this.id = id;
+        }
+        public Type targetType;
+        public string sceneName = "";
+        public string name;
+        public int? id = null;
+    }
     public const string compileVersion = "1.7.0.0";
     private static int _currentmapiver = (int)FindFieldInfo("Modding.ModHooks::_modVersion").GetValue(null);
     public static int CurrentMAPIVersion => _currentmapiver;
@@ -145,6 +167,7 @@ public abstract class ModBase : Mod, IHKToolMod
 
     void IHKToolMod.HookInit(Dictionary<string, Dictionary<string, GameObject>> go)
     {
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
         foreach (var v in preloads)
         {
             if (!go.TryGetValue(v.Value.Item1, out var scene))
@@ -173,6 +196,7 @@ public abstract class ModBase : Mod, IHKToolMod
     {
         preloads = preloads ?? new();
         foreach (var v in this.preloads) preloads.Add((v.Value.Item1, v.Value.Item2));
+        foreach(var v in assetpreloads) preloads.Add((v.Key, "FakeGameObject"));
         return preloads;
     }
     private void CheckHookGetPreloads()
@@ -196,19 +220,94 @@ public abstract class ModBase : Mod, IHKToolMod
             {
                 ModManager.hookGetPreloads[this] = HookGetPreloads;
             }
+            if(assetpreloads.Count != 0)
+            {
+                UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+            }
+        }
+    }
+    private void OnSceneLoaded(Scene scene, LoadSceneMode _1)
+    {
+        if(assetpreloads.TryGetValue(scene.name, out var v))
+        {
+            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(new GameObject("FakeGameObject"), scene);
+            var batch = new Dictionary<Type, List<(string, MethodInfo)>>();
+            foreach(var v2 in v)
+            {
+                if(batch.TryGetValue(v2.Item2, out var v3))
+                {
+                    v3 = new();
+                    batch.Add(v2.Item2, v3);
+                }
+                v3.Add((v2.Item1, v2.Item3));
+            }
+            foreach(var g in batch)
+            {
+                var type = g.Key;
+                var objects = Resources.FindObjectsOfTypeAll(type);
+                var list = g.Value;
+                if(type == typeof(GameObject))
+                {
+                    foreach(var go in (GameObject[])objects)
+                    {
+                        if(go is null) continue;
+                        if(go.scene.IsValid()) continue;
+                        var match = list.FirstOrDefault(x => x.Item1 == go.name);
+                        if(match.Item2 is not null)
+                        {
+                            match.Item2.FastInvoke(this, go);
+                            list.Remove(match);
+                        }
+                    }
+                }
+                else
+                {
+                    foreach(var o in objects)
+                    {
+                        if(o is null) continue;
+                        var match = list.FirstOrDefault(x => x.Item1 == o.name);
+                        if(match.Item2 is not null)
+                        {
+                            match.Item2.FastInvoke(this, o);
+                            list.Remove(match);
+                        }
+                    }
+                }
+                foreach(var v4 in list)
+                {
+                    v4.Item2.FastInvoke(this, null);
+                }
+            }
         }
     }
     private bool needHookGetPreloads = false;
     private Dictionary<MethodInfo, (string, string, bool)> preloads = new();
+    private Dictionary<string, List<(string, Type, MethodInfo)>> assetpreloads = new();
     private void CheckPreloads()
     {
         var t = GetType();
         foreach (var v in t.GetMethods(HReflectionHelper.All))
         {
             var p = v.GetCustomAttribute<PreloadAttribute>();
-            if (p is null) continue;
-            preloads.Add(v, (p.sceneName, p.objPath, p.throwExceptionOnMissing));
-            needHookGetPreloads = true;
+            if (p is not null)
+            {
+                preloads.Add(v, (p.sceneName, p.objPath, p.throwExceptionOnMissing));
+                needHookGetPreloads = true;
+                continue;
+            }
+            var pa = v.GetCustomAttribute<PreloadSharedAssetsAttribute>();
+            if(pa is not null)
+            {
+                string scene = pa.id is null ? pa.sceneName : 
+                    Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(pa.id ?? throw new NullReferenceException()));
+                if(!assetpreloads.TryGetValue(scene, out var list))
+                {
+                    list = new();
+                    assetpreloads.Add(scene, list);
+                }
+                needHookGetPreloads = true;
+                list.Add((pa.name, pa.targetType, v));
+            }
         }
     }
     public ModBase(string? name = null) : base(name)
