@@ -32,6 +32,6 @@ public static class ModLoaderHelper
     public static void AddModInstance(Type type, ModInstance mi)
     {
         if(modLoadState.HasFlag(ModLoadState.Loaded)) throw new InvalidOperationException();
-        MAddModInstance.FastInvoke(null, type, mi.New());
+        MAddModInstance.FastInvoke(null, type, mi.Get());
     }
 }

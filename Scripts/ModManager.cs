@@ -8,7 +8,6 @@ static class ModManager
     public static Dictionary<Type, ModBase> instanceMap = new();
     public static List<(string, string)> modErrors = new();
     public static List<Type> skipMods = new();
-    public static ReflectionObject RModLoader => ModLoaderHelper.RModLoader;
     public static Dictionary<Mod, Func<PreloadObject, bool>> hookInits = new();
     public static Dictionary<Mod, Func<List<(string, string)>, List<(string, string)>>> hookGetPreloads = new();
     static ModManager()
@@ -37,7 +36,7 @@ static class ModManager
             {
                 orig();
                 if (modErrors.Count == 0) return;
-                var vd = RModLoader.GetMemberData<ModVersionDraw>("modVersionDraw");
+                var vd = (ModVersionDraw)FindFieldInfo("Modding.ModLoader::modVersionDraw").FastGet((object?)null)!;
                 var sb = new StringBuilder();
                 sb.AppendLine(vd?.drawString ?? "");
                 sb.AppendLine();
@@ -84,7 +83,6 @@ static class ModManager
                             catch (Exception e)
                             {
                                 mi.Error = ModErrorState.Initialize;
-                                mi.Write();
                                 HKToolMod.logger.LogError(e);
                             }
 
@@ -115,13 +113,12 @@ static class ModManager
             if (!modInst.Error.HasValue)
             {
                 modInst.Enabled = true;
-                modInst.Write();
             }
         }
 
         if (updateModText)
         {
-            RModLoader.InvokeMethod("UpdateModText");
+            ((MethodInfo)FindMethodBase("Modding.ModLoader::UpdateModText")).FastInvoke(null);
         }
     }
     public static void NewMod(ModBase mod, string? name = null)
