@@ -3,6 +3,8 @@ namespace HKTool;
 public abstract class ModBase : Mod, IHKToolMod
 {
     public const string compileVersion = "1.7.0.0";
+    private static int _currentmapiver = (int)FindFieldInfo("Modding.ModHooks::_modVersion").GetValue(null);
+    public static int CurrentMAPIVersion => _currentmapiver;
     private static FsmFilter CreateFilter(FsmPatcherAttribute attr)
     {
         if (attr.useRegex)

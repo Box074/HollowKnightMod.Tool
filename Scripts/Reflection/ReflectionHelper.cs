@@ -3,8 +3,12 @@
 namespace HKTool.Reflection;
 public static class ReflectionHelper
 {
-    public static BindingFlags All = BindingFlags.Public | BindingFlags.NonPublic
+    public const BindingFlags All = BindingFlags.Public | BindingFlags.NonPublic
         | BindingFlags.Instance | BindingFlags.Static;
+    public const BindingFlags Instance = BindingFlags.Public | BindingFlags.NonPublic
+        | BindingFlags.Instance;
+    public const BindingFlags Static = BindingFlags.Public | BindingFlags.NonPublic
+        | BindingFlags.Static;
     public static ReflectionObject CreateReflectionObject(this object obj) => new ReflectionObject(obj);
     public static ReflectionObject CreateReflectionObject(this Type type) => new ReflectionObject(type);
     public static ReflectionObject CreateReflectionObject(this ReflectionObject obj) => obj;

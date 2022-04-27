@@ -4,12 +4,12 @@ namespace HKTool.Utils.Compile;
 [ModuleDefine("HKTool.ReflectionHelperEx", "0.1")]
 public static class ReflectionHelperEx
 {
-    public static FieldInfo? GetFieldSelf(string name) 
+    public static FieldInfo GetFieldSelf(string name) 
     {
         StackFrame fr = new StackFrame(1);
         return fr.GetMethod().DeclaringType.GetField(name, HReflectionHelper.All);
     }
-    public static MethodBase? GetMethodSelf(string name)
+    public static MethodBase GetMethodSelf(string name)
     {
         StackFrame fr = new StackFrame(1);
         return fr.GetMethod().DeclaringType.GetMethod(name, HReflectionHelper.All);
@@ -28,20 +28,20 @@ public static class ReflectionHelperEx
         }
         return parent;
     }
-    public static FieldInfo? FindFieldInfo(string name)
+    public static FieldInfo FindFieldInfo(string name)
     {
         var tn = name.Substring(0, name.IndexOf(':'));
         var fn = name.Substring(name.LastIndexOf(':') + 1);
         var type = FindType(tn);
-        if(type == null) return null;
-        return type.GetField(fn, HReflectionHelper.All);
+        if(type == null) throw new MissingFieldException(tn, fn);
+        return type.GetField(fn, HReflectionHelper.All) ?? throw new MissingFieldException(tn, fn);
     }
-    public static MethodBase? FindMethodBase(string name)
+    public static MethodBase FindMethodBase(string name)
     {
         var tn = name.Substring(0, name.IndexOf(':'));
         var fn = name.Substring(name.LastIndexOf(':') + 1);
         var type = FindType(tn);
-        if(type == null) return null;
-        return type.GetMethod(fn, HReflectionHelper.All);
+        if(type == null) throw new MissingMethodException(tn, fn);
+        return type.GetMethod(fn, HReflectionHelper.All) ?? throw new MissingMethodException(tn, fn);
     }
 }
