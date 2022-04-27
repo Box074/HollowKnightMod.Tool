@@ -44,7 +44,6 @@ global using HKTool.Attributes;
 global using HKTool.Runtime;
 global using HKTool.MAPI;
 global using HKTool.MAPI.Loader;
-global using HKTool.Modules;
 
 global using MonoMod.Cil;
 global using MonoMod.RuntimeDetour.HookGen;

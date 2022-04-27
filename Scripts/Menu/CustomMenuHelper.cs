@@ -1,7 +1,7 @@
 
 namespace HKTool.Menu;
 
-[ModuleDefine("HKTool.CutomMenuHelper", "0.1")]
+
 public static class CutomMenuHelper
 {
     public static Text? GetLabelText(this MenuButton button)

@@ -62,18 +62,6 @@ public abstract class ModBase : Mod, IHKToolMod
         {
             TooOldDependency("HKTool", HKToolMinVersion);
         }
-        var nm = needModules;
-        if (nm is null) return;
-        foreach (var v in nm)
-        {
-            if (!ModuleManager.HasModule(v.Item1, string.IsNullOrEmpty(v.Item2) ? null : new Version(v.Item2)))
-            {
-                var err = (string.IsNullOrEmpty(v.Item2) ? "HKTool.Error.NeedModule" : "HKTool.Error.NeedModuleEx")
-                .GetFormat(v.Item1.ToString(), v.Item2.ToString());
-                LogError(err);
-                throw new NotSupportedException(err);
-            }
-        }
     }
     public override string GetVersion()
     {

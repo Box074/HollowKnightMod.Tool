@@ -1,7 +1,7 @@
 
 namespace HKTool.Menu;
 
-[ModuleDefine("HKTool.CustomMenu", "0.1")]
+
 public abstract class CustomMenu : BindI18n
 {
     public static Font FontPerpetua => MenuResources.Perpetua;

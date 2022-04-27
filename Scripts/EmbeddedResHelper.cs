@@ -1,7 +1,6 @@
 
 namespace HKTool;
 
-[ModuleDefine("HKTool.EmbeddedResHelper", "0.1")]
 public static class EmbeddedResHelper
 {
     private readonly static Dictionary<Assembly, Dictionary<string, byte[]>> caches = new();

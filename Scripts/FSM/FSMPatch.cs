@@ -1,7 +1,6 @@
 ﻿
 namespace HKTool.FSM;
 
-[ModuleDefine("HKTool.FSMPatch", "0.1")]
 public class FSMPatch : IPatch
 {
     internal FSMPatch(Fsm fsm)

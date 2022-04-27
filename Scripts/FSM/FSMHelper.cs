@@ -3,7 +3,6 @@ namespace HKTool.FSM;
 public delegate FsmStateAction ForEachFsmStateActionDelegate<T>(T action) where T : FsmStateAction;
 public delegate FsmTransition ForEachFsmTransitionDelegate(FsmTransition transition);
 
-[ModuleDefine("HKTool.FsmHelper", "0.2")]
 public static class FSMHelper
 {
     public static void IgnoreLoadActionData(this FsmState state)

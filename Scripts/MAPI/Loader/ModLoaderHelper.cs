@@ -1,7 +1,7 @@
 
 namespace HKTool.MAPI.Loader;
 
-[ModuleDefine("HKTool.ModLoaderHelper", "0.1")]
+
 public static class ModLoaderHelper
 {
     public static ModLoadState modLoadState

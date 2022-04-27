@@ -1,7 +1,6 @@
 
 namespace HKTool.Utils.Compile;
 
-[ModuleDefine("HKTool.ReflectionHelperEx", "0.1")]
 public static class ReflectionHelperEx
 {
     public static FieldInfo GetFieldSelf(string name) 

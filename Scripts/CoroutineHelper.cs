@@ -74,7 +74,7 @@ public class CoroutineInfo
         }
     }
 }
-[ModuleDefine("CoroutineHelper", "0.1")]
+
 public static class CoroutineHelper
 {
     public static CoroutineInfo? CurrentCoroutine { get; private set; } = null;

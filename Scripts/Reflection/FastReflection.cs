@@ -2,7 +2,7 @@
 using HKTool.Reflection.Runtime;
 
 namespace HKTool.Reflection;
-[ModuleDefine("HKTool.FastReflection", "0.1")]
+
 static class FastReflection
 {
     public static Dictionary<FieldInfo, RD_SetField> fsetter = new Dictionary<FieldInfo, RD_SetField>();

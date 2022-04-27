@@ -1,7 +1,6 @@
 
 namespace HKTool;
 
-[ModuleDefine("HKTool.GameHelper", "0.1")]
 public static class GameHelper
 {
     public static bool TryGetHeroController(out HeroController heroController)

@@ -1,7 +1,7 @@
 ﻿
 
 namespace HKTool.Reflection;
-[ModuleDefine("HKTool.ReflectionObject", "0.1")]
+
 public class ReflectionObject
 {
 
