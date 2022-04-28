@@ -15,18 +15,6 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
             orig(self);
         };
     }
-    private static int? apiVersion = null;
-    public static int ModdingAPIVersion
-    {
-        get
-        {
-            if (apiVersion == null)
-            {
-                apiVersion = int.Parse(ModHooks.ModVersion.Split('-')[1]);
-            }
-            return apiVersion ?? 0;
-        }
-    }
     public static I18n I18N => Instance.I18n;
     public static SimpleLogger unityLogger = new("UNITY");
     public static SimpleLogger logger = new("HKTool");

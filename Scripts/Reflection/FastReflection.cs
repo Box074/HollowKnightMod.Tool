@@ -9,7 +9,6 @@ static class FastReflection
     public static Dictionary<FieldInfo, RD_GetField> fgetter = new Dictionary<FieldInfo, RD_GetField>();
     public static Dictionary<MethodInfo, FastReflectionDelegate> mcaller =
         new Dictionary<MethodInfo, FastReflectionDelegate>();
-    public static bool ApiUpdateTo69 => HKToolMod.ModdingAPIVersion >= 69;
     public static RD_GetField GetGetter(FieldInfo field)
     {
         if (field is null) throw new ArgumentNullException(nameof(field));
