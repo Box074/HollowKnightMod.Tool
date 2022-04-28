@@ -12,6 +12,11 @@ class HKToolSettingsMenu : CustomMenu
         LogMenu.instance = new(this);
         TestMenu.instance = new(this);
     }
+    protected override void Back()
+    {
+        base.Back();
+        HKToolMod.Instance.SaveSettings();
+    }
     private void DebugOptions()
     {
         
