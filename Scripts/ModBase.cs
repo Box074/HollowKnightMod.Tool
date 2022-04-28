@@ -27,7 +27,7 @@ public abstract class ModBase : Mod, IHKToolMod
         public bool inResources;
         public int? id = null;
     }
-    public const string compileVersion = "1.7.0.0";
+    public const string compileVersion = "1.7.1.0";
     private static int _currentmapiver = (int)FindFieldInfo("Modding.ModHooks::_modVersion").GetValue(null);
     public static int CurrentMAPIVersion => _currentmapiver;
     private static FsmFilter CreateFilter(FsmPatcherAttribute attr)
