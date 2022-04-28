@@ -5,23 +5,26 @@ public abstract class ModBase : Mod, IHKToolMod
     [AttributeUsage(AttributeTargets.Method)]
     internal protected class PreloadSharedAssetsAttribute : Attribute
     {
-        private PreloadSharedAssetsAttribute(string name, Type? type = null)
+        public PreloadSharedAssetsAttribute(string name, Type? type = null)
         {
+            inResources = true;
             this.name = name;
             this.targetType = type ?? typeof(GameObject);
         }
         public PreloadSharedAssetsAttribute(string sceneName, string name, Type? type = null) : this(name, type)
         {
+            inResources = false;
             this.sceneName = sceneName;
         }
         public PreloadSharedAssetsAttribute(int id, string name, Type? type = null) : this(name, type)
         {
-            this.name = name;
+            inResources = false;
             this.id = id;
         }
         public Type targetType;
         public string sceneName = "";
         public string name;
+        public bool inResources;
         public int? id = null;
     }
     public const string compileVersion = "1.7.0.0";
@@ -152,10 +155,95 @@ public abstract class ModBase : Mod, IHKToolMod
     {
         return File.ReadAllBytes(GetType().Assembly.Location);
     }
+    private void LoadPreloadResource(List<(string, Type, MethodInfo)> table)
+    {
+        var batch = new Dictionary<Type, List<(string, MethodInfo)>>();
+        foreach (var v2 in table)
+        {
+            if (!batch.TryGetValue(v2.Item2, out var v3))
+            {
+                v3 = new();
+                batch.Add(v2.Item2, v3);
+            }
+            v3.Add((v2.Item1, v2.Item3));
+        }
+        foreach (var g in batch)
+        {
+            var type = g.Key;
+            var objects = Resources.FindObjectsOfTypeAll(type);
+            var list = g.Value;
+            if (type == typeof(GameObject))
+            {
+                foreach (var go in (GameObject[])objects)
+                {
+                    if (go is null) continue;
+                    if (go.scene.IsValid() || go.transform.parent != null) continue;
+                    var match = list.FirstOrDefault(x => x.Item1 == go.name);
+                    if (match.Item2 is not null)
+                    {
+                        try
+                        {
+                            match.Item2.FastInvoke(this, go);
+                        }
+                        catch (Exception e)
+                        {
+                            LogError(e);
+                        }
+                        list.Remove(match);
+                    }
+                }
+            }
+            else
+            {
+                foreach (var o in objects)
+                {
+                    if (o is null) continue;
+                    var match = list.FirstOrDefault(x => x.Item1 == o.name);
+                    if (match.Item2 is not null)
+                    {
+                        try
+                        {
+                            match.Item2.FastInvoke(this, o);
+                        }
+                        catch (Exception e)
+                        {
+                            LogError(e);
+                        }
+                        list.Remove(match);
+                    }
+                }
+            }
+            foreach (var v4 in list)
+            {
+                try
+                {
+                    v4.Item2.FastInvoke(this, null);
+                }
+                catch (Exception e)
+                {
+                    LogError(e);
+                }
+            }
+        }
 
+    }
     void IHKToolMod.HookInit(Dictionary<string, Dictionary<string, GameObject>> go)
     {
         UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+        foreach (var v in go)
+        {
+            foreach (var v2 in v.Value)
+            {
+                if (v2.Value.name == "FakeGameObject")
+                {
+                    UObject.Destroy(v2.Value);
+                }
+            }
+        }
+        if (assetpreloads.TryGetValue("InResource", out var inresources))
+        {
+            LoadPreloadResource(inresources);
+        }
         foreach (var v in preloads)
         {
             if (!go.TryGetValue(v.Value.Item1, out var scene))
@@ -219,74 +307,7 @@ public abstract class ModBase : Mod, IHKToolMod
         if (assetpreloads.TryGetValue(scene.name, out var v))
         {
             UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(new GameObject("FakeGameObject"), scene);
-            var batch = new Dictionary<Type, List<(string, MethodInfo)>>();
-            foreach (var v2 in v)
-            {
-                if (!batch.TryGetValue(v2.Item2, out var v3))
-                {
-                    v3 = new();
-                    batch.Add(v2.Item2, v3);
-                }
-                v3.Add((v2.Item1, v2.Item3));
-            }
-            foreach (var g in batch)
-            {
-                var type = g.Key;
-                var objects = Resources.FindObjectsOfTypeAll(type);
-                var list = g.Value;
-                if (type == typeof(GameObject))
-                {
-                    foreach (var go in (GameObject[])objects)
-                    {
-                        if (go is null) continue;
-                        if (go.scene.IsValid() || go.transform.parent != null) continue;
-                        var match = list.FirstOrDefault(x => x.Item1 == go.name);
-                        if (match.Item2 is not null)
-                        {
-                            try
-                            {
-                                match.Item2.FastInvoke(this, go);
-                            }
-                            catch (Exception e)
-                            {
-                                LogError(e);
-                            }
-                            list.Remove(match);
-                        }
-                    }
-                }
-                else
-                {
-                    foreach (var o in objects)
-                    {
-                        if (o is null) continue;
-                        var match = list.FirstOrDefault(x => x.Item1 == o.name);
-                        if (match.Item2 is not null)
-                        {
-                            try
-                            {
-                                match.Item2.FastInvoke(this, o);
-                            }
-                            catch (Exception e)
-                            {
-                                LogError(e);
-                            }
-                            list.Remove(match);
-                        }
-                    }
-                }
-                foreach (var v4 in list)
-                {
-                    try
-                    {
-                        v4.Item2.FastInvoke(this, null);
-                    }
-                    catch (Exception e)
-                    {
-                        LogError(e);
-                    }
-                }
-            }
+            LoadPreloadResource(v);
         }
     }
     private bool needHookGetPreloads = false;
@@ -307,8 +328,9 @@ public abstract class ModBase : Mod, IHKToolMod
             var pa = v.GetCustomAttribute<PreloadSharedAssetsAttribute>();
             if (pa is not null)
             {
-                string scene = pa.id is null ? pa.sceneName :
-                    Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(pa.id ?? throw new NullReferenceException()));
+                string scene = pa.inResources ? "InResource"
+                    : (pa.id is null ? pa.sceneName :
+                    Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(pa.id ?? throw new NullReferenceException())));
                 if (!assetpreloads.TryGetValue(scene, out var list))
                 {
                     list = new();
