@@ -8,7 +8,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
     {
         On.HutongGames.PlayMaker.FsmState.LoadActions += (orig, self) =>
         {
-            if(ignoreLoadActionsState.Any(x => x.TryGetTarget(out var state) && ReferenceEquals(state, self)))
+            if (ignoreLoadActionsState.Any(x => x.TryGetTarget(out var state) && ReferenceEquals(state, self)))
             {
                 return;
             }
@@ -89,27 +89,40 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
             Application.SetStackTraceLogType((LogType)i, ut[i]);
         }
     }
+    private static string GetUnityLogStackTrace(LogType logType, string stackTrace = "")
+    {
+        if (devSettings.UnityLogStackTraceType is null ||
+            devSettings.UnityLogStackTraceType.Length <= (int)logType)
+        {
+            return stackTrace;
+        }
+        var stt = devSettings.UnityLogStackTraceType[(int)logType];
+        if(stt == StackTraceLogType.None) return "";
+        if(stt == StackTraceLogType.Full) return stackTrace;
+        StackTrace st = new(3);
+        return st.ToString();
+    }
     private static void UnityLogHandler(string msg, string stackTrace, LogType logType)
     {
         if (logType == LogType.Error && settings.DebugConfig.rUnityError)
         {
-            unityLogger.LogError($"{msg}\n{stackTrace}");
+            unityLogger.LogError($"{msg}\n{GetUnityLogStackTrace(logType, stackTrace)}");
         }
         else if (logType == LogType.Warning && settings.DebugConfig.rUnityWarn)
         {
-            unityLogger.LogWarn($"{msg}\n{stackTrace}");
+            unityLogger.LogWarn($"{msg}\n{GetUnityLogStackTrace(logType, stackTrace)}");
         }
         else if (logType == LogType.Log && settings.DebugConfig.rUnityLog)
         {
-            unityLogger.Log($"{msg}\n{stackTrace}");
+            unityLogger.Log($"{msg}\n{GetUnityLogStackTrace(logType, stackTrace)}");
         }
         else if (logType == LogType.Exception && settings.DebugConfig.rUnityException)
         {
-            unityLogger.LogError($"[EXCEPTION]{msg}\n{stackTrace}");
+            unityLogger.LogError($"[EXCEPTION]{msg}\n{GetUnityLogStackTrace(logType, stackTrace)}");
         }
         else if (logType == LogType.Assert && settings.DebugConfig.rUnityAssert)
         {
-            unityLogger.LogError($"[ASSERT]{msg}\n{stackTrace}");
+            unityLogger.LogError($"[ASSERT]{msg}\n{GetUnityLogStackTrace(logType, stackTrace)}");
         }
     }
     public static bool i18nShowOrig;
@@ -126,7 +139,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
             UnityLogStackTrace();
         }
     }
-    
+
     public override string MenuButtonName => "HKTool.Menu.ButtonLabel".Get();
     public override Font MenuButtonLabelFont => MenuResources.Perpetua;
     public static HKToolSettings settings = new HKToolSettings();
