@@ -184,7 +184,7 @@ public abstract class ModBase : Mod, IHKToolMod
     {
         preloads = preloads ?? new();
         foreach (var v in this.preloads) preloads.Add((v.Value.Item1, v.Value.Item2));
-        foreach(var v in assetpreloads) preloads.Add((v.Key, "FakeGameObject"));
+        foreach (var v in assetpreloads) preloads.Add((v.Key, "FakeGameObject"));
         return preloads;
     }
     private void CheckHookGetPreloads()
@@ -208,7 +208,7 @@ public abstract class ModBase : Mod, IHKToolMod
             {
                 ModManager.hookGetPreloads[this] = HookGetPreloads;
             }
-            if(assetpreloads.Count != 0)
+            if (assetpreloads.Count != 0)
             {
                 UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
             }
@@ -216,54 +216,75 @@ public abstract class ModBase : Mod, IHKToolMod
     }
     private void OnSceneLoaded(Scene scene, LoadSceneMode _1)
     {
-        if(assetpreloads.TryGetValue(scene.name, out var v))
+        if (assetpreloads.TryGetValue(scene.name, out var v))
         {
             UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(new GameObject("FakeGameObject"), scene);
             var batch = new Dictionary<Type, List<(string, MethodInfo)>>();
-            foreach(var v2 in v)
+            foreach (var v2 in v)
             {
-                if(batch.TryGetValue(v2.Item2, out var v3))
+                if (!batch.TryGetValue(v2.Item2, out var v3))
                 {
                     v3 = new();
                     batch.Add(v2.Item2, v3);
                 }
                 v3.Add((v2.Item1, v2.Item3));
             }
-            foreach(var g in batch)
+            foreach (var g in batch)
             {
                 var type = g.Key;
                 var objects = Resources.FindObjectsOfTypeAll(type);
                 var list = g.Value;
-                if(type == typeof(GameObject))
+                if (type == typeof(GameObject))
                 {
-                    foreach(var go in (GameObject[])objects)
+                    foreach (var go in (GameObject[])objects)
                     {
-                        if(go is null) continue;
-                        if(go.scene.IsValid()) continue;
+                        if (go is null) continue;
+                        if (go.scene.IsValid() || go.transform.parent != null) continue;
                         var match = list.FirstOrDefault(x => x.Item1 == go.name);
-                        if(match.Item2 is not null)
+                        if (match.Item2 is not null)
                         {
-                            match.Item2.FastInvoke(this, go);
+                            try
+                            {
+                                match.Item2.FastInvoke(this, go);
+                            }
+                            catch (Exception e)
+                            {
+                                LogError(e);
+                            }
                             list.Remove(match);
                         }
                     }
                 }
                 else
                 {
-                    foreach(var o in objects)
+                    foreach (var o in objects)
                     {
-                        if(o is null) continue;
+                        if (o is null) continue;
                         var match = list.FirstOrDefault(x => x.Item1 == o.name);
-                        if(match.Item2 is not null)
+                        if (match.Item2 is not null)
                         {
-                            match.Item2.FastInvoke(this, o);
+                            try
+                            {
+                                match.Item2.FastInvoke(this, o);
+                            }
+                            catch (Exception e)
+                            {
+                                LogError(e);
+                            }
                             list.Remove(match);
                         }
                     }
                 }
-                foreach(var v4 in list)
+                foreach (var v4 in list)
                 {
-                    v4.Item2.FastInvoke(this, null);
+                    try
+                    {
+                        v4.Item2.FastInvoke(this, null);
+                    }
+                    catch (Exception e)
+                    {
+                        LogError(e);
+                    }
                 }
             }
         }
@@ -284,11 +305,11 @@ public abstract class ModBase : Mod, IHKToolMod
                 continue;
             }
             var pa = v.GetCustomAttribute<PreloadSharedAssetsAttribute>();
-            if(pa is not null)
+            if (pa is not null)
             {
-                string scene = pa.id is null ? pa.sceneName : 
+                string scene = pa.id is null ? pa.sceneName :
                     Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(pa.id ?? throw new NullReferenceException()));
-                if(!assetpreloads.TryGetValue(scene, out var list))
+                if (!assetpreloads.TryGetValue(scene, out var list))
                 {
                     list = new();
                     assetpreloads.Add(scene, list);
