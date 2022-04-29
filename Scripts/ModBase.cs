@@ -230,13 +230,16 @@ public abstract class ModBase : Mod, IHKToolMod
     void IHKToolMod.HookInit(Dictionary<string, Dictionary<string, GameObject>> go)
     {
         UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
-        foreach (var v in go)
+        if (go is not null)
         {
-            foreach (var v2 in v.Value)
+            foreach (var v in go)
             {
-                if (v2.Value.name == "FakeGameObject")
+                foreach (var v2 in v.Value)
                 {
-                    UObject.Destroy(v2.Value);
+                    if (v2.Value.name == "FakeGameObject")
+                    {
+                        UObject.Destroy(v2.Value);
+                    }
                 }
             }
         }
@@ -246,6 +249,11 @@ public abstract class ModBase : Mod, IHKToolMod
         }
         foreach (var v in preloads)
         {
+            if(go is null)
+            {
+                if (v.Value.Item3) throw new MissingPreloadObjectException();
+                continue;
+            }
             if (!go.TryGetValue(v.Value.Item1, out var scene))
             {
                 if (v.Value.Item3) throw new MissingPreloadObjectException();
