@@ -4,6 +4,7 @@ namespace HKTool;
 [Serializable]
 class HKToolSettings
 {
+    public static bool TestMode = false;
     public bool DevMode { get; set; } = false;
     public HKToolDebugConfig DebugConfig { get; set; } = new HKToolDebugConfig();
 }

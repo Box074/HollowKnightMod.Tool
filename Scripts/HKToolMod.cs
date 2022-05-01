@@ -91,7 +91,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
     }
     private static string GetUnityLogStackTrace(LogType logType, string stackTrace = "")
     {
-        if (devSettings.UnityLogStackTraceType is null ||
+        /*if (devSettings.UnityLogStackTraceType is null ||
             devSettings.UnityLogStackTraceType.Length <= (int)logType)
         {
             return stackTrace;
@@ -99,8 +99,9 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
         var stt = devSettings.UnityLogStackTraceType[(int)logType];
         if(stt == StackTraceLogType.None) return "";
         if(stt == StackTraceLogType.Full) return stackTrace;
-        StackTrace st = new(3);
-        return st.ToString();
+        StackTrace st = new(3, false);
+        return st.ToString();*/
+        return stackTrace;
     }
     private static void UnityLogHandler(string msg, string stackTrace, LogType logType)
     {

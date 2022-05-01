@@ -25,7 +25,7 @@ static class ModManager
             (Func<Type, Type[]?, ConstructorInfo> orig, Type self, Type[]? types) =>
             {
                 if (modLoaded || skipMods is null || !self.IsSubclassOf(typeof(ModBase))) return orig(self, types);
-                if(types is null) return orig(self, types);
+                if (types is null) return orig(self, types);
                 if ((types?.Length ?? -1) == 0 && skipMods.Contains(self)) return null;
                 else return orig(self, types);
             }
@@ -48,7 +48,7 @@ static class ModManager
                     sb.Append(v.Item2);
                     sb.AppendLine("</color>");
                 }
-                if(vd is not null) vd.drawString = sb.ToString();
+                if (vd is not null) vd.drawString = sb.ToString();
             }
         );
         HookEndpointManager.Add(
@@ -57,39 +57,47 @@ static class ModManager
                     object mod, bool updateVer, PreloadObject objs
                     ) =>
                     {
-                        if(mod is null) return;
+                        if (mod is null) return;
                         var mi = new ModInstance(mod);
-                        if(mi.Error.HasValue) return;
-                        var ms = mi.Mod;
-                        if (ms is IHKToolMod hmod && !modLoaded)
+                        if (mi.Error.HasValue) return;
+                        try
                         {
-                            hmod.HookInit(objs);
-                        }
-                        if (!modLoaded)
-                        {
-                            orig(mod, updateVer, objs);
-                        }
-                        if (ms is ITogglableModBase thmod)
-                        {
-                            try
+                            var ms = mi.Mod;
+                            if (ms is IHKToolMod hmod && !modLoaded)
                             {
-                                thmod.OnLoad();
-                                if (modLoaded)
+                                hmod.HookInit(objs);
+                            }
+                            if (!modLoaded)
+                            {
+                                orig(mod, updateVer, objs);
+                            }
+                            if (ms is ITogglableModBase thmod)
+                            {
+                                try
                                 {
-                                    LoadModSelf(mi, updateVer, objs);
-                                    return;
+                                    thmod.OnLoad();
+                                    if (modLoaded)
+                                    {
+                                        LoadModSelf(mi, updateVer, objs);
+                                        return;
+                                    }
                                 }
-                            }
-                            catch (Exception e)
-                            {
-                                mi.Error = ModErrorState.Initialize;
-                                HKToolMod.logger.LogError(e);
-                            }
+                                catch (Exception e)
+                                {
+                                    mi.Error = ModErrorState.Initialize;
+                                    HKToolMod.logger.LogError(e);
+                                }
 
+                            }
+                            else if (modLoaded)
+                            {
+                                orig(mod, updateVer, objs);
+                            }
                         }
-                        else if(modLoaded)
+                        catch (Exception e)
                         {
-                            orig(mod, updateVer, objs);
+                            mi.Error = ModErrorState.Initialize;
+                            HKToolMod.logger.LogError(e);
                         }
                     }
         );

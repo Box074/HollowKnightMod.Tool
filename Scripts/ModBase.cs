@@ -30,6 +30,17 @@ public abstract class ModBase : Mod, IHKToolMod
     public const string compileVersion = "1.7.1.0";
     private static int _currentmapiver = (int)FindFieldInfo("Modding.ModHooks::_modVersion").GetValue(null);
     public static int CurrentMAPIVersion => _currentmapiver;
+    public static readonly string[] sceneNames;
+    static ModBase()
+    {
+        var sceneNames = new List<string>();
+        var sceneCount = UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings;
+        for (int i = 0; i < sceneCount; i++)
+        {
+            sceneNames.Add(Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(i)));
+        }
+        ModBase.sceneNames = sceneNames.ToArray();
+    }
     private static FsmFilter CreateFilter(FsmPatcherAttribute attr)
     {
         if (attr.useRegex)
@@ -172,46 +183,32 @@ public abstract class ModBase : Mod, IHKToolMod
             var type = g.Key;
             var objects = Resources.FindObjectsOfTypeAll(type);
             var list = g.Value;
-            if (type == typeof(GameObject))
+
+            IEnumerable<UObject> matchobjects = objects;
+            if (type == typeof(GameObject)) matchobjects = matchobjects.OfType<GameObject>()
+                                                        .Where(x => !x.scene.IsValid())
+                                                        .Where(x => x.transform.parent == null);
+            if (type == typeof(Texture2D)) matchobjects = matchobjects.OfType<Texture2D>()
+                                                        .Where(x => !x.isReadable);
+            if (type == typeof(AudioClip)) matchobjects = matchobjects.OfType<AudioClip>()
+                                                        .Where(x => x.loadType == AudioClipLoadType.DecompressOnLoad);
+            foreach (var o in matchobjects)
             {
-                foreach (var go in (GameObject[])objects)
+                if (o is null) continue;
+                var match = list.FirstOrDefault(x => x.Item1 == o.name);
+                if (match.Item2 is not null)
                 {
-                    if (go is null) continue;
-                    if (go.scene.IsValid() || go.transform.parent != null) continue;
-                    var match = list.FirstOrDefault(x => x.Item1 == go.name);
-                    if (match.Item2 is not null)
+                    try
                     {
-                        try
-                        {
-                            match.Item2.FastInvoke(this, go);
-                        }
-                        catch (Exception e)
-                        {
-                            LogError(e);
-                        }
-                        list.Remove(match);
+                        match.Item2.FastInvoke(this, o);
                     }
-                }
-            }
-            else
-            {
-                foreach (var o in objects)
-                {
-                    if (o is null) continue;
-                    var match = list.FirstOrDefault(x => x.Item1 == o.name);
-                    if (match.Item2 is not null)
+                    catch (Exception e)
                     {
-                        try
-                        {
-                            match.Item2.FastInvoke(this, o);
-                        }
-                        catch (Exception e)
-                        {
-                            LogError(e);
-                        }
-                        list.Remove(match);
+                        LogError(e);
                     }
+                    list.Remove(match);
                 }
+
             }
             foreach (var v4 in list)
             {
@@ -236,33 +233,33 @@ public abstract class ModBase : Mod, IHKToolMod
             {
                 foreach (var v2 in v.Value)
                 {
-                    if (v2.Value.name == "FakeGameObject")
+                    if (v2.Key == "FakeGameObject")
                     {
                         UObject.Destroy(v2.Value);
                     }
                 }
             }
         }
-        if (assetpreloads.TryGetValue("InResource", out var inresources))
+        if (assetpreloads.TryGetValue("resources", out var inresources))
         {
             LoadPreloadResource(inresources);
         }
         foreach (var v in preloads)
         {
-            if(go is null)
+            if (go is null)
             {
-                if (v.Value.Item3) throw new MissingPreloadObjectException();
+                if (v.Value.Item3) throw new MissingPreloadObjectException(v.Value.Item1, v.Value.Item2);
                 continue;
             }
             if (!go.TryGetValue(v.Value.Item1, out var scene))
             {
-                if (v.Value.Item3) throw new MissingPreloadObjectException();
+                if (v.Value.Item3) throw new MissingPreloadObjectException(v.Value.Item1, v.Value.Item2);
                 LogWarn("Missing Scene: " + v.Value.Item1);
                 continue;
             }
             if (!scene.TryGetValue(v.Value.Item2, out var obj))
             {
-                if (v.Value.Item3) throw new MissingPreloadObjectException();
+                if (v.Value.Item3) throw new MissingPreloadObjectException(v.Value.Item1, v.Value.Item2);
                 LogWarn("Missing Object: " + v.Value.Item2);
                 continue;
             }
@@ -336,7 +333,24 @@ public abstract class ModBase : Mod, IHKToolMod
             var pa = v.GetCustomAttribute<PreloadSharedAssetsAttribute>();
             if (pa is not null)
             {
-                string scene = pa.inResources ? "InResource"
+
+                if (pa.targetType == typeof(GameObject) && (CurrentMAPIVersion >= 70 || HKToolSettings.TestMode))
+                {
+                    string sname;
+                    if (pa.inResources)
+                    {
+                        sname = "resources";
+                    }
+                    else
+                    {
+                        var id = pa.id ??
+                        (Array.IndexOf(sceneNames, pa.sceneName));
+                        sname = "sharedassets" + id;
+                    }
+                    preloads.Add(v, (sname, pa.name, false));
+                    continue;
+                }
+                string scene = pa.inResources ? "resources"
                     : (pa.id is null ? pa.sceneName :
                     Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(pa.id ?? throw new NullReferenceException())));
                 if (!assetpreloads.TryGetValue(scene, out var list))
