@@ -1,9 +1,10 @@
-#  (2022-04-28)
+#  (2022-05-01)
 
 
 ### Bug Fixes
 
 * changes are not saved ([30815a1](https://github.com/HKLab/HollowKnightMod.Tool/commit/30815a167de2e7d688571f1e44d5d34eccaab25e))
+* mods without preload cannot be loaded ([e8cacfd](https://github.com/HKLab/HollowKnightMod.Tool/commit/e8cacfdb654decdef7dfc7347eb337359f2d5d2c))
 * preloadSharedAssets not working ([42e88cf](https://github.com/HKLab/HollowKnightMod.Tool/commit/42e88cfa71a69cd244d67d62d708b3db9c5fd366))
 
 
@@ -18,6 +19,7 @@
 ### Performance Improvements
 
 * clean up ([775c17a](https://github.com/HKLab/HollowKnightMod.Tool/commit/775c17a5848744f6582465a45ee072783811152a))
+* faster preload ([9f3cf6e](https://github.com/HKLab/HollowKnightMod.Tool/commit/9f3cf6e355750677f5629160ec3b71f2ae520350))
 
 
 
