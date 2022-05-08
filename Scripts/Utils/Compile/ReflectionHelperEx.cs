@@ -3,6 +3,7 @@ namespace HKTool.Utils.Compile;
 
 public static class ReflectionHelperEx
 {
+    public static object GetSelf() => new NotSupportedException();
     public static FieldInfo GetFieldSelf(string name) 
     {
         StackFrame fr = new StackFrame(1);

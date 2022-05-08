@@ -349,11 +349,10 @@ MigrationBackup/
 *.sln
 *.csproj
 
-#Library
-/Library/
-
 #Output
 /Output/
+Output.zip
 
 #Cache
-/WebDependenciesCache.json
+/caches/
+projectCache.json

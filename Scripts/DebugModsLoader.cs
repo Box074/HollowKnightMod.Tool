@@ -10,7 +10,7 @@ class DebugModsLoader
 
     static DebugModsLoader()
     {
-        HookEndpointManager.Add(typeof(Assembly).GetMethod("get_Location"),
+        HookEndpointManager.Add(FindMethodBase("System.Reflection.Assembly::get_Location"),
             (Func<Assembly, string> orig, Assembly self) =>
             {
                 if (locationMap.TryGetValue(self.FullName, out var p)) return p;

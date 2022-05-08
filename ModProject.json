@@ -1,20 +1,51 @@
 {
-  "ProjectName": "HKTool",
-  "ModVersion": "1.7.2.0",
-  "CSharpVersion": "latest",
-  "CodeDir": ".\\Scripts\\",
-  "EmbeddedResourceDir": ".\\EmbeddedResource\\",
-  "EmbeddedResource": {
-    "Languages\\en.txt": "HKTool.Languages.en.txt",
-    "Languages\\zh-cn.txt": "HKTool.Languages.zh-cn.txt"
-  },
-  "Guid": "593a44ac-8fc9-4543-8be1-8b2dcc4af8ba",
-  "DefaultNamespace": "HKTool",
-  "DependenciesDir": ".\\Dependencies\\",
-  "IgnoreDlls": [ "HKTool.dll" ],
-  "UseGZip": true,
-  "CreateZip": true,
-  "WebDependencies": [ 
-    
-  ]
+    "modName": "HKTool",
+    "modVersion": "1.7.4.0",
+    "codeDir": "./scripts",
+    "csCompileInfo": true,
+    "dependencies": [
+        {
+            "name": "Modding API",
+            "url": "https://github.com/hk-modding/api/releases/latest/download/ModdingApiWin.zip",
+            "ignoreFiles": [
+                "MMHOOK_PlayMaker.dll",
+                "Mono.Cecil.dll",
+                "MonoMod.RuntimeDetour.dll",
+                "MonoMod.Utils.dll"
+            ],
+            "copyToOutput": false
+        },
+        {
+            "name": "Vanilla",
+            "url": "https://files.catbox.moe/i4sdl6.zip",
+            "ignoreFiles": [
+                "Assembly-CSharp.dll",
+                "mscorlib.dll",
+                "Newtonsoft.Json.dll"
+            ],
+            "copyToOutput": false
+        }
+    ],
+    "hktool": {
+        "modifyIL": true,
+        "compressResources": true,
+        "referenceLib": false
+    },
+    "resources": {
+        "./res/Languages/en.txt": "HKTool.Languages.en.txt",
+        "./res/Languages/zh-cn.txt": "HKTool.Languages.zh.txt"
+    },
+    "csproj": {
+        "itemGroup": {
+            "name": "ItemGroup",
+            "content": [],
+            "attr": {}
+        },
+        "propertyGroup": {
+            "name": "PropertyGroup",
+            "content": [],
+            "attr": {}
+        }
+    },
+    "enableNullableCheck": true
 }

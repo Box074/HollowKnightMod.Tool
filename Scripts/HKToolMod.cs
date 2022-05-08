@@ -23,7 +23,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
     protected override List<(SupportedLanguages, string)> LanguagesEx => new()
     {
         (SupportedLanguages.EN, "HKTool.Languages.en.txt"),
-        (SupportedLanguages.ZH, "HKTool.Languages.zh-cn.txt")
+        (SupportedLanguages.ZH, "HKTool.Languages.zh.txt")
     };
     public HKToolMod() : base("HKTool")
     {
@@ -155,7 +155,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
     }
     public override string GetVersion()
     {
-        return base.GetVersion() + (settings.DevMode ? "-DevMode" : "");
+        return base.GetVersion() + (settings.DevMode ? "-DevMode" : "") + "-" + CompileInfo.COMPILE_UTC_TIME;
     }
     public void OnLoadGlobal(HKToolSettings s) => settings = s;
     public HKToolSettings OnSaveGlobal() => settings;

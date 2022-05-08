@@ -7,18 +7,19 @@ public abstract class ModBase : Mod, IHKToolMod
     {
         public PreloadSharedAssetsAttribute(string name, Type? type = null)
         {
+            sceneName = "resources";
             inResources = true;
             this.name = name;
             this.targetType = type ?? typeof(GameObject);
         }
         public PreloadSharedAssetsAttribute(string sceneName, string name, Type? type = null) : this(name, type)
         {
-            inResources = false;
+            inResources = sceneName == "resources";
             this.sceneName = sceneName;
         }
         public PreloadSharedAssetsAttribute(int id, string name, Type? type = null) : this(name, type)
         {
-            inResources = false;
+            inResources = id == -1;
             this.id = id;
         }
         public Type targetType;
@@ -27,7 +28,7 @@ public abstract class ModBase : Mod, IHKToolMod
         public bool inResources;
         public int? id = null;
     }
-    public const string compileVersion = "1.7.1.0";
+    public const string compileVersion = CompileInfo.MOD_VERSION;
     private static int _currentmapiver = (int)FindFieldInfo("Modding.ModHooks::_modVersion").GetValue(null);
     public static int CurrentMAPIVersion => _currentmapiver;
     public static readonly string[] sceneNames;
@@ -166,7 +167,7 @@ public abstract class ModBase : Mod, IHKToolMod
     {
         return File.ReadAllBytes(GetType().Assembly.Location);
     }
-    private void LoadPreloadResource(List<(string, Type, MethodInfo)> table)
+    private void LoadPreloadResource(List<(string, Type, MethodInfo)> table, Func<Type, UObject[]> fetch)
     {
         var batch = new Dictionary<Type, List<(string, MethodInfo)>>();
         foreach (var v2 in table)
@@ -181,7 +182,7 @@ public abstract class ModBase : Mod, IHKToolMod
         foreach (var g in batch)
         {
             var type = g.Key;
-            var objects = Resources.FindObjectsOfTypeAll(type);
+            var objects = fetch(type);
             var list = g.Value;
 
             IEnumerable<UObject> matchobjects = objects;
@@ -242,7 +243,7 @@ public abstract class ModBase : Mod, IHKToolMod
         }
         if (assetpreloads.TryGetValue("resources", out var inresources))
         {
-            LoadPreloadResource(inresources);
+            LoadPreloadResource(inresources, (type) => Resources.LoadAll("", type));
         }
         foreach (var v in preloads)
         {
@@ -312,7 +313,7 @@ public abstract class ModBase : Mod, IHKToolMod
         if (assetpreloads.TryGetValue(scene.name, out var v))
         {
             UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(new GameObject("FakeGameObject"), scene);
-            LoadPreloadResource(v);
+            LoadPreloadResource(v, (type) => Resources.FindObjectsOfTypeAll(type));
         }
     }
     private bool needHookGetPreloads = false;
@@ -363,7 +364,12 @@ public abstract class ModBase : Mod, IHKToolMod
             }
         }
     }
-    public ModBase(string? name = null) : base(name)
+    protected ModBase(string? name = null) : this(name ?? 
+        Regex.Replace(GetSelf().GetType().Name, "([A-Z])", " $1").Trim(), false)
+    {
+
+    }
+    private ModBase(string name, bool _) : base(name)
     {
         CheckHKToolVersion(name);
         OnCheckDependencies();
@@ -394,15 +400,20 @@ public abstract class ModBase : Mod, IHKToolMod
         {
             DebugView.debugViews.Add(@base);
         }
-        foreach (var v in GetType().GetRuntimeMethods())
+        foreach (var v in GetType().GetMethods(HReflectionHelper.All))
         {
             if (v.ReturnType != typeof(void) || !v.IsStatic
-                || v.GetParameters().Length != 1 || v.GetParameters().FirstOrDefault()?.ParameterType != typeof(FSMPatch)) continue;
-
-            var d = (WatchHandler<FSMPatch>)v.CreateDelegate(typeof(WatchHandler<FSMPatch>));
+                || v.GetParameters().Length != 1) continue;
+            var fp = v.GetParameters()[0].ParameterType;
             foreach (var attr in v.GetCustomAttributes<FsmPatcherAttribute>())
             {
-                new FsmWatcher(CreateFilter(attr), d);
+                if(fp == typeof(Fsm)) new FsmWatcher(CreateFilter(attr), fsm => v.FastInvoke(this, fsm!.Fsm));
+                if(fp == typeof(PlayMakerFSM)) new FsmWatcher(CreateFilter(attr), fsm => v.FastInvoke(this, fsm));
+                if(fp == typeof(FSMPatch)) new FsmWatcher(CreateFilter(attr), 
+                    fsm =>
+                    {
+                        using(var p = fsm!.Fsm.CreatePatch()) v.FastInvoke(this, p);
+                    });
             }
         }
         _i18n = new Lazy<I18n>(
