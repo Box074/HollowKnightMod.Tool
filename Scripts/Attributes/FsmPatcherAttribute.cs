@@ -1,6 +1,6 @@
 ﻿
 namespace HKTool.FSM;
-[AttributeUsage(AttributeTargets.Method)]
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
 public class FsmPatcherAttribute : Attribute
 {
     public string sceneName = "";
