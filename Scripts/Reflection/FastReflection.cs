@@ -86,7 +86,7 @@ static class FastReflection
             caller = method.CreateFastDelegate(true);
             mcaller[method] = caller;
         }
-        return caller(@this, args);
+        return caller(@this, args ?? new object?[] { null });
     }
     internal static object GetField(object? @this, FieldInfo field)
     {
