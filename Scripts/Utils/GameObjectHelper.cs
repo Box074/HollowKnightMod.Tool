@@ -4,6 +4,13 @@ namespace HKTool.Utils;
 
 public static class GameObjectHelper
 {
+    private static Lazy<GameObject> prefabHolder = new(() => {
+        var go = new GameObject("HKTool Prefab Holder");
+        UnityEngine.Object.DontDestroyOnLoad(go);
+        go.SetActive(false);
+        return go;
+    });
+    public static GameObject PrefabHolder => prefabHolder.Value;
     public static IEnumerable<GameObject> ForEachChildren(this GameObject parent)
     {
         if (parent == null) throw new ArgumentNullException(nameof(parent));
