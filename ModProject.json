@@ -3,6 +3,7 @@
     "modVersion": "1.7.4.0",
     "codeDir": "./scripts",
     "csCompileInfo": true,
+    "testMode": false,
     "dependencies": [
         {
             "name": "Modding API",
@@ -29,7 +30,17 @@
     "hktool": {
         "modifyIL": true,
         "compressResources": true,
-        "referenceLib": false
+        "referenceLib": false,
+        "modRes": {
+            "HKTool.Languages.en.txt": {
+                "name": "LANGUAGE_EN",
+                "type": "text"
+            },
+            "HKTool.Languages.zh.txt": {
+                "name": "LANGUAGE_ZH",
+                "type": "text"
+            }
+        }
     },
     "resources": {
         "./res/Languages/en.txt": "HKTool.Languages.en.txt",
