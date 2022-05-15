@@ -61,14 +61,26 @@ public static class FSMHelper
     }
     public static T InsertFsmStateAction<T>(this FsmState state, T action, int index) where T : FsmStateAction
     {
-        var l = state.Actions.ToList();
-        l.Insert(index, action);
-        state.Actions = l.ToArray();
+        var arr = new FsmStateAction[state.Actions.Length + 1];
+        var offset = 0;
+        for(int i = 0; i < arr.Length ; i++)
+        {
+            if(i == index)
+            {
+                arr[i] = action;
+                offset = -1;
+            }
+            arr[i] = state.Actions[i + offset];
+        }
+        state.Actions = arr;
         return action;
     }
     public static T AppendFsmStateAction<T>(this FsmState state, T action) where T : FsmStateAction
     {
-        state.Actions = state.Actions.Append(action).ToArray();
+        var arr = new FsmStateAction[state.Actions.Length + 1];
+        Array.Copy(state.Actions, arr, state.Actions.Length);
+        arr[arr.Length - 1] = action;
+        state.Actions = arr;
         return action;
     }
     public static void RemoveAllFsmStateActions<T>(this FsmState state) where T : FsmStateAction
@@ -151,20 +163,7 @@ public static class FSMHelper
     public static Fsm GetFsm(this GameObject go, string name) => go.LocateMyFSM(name).Fsm;
     public static FsmStateAction CreateMethodAction(Action<FsmStateAction> action)
     {
-        return new MethodFSMStateAction(action);
-    }
-    class MethodFSMStateAction : FsmStateAction
-    {
-        public Action<FsmStateAction> action;
-        public MethodFSMStateAction(Action<FsmStateAction> action)
-        {
-            this.action = action;
-        }
-        public override void OnEnter()
-        {
-            action(this);
-            Finish();
-        }
+        return new InvokeAction(action);
     }
 }
 
