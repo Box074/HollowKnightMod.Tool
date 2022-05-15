@@ -20,14 +20,8 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
     public static SimpleLogger logger = new("HKTool");
     public static bool IsDebugMode { get; private set; }
     public static ReflectionObject RModLoader => ModLoaderHelper.RModLoader;
-    protected override List<(SupportedLanguages, string)> LanguagesEx => new()
-    {
-        (SupportedLanguages.EN, "HKTool.Languages.en.txt"),
-        (SupportedLanguages.ZH, "HKTool.Languages.zh.txt")
-    };
     public HKToolMod() : base("HKTool")
     {
-        ModListMenuHelper.Init();
 
         IsDebugMode = settings.DevMode;
         try
@@ -38,13 +32,12 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
         {
             LogError(e);
         }
-        //var ass = Assembly.GetExecutingAssembly();
-        //I18N.AddLanguage(Language.LanguageCode.EN, EmbeddedResHelper.GetStream(ass, "HKTool.Languages.en.txt"));
-        //I18N.AddLanguage(Language.LanguageCode.ZH, EmbeddedResHelper.GetStream(ass, "HKTool.Languages.zh-cn.txt"));
 
-        //I18N.UseGameLanguage();
+        I18n.AddLanguage(SupportedLanguages.EN, ModRes.LANGUAGE_EN);
+        I18n.AddLanguage(SupportedLanguages.ZH, ModRes.LANGUAGE_ZH);
+        I18n.UseGameLanguage(SupportedLanguages.EN, true);
 
-        HookEndpointManager.Add(typeof(HeroController).GetMethod("get_instance"),
+        HookEndpointManager.Add(FindMethodBase("HeroController::get_instance"),
             (Func<HeroController> _) =>
             {
                 return HeroController.SilentInstance;
@@ -127,7 +120,8 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
         }
     }
     public static bool i18nShowOrig;
-    private static void Init()
+
+    internal static void Init()
     {
         if (IsDebugMode)
         {
@@ -155,7 +149,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
     }
     public override string GetVersion()
     {
-        return base.GetVersion() + (settings.DevMode ? "-DevMode" : "") + "-" + CompileInfo.COMPILE_UTC_TIME;
+        return base.GetVersion() + (settings.DevMode ? "-DevMode" : "");
     }
     public void OnLoadGlobal(HKToolSettings s) => settings = s;
     public HKToolSettings OnSaveGlobal() => settings;

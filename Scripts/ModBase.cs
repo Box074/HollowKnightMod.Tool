@@ -34,6 +34,9 @@ public abstract class ModBase : Mod, IHKToolMod
     public static readonly string[] sceneNames;
     static ModBase()
     {
+        ModResManager.Init();
+        ModListMenuHelper.Init();
+
         var sceneNames = new List<string>();
         var sceneCount = UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings;
         for (int i = 0; i < sceneCount; i++)
@@ -123,7 +126,7 @@ public abstract class ModBase : Mod, IHKToolMod
         labelT.font = MenuButtonLabelFont;
     }
     public virtual I18n I18n => _i18n.Value;
-    public byte[]? GetEmbeddedResource(string name) => EmbeddedResHelper.GetBytes(GetType().Assembly, name);
+    public byte[]? GetEmbeddedResource(string name) => GetType().Assembly.GetManifestResourceBytes(name);
     public Texture2D LoadTexture2D(string name)
     {
         Texture2D tex = new Texture2D(1, 1);
@@ -178,6 +181,7 @@ public abstract class ModBase : Mod, IHKToolMod
                 batch.Add(v2.Item2, v3);
             }
             v3.Add((v2.Item1, v2.Item3));
+            LogFine($"Request {v2.Item1} ({v2.Item2.Name})");
         }
         foreach (var g in batch)
         {
@@ -201,6 +205,7 @@ public abstract class ModBase : Mod, IHKToolMod
                 {
                     try
                     {
+                        LogFine($"Found {match.Item1} ({type.Name})");
                         match.Item2.FastInvoke(this, o);
                     }
                     catch (Exception e)
@@ -215,6 +220,7 @@ public abstract class ModBase : Mod, IHKToolMod
             {
                 try
                 {
+                    LogFine($"{v4.Item1}({type.Name}) not found");
                     v4.Item2.FastInvoke(this, null);
                 }
                 catch (Exception e)
@@ -243,7 +249,7 @@ public abstract class ModBase : Mod, IHKToolMod
         }
         if (assetpreloads.TryGetValue("resources", out var inresources))
         {
-            LoadPreloadResource(inresources, (type) => Resources.LoadAll("", type));
+            LoadPreloadResource(inresources, (type) => Resources.FindObjectsOfTypeAll(type));
         }
         foreach (var v in preloads)
         {
@@ -278,7 +284,7 @@ public abstract class ModBase : Mod, IHKToolMod
     {
         preloads = preloads ?? new();
         foreach (var v in this.preloads) preloads.Add((v.Value.Item1, v.Value.Item2));
-        foreach (var v in assetpreloads) preloads.Add((v.Key, "FakeGameObject"));
+        foreach (var v in assetpreloads) if (v.Key != "resources") preloads.Add((v.Key, "FakeGameObject"));
         return preloads;
     }
     private void CheckHookGetPreloads()
@@ -335,7 +341,7 @@ public abstract class ModBase : Mod, IHKToolMod
             if (pa is not null)
             {
 
-                if (pa.targetType == typeof(GameObject) && (CurrentMAPIVersion >= 70 || HKToolSettings.TestMode))
+                if (pa.targetType == typeof(GameObject) && CompileInfo.TEST_MODE)
                 {
                     string sname;
                     if (pa.inResources)
@@ -364,7 +370,7 @@ public abstract class ModBase : Mod, IHKToolMod
             }
         }
     }
-    protected ModBase(string? name = null) : this(name ?? 
+    protected ModBase(string? name = null) : this(name ??
         Regex.Replace(GetSelf().GetType().Name, "([A-Z])", " $1").Trim(), false)
     {
 
@@ -402,17 +408,16 @@ public abstract class ModBase : Mod, IHKToolMod
         }
         foreach (var v in GetType().GetMethods(HReflectionHelper.All))
         {
-            if (v.ReturnType != typeof(void) || !v.IsStatic
-                || v.GetParameters().Length != 1) continue;
+            if (v.ReturnType != typeof(void) || v.GetParameters().Length != 1) continue;
             var fp = v.GetParameters()[0].ParameterType;
             foreach (var attr in v.GetCustomAttributes<FsmPatcherAttribute>())
             {
-                if(fp == typeof(Fsm)) new FsmWatcher(CreateFilter(attr), fsm => v.FastInvoke(this, fsm!.Fsm));
-                if(fp == typeof(PlayMakerFSM)) new FsmWatcher(CreateFilter(attr), fsm => v.FastInvoke(this, fsm));
-                if(fp == typeof(FSMPatch)) new FsmWatcher(CreateFilter(attr), 
+                if (fp == typeof(Fsm)) new FsmWatcher(CreateFilter(attr), fsm => v.FastInvoke(this, fsm!.Fsm));
+                if (fp == typeof(PlayMakerFSM)) new FsmWatcher(CreateFilter(attr), fsm => v.FastInvoke(this, fsm));
+                if (fp == typeof(FSMPatch)) new FsmWatcher(CreateFilter(attr),
                     fsm =>
                     {
-                        using(var p = fsm!.Fsm.CreatePatch()) v.FastInvoke(this, p);
+                        using (var p = fsm!.Fsm.CreatePatch()) v.FastInvoke(this, p);
                     });
             }
         }
@@ -436,7 +441,7 @@ public abstract class ModBase : Mod, IHKToolMod
             {
                 try
                 {
-                    using (Stream stream = EmbeddedResHelper.GetStream(ass, v.Item2))
+                    using (Stream stream = ass.GetManifestResourceStream(v.Item2))
                     {
                         I18n.AddLanguage(v.Item1, stream, false);
                     }
@@ -456,7 +461,7 @@ public abstract class ModBase : Mod, IHKToolMod
             {
                 try
                 {
-                    using (Stream stream = EmbeddedResHelper.GetStream(ass, v.Item2))
+                    using (Stream stream = ass.GetManifestResourceStream(v.Item2))
                     {
                         I18n.AddLanguage(v.Item1, stream, false);
                     }
