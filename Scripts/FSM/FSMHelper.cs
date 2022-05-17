@@ -69,6 +69,7 @@ public static class FSMHelper
             {
                 arr[i] = action;
                 offset = -1;
+                continue;
             }
             arr[i] = state.Actions[i + offset];
         }
