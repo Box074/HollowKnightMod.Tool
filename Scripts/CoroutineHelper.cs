@@ -28,6 +28,10 @@ public class CoroutineInfo
             }
         }
     }
+    public void Start()
+    {
+        if(state == CoroutineState.Ready) CoroutineHelper.CoroutineHandler.Instance.StartCor(this);
+    }
     private CoroutineState state = CoroutineState.Ready;
     public bool IsPause { get; set; }
     public void Pause() => IsPause = true;
@@ -78,18 +82,12 @@ public class CoroutineInfo
 public static class CoroutineHelper
 {
     public static CoroutineInfo? CurrentCoroutine { get; private set; } = null;
-    private class CoroutineHandler : SingleMonoBehaviour<CoroutineHandler>
+    internal class CoroutineHandler : SingleMonoBehaviour<CoroutineHandler>
     {
         public readonly static List<CoroutineInfo> coroutines = new();
         public readonly static List<CoroutineInfo> wait = new();
-        public readonly static Queue<CoroutineInfo> queue = new();
-        public void AddCor(CoroutineInfo info)
-        {
-            lock (queue) queue.Enqueue(info);
-        }
         private IEnumerator CoroutineExecuter(CoroutineInfo info)
         {
-            yield return null;
             if (info.State == CoroutineInfo.CoroutineState.Ready || info.State == CoroutineInfo.CoroutineState.Pause)
             {
                 info.State = CoroutineInfo.CoroutineState.Execute;
@@ -153,7 +151,7 @@ public static class CoroutineHelper
             coroutines.RemoveAll(x => x.IsFinished
             || (x.AttendGameObject && x.AttendGameObject == null));
         }
-        private void StartCor(CoroutineInfo info)
+        public void StartCor(CoroutineInfo info)
         {
             if (info.IsAttendGameObject)
             {
@@ -163,6 +161,7 @@ public static class CoroutineHelper
                     return;
                 }
             }
+            if(!coroutines.Contains(info)) coroutines.Add(info);
             StartCoroutine(CoroutineExecuter(info));
         }
         private void OnEnable()
@@ -194,17 +193,6 @@ public static class CoroutineHelper
         }
         private void Update()
         {
-            lock (queue)
-            {
-                if (queue.Count > 0)
-                {
-                    foreach (var v in queue)
-                    {
-                        StartCor(v);
-                    }
-                    queue.Clear();
-                }
-            }
             for (int i = 0; i < wait.Count; i++)
             {
                 var v = wait[i];
@@ -234,17 +222,19 @@ public static class CoroutineHelper
             }
         }
     }
+    public static CoroutineInfo CreateCoroutine(this GameObject go, IEnumerator cor) => new(cor, go);
+    public static CoroutineInfo CreateCoroutine(this IEnumerator cor) => new(cor);
     public static CoroutineInfo StartCoroutine(this GameObject go, IEnumerator cor)
     {
         if (cor == null) throw new ArgumentNullException(nameof(cor));
         var info = new CoroutineInfo(cor, go);
-        CoroutineHandler.Instance.AddCor(info);
+        info.Start();
         return info;
     }
     public static CoroutineInfo StartCoroutine(this IEnumerator cor)
     {
         var info = new CoroutineInfo(cor);
-        CoroutineHandler.Instance.AddCor(info);
+        info.Start();
         return info;
     }
 }
