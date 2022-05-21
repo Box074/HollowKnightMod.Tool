@@ -2,7 +2,7 @@
 namespace HKTool;
 public abstract class ModBase : Mod, IHKToolMod
 {
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]
     internal protected class PreloadSharedAssetsAttribute : Attribute
     {
         public PreloadSharedAssetsAttribute(string name, Type? type = null)
@@ -10,7 +10,7 @@ public abstract class ModBase : Mod, IHKToolMod
             sceneName = "resources";
             inResources = true;
             this.name = name;
-            this.targetType = type ?? typeof(GameObject);
+            this.targetType = type;
         }
         public PreloadSharedAssetsAttribute(string sceneName, string name, Type? type = null) : this(name, type)
         {
@@ -22,7 +22,7 @@ public abstract class ModBase : Mod, IHKToolMod
             inResources = id == -1;
             this.id = id;
         }
-        public Type targetType;
+        public Type? targetType;
         public string sceneName = "";
         public string name;
         public bool inResources;
@@ -34,8 +34,7 @@ public abstract class ModBase : Mod, IHKToolMod
     public static readonly string[] sceneNames;
     static ModBase()
     {
-        ModResManager.Init();
-        ModListMenuHelper.Init();
+        InitManager.CheckInit();
 
         var sceneNames = new List<string>();
         var sceneCount = UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings;
@@ -170,9 +169,9 @@ public abstract class ModBase : Mod, IHKToolMod
     {
         return File.ReadAllBytes(GetType().Assembly.Location);
     }
-    private void LoadPreloadResource(List<(string, Type, MethodInfo)> table, Func<Type, UObject[]> fetch)
+    private void LoadPreloadResource(List<(string, Type, MemberInfo)> table, Func<Type, UObject[]> fetch)
     {
-        var batch = new Dictionary<Type, List<(string, MethodInfo)>>();
+        var batch = new Dictionary<Type, List<(string, MemberInfo)>>();
         foreach (var v2 in table)
         {
             if (!batch.TryGetValue(v2.Item2, out var v3))
@@ -206,7 +205,9 @@ public abstract class ModBase : Mod, IHKToolMod
                     try
                     {
                         LogFine($"Found {match.Item1} ({type.Name})");
-                        match.Item2.FastInvoke(this, o);
+                        if (match.Item2 is MethodInfo m) m.FastInvoke(this, o);
+                        if (match.Item2 is FieldInfo f) f.FastSet(this, o);
+                        if (match.Item2 is PropertyInfo p) p.FastSet(this, o);
                     }
                     catch (Exception e)
                     {
@@ -221,7 +222,9 @@ public abstract class ModBase : Mod, IHKToolMod
                 try
                 {
                     LogFine($"{v4.Item1}({type.Name}) not found");
-                    v4.Item2.FastInvoke(this, null);
+                    if (v4.Item2 is MethodInfo m) m.FastInvoke(this, null);
+                    if (v4.Item2 is FieldInfo f) f.FastSet(this, null);
+                    if (v4.Item2 is PropertyInfo p) p.FastSet(this, null);
                 }
                 catch (Exception e)
                 {
@@ -272,7 +275,9 @@ public abstract class ModBase : Mod, IHKToolMod
             }
             try
             {
-                v.Key.FastInvoke(this, obj);
+                if (v.Key is MethodInfo m) m.FastInvoke(this, obj);
+                if (v.Key is FieldInfo f) f.FastSet(this, obj);
+                if (v.Key is PropertyInfo p) p.FastSet(this, obj);
             }
             catch (Exception e)
             {
@@ -323,13 +328,15 @@ public abstract class ModBase : Mod, IHKToolMod
         }
     }
     private bool needHookGetPreloads = false;
-    private Dictionary<MethodInfo, (string, string, bool)> preloads = new();
-    private Dictionary<string, List<(string, Type, MethodInfo)>> assetpreloads = new();
+    private Dictionary<MemberInfo, (string, string, bool)> preloads = new();
+    private Dictionary<string, List<(string, Type, MemberInfo)>> assetpreloads = new();
     private void CheckPreloads()
     {
         var t = GetType();
-        foreach (var v in t.GetMethods(HReflectionHelper.All))
+        foreach (var v in t.GetMembers(HReflectionHelper.All))
         {
+            if (v is not (FieldInfo or MethodInfo or PropertyInfo)) continue;
+            if(v is MethodInfo m && m.GetParameters().Length != 1) continue;
             var p = v.GetCustomAttribute<PreloadAttribute>();
             if (p is not null)
             {
@@ -340,7 +347,15 @@ public abstract class ModBase : Mod, IHKToolMod
             var pa = v.GetCustomAttribute<PreloadSharedAssetsAttribute>();
             if (pa is not null)
             {
-
+                var targetType = pa.targetType;
+                if(targetType is null)
+                {
+                    if(v is FieldInfo f) targetType = f.FieldType;
+                    else if(v is MethodInfo method) targetType = method.GetParameters()[0].ParameterType;
+                    else if(v is PropertyInfo prop) targetType = prop.PropertyType;
+                    else continue;
+                }
+                if(!typeof(UObject).IsAssignableFrom(targetType)) continue;
                 if (pa.targetType == typeof(GameObject) && CompileInfo.TEST_MODE)
                 {
                     string sname;
@@ -366,7 +381,7 @@ public abstract class ModBase : Mod, IHKToolMod
                     assetpreloads.Add(scene, list);
                 }
                 needHookGetPreloads = true;
-                list.Add((pa.name, pa.targetType, v));
+                list.Add((pa.name, targetType, v));
             }
         }
     }

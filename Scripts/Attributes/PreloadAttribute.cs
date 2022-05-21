@@ -1,7 +1,7 @@
 
 namespace HKTool.Attributes;
 
-[AttributeUsage(AttributeTargets.Method)]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]
 public class PreloadAttribute : Attribute
 {
     public PreloadAttribute(string scene, string obj)
