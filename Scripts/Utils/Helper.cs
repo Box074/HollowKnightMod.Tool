@@ -4,8 +4,19 @@ namespace HKTool.Utils;
 
 public static class Helper
 {
+    public delegate void WithDelegate<T>(ref T self);
     private static MethodInfo M_clone = (MethodInfo)FindMethodBase("System.Object::MemberwiseClone")!;
     public static T MemberwiseClone<T>(this T self) => (T)M_clone.FastInvoke(self)!;
+    public static T With<T>(this T self, WithDelegate<T> cb)
+    {
+        cb(ref self);
+        return self;
+    }
+    public static T With<T>(this T self, Action<T> cb)
+    {
+        cb(self);
+        return self;
+    }
     private static object? DeepCloneIn(object? self, int depth, Hashtable table)
     {
         if(self == null) return null;
