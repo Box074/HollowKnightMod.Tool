@@ -36,6 +36,14 @@ public static class ReflectionHelperEx
         if(type == null) throw new MissingFieldException(tn, fn);
         return type.GetField(fn, HReflectionHelper.All) ?? throw new MissingFieldException(tn, fn);
     }
+    public static ref T GetFieldRef<T>(object? self, string fieldName)
+    {
+        throw new NotSupportedException();
+    }
+    public static ref T GetFieldRefFrom<T>(IntPtr pointer)
+    {
+        throw new NotSupportedException();
+    }
     public static MethodBase FindMethodBase(string name)
     {
         var tn = name.Substring(0, name.IndexOf(':'));
@@ -44,4 +52,9 @@ public static class ReflectionHelperEx
         if(type == null) throw new MissingMethodException(tn, fn);
         return type.GetMethod(fn, HReflectionHelper.All) ?? throw new MissingMethodException(tn, fn);
     }
+    public static IntPtr GetRefPointer<T>(ref T r)
+    {
+        throw new NotSupportedException();
+    }
+    public static IntPtr GetFieldRefPointer(object? self, FieldInfo field) => FastReflection.GetFieldRef(self, field);
 }

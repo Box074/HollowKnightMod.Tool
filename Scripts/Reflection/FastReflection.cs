@@ -5,10 +5,10 @@ namespace HKTool.Reflection;
 
 static class FastReflection
 {
-    public static Dictionary<FieldInfo, RD_SetField> fsetter = new Dictionary<FieldInfo, RD_SetField>();
-    public static Dictionary<FieldInfo, RD_GetField> fgetter = new Dictionary<FieldInfo, RD_GetField>();
-    public static Dictionary<MethodInfo, FastReflectionDelegate> mcaller =
-        new Dictionary<MethodInfo, FastReflectionDelegate>();
+    public static Dictionary<FieldInfo, RD_SetField> fsetter = new();
+    public static Dictionary<FieldInfo, RD_GetField> fgetter = new();
+    public static Dictionary<FieldInfo, Func<object, IntPtr>> frefgetter = new();
+    public static Dictionary<MethodInfo, FastReflectionDelegate> mcaller = new();
     public static RD_GetField GetGetter(FieldInfo field)
     {
         if (field is null) throw new ArgumentNullException(nameof(field));
@@ -23,7 +23,7 @@ static class FastReflection
             if (!field.IsStatic)
             {
                 il.Emit(OpCodes.Ldarg_0);
-                if(field.DeclaringType.IsValueType)
+                if (field.DeclaringType.IsValueType)
                 {
                     il.Emit(OpCodes.Unbox_Any, field.DeclaringType);
                 }
@@ -33,7 +33,7 @@ static class FastReflection
             {
                 il.Emit(OpCodes.Ldsfld, field);
             }
-            if(field.FieldType.IsValueType)
+            if (field.FieldType.IsValueType)
             {
                 il.Emit(OpCodes.Box, field.FieldType);
             }
@@ -58,18 +58,18 @@ static class FastReflection
             if (field.IsStatic)
             {
                 il.Emit(OpCodes.Ldarg_1);
-                if(field.FieldType.IsValueType) il.Emit(OpCodes.Unbox_Any, field.FieldType);
+                if (field.FieldType.IsValueType) il.Emit(OpCodes.Unbox_Any, field.FieldType);
                 il.Emit(OpCodes.Stsfld, field);
             }
             else
             {
                 il.Emit(OpCodes.Ldarg_0);
-                if(field.DeclaringType.IsValueType)
+                if (field.DeclaringType.IsValueType)
                 {
                     il.Emit(OpCodes.Unbox_Any, field.DeclaringType);
                 }
                 il.Emit(OpCodes.Ldarg_1);
-                if(field.FieldType.IsValueType) il.Emit(OpCodes.Unbox_Any, field.FieldType);
+                if (field.FieldType.IsValueType) il.Emit(OpCodes.Unbox_Any, field.FieldType);
                 il.Emit(OpCodes.Stfld, field);
             }
             il.Emit(OpCodes.Ret);
@@ -101,6 +101,36 @@ static class FastReflection
             return field.GetValue(@this);
         }
     }
+    internal static IntPtr GetFieldRef(object? @this, FieldInfo field)
+    {
+        if (field is null) throw new ArgumentNullException(nameof(field));
+        if (frefgetter.TryGetValue(field, out var getter)) return getter.Invoke(@this!);
+        DynamicMethod dm = new("", MethodAttributes.Static | MethodAttributes.Public,
+                CallingConventions.Standard, typeof(IntPtr), new Type[]{
+                        typeof(object)
+                    }, (Type)field.DeclaringType, true);
+        var il = dm.GetILGenerator();
+
+        if (!field.IsStatic)
+        {
+            il.Emit(OpCodes.Ldarg_0);
+            if (field.DeclaringType.IsValueType)
+            {
+                il.Emit(OpCodes.Unbox_Any, field.DeclaringType);
+            }
+            il.Emit(OpCodes.Ldflda, field);
+        }
+        else
+        {
+            il.Emit(OpCodes.Ldsflda, field);
+        }
+        //il.Emit(OpCodes.Box, field.FieldType.MakeByRefType());
+        il.Emit(OpCodes.Ret);
+        getter = (Func<object, IntPtr>)dm.CreateDelegate(typeof(Func<object, IntPtr>));
+        frefgetter[field] = getter;
+        return getter.Invoke(@this!);
+    }
+
     internal static void SetField(object? @this, FieldInfo field, object? val)
     {
         if (field is null) throw new ArgumentNullException(nameof(field));

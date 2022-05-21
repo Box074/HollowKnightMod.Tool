@@ -12,5 +12,6 @@ class ILTest
     {
         GetMethodSelf(".ctor");
         GetMethodSelf(".cctor");
+        GetFieldRef<bool>(GameManager.instance, "GameManager::<IsInSceneTransition>k__BackingField") = true;
     }
 }
