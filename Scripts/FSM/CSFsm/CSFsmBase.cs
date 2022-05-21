@@ -253,12 +253,13 @@ public abstract class CSFsmBase
         {
             if (!v.FieldType.IsSubclassOf(typeof(NamedVariable))) continue;
             var d = v.GetCustomAttribute<FsmVarAttribute>();
+            if(d is null) continue;
             var varName = string.IsNullOrEmpty(d.varName) ? v.Name : d.varName;
             var val = (NamedVariable)v.FastGet(this)!;
             if (val is null) continue;
             var p = FSMHelper.GetVariableArray(val.VariableType);
             var origArr = (NamedVariable[])p.FastGet(fsm.Variables)!;
-            var orig = origArr.FirstOrDefault(x => x.Name == varName);
+            var orig = origArr.FirstOrDefault(x => x.Name == varName) ?? ((NamedVariable[])p.FastGet(FsmVariables.GlobalVariables)!).FirstOrDefault(x => x.Name == varName);
             if (orig is null)
             {
                 var newArr = (NamedVariable[])Array.CreateInstance(p.PropertyType.GetElementType(), origArr.Length + 1);
@@ -362,12 +363,17 @@ public abstract class CSFsmBase
         public override void OnEnter()
         {
             fsm!.current = this;
-            currentEx = ExecuteAction().StartCoroutine();
+            currentEx = ExecuteAction().CreateCoroutine();
             currentEx.onFinished += (_) =>
             {
                 if (currentAction is null) return;
                 Fsm.Event(FsmEvent.Finished);
             };
+            currentEx.onException += (_, e) =>
+            {
+                HKToolMod.logger.LogError(e);
+            };
+            currentEx.Start();
         }
         private IEnumerator ExecuteAction()
         {
