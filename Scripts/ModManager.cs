@@ -138,10 +138,10 @@ static class ModManager
         if (instanceMap.ContainsKey(mod.GetType()))
         {
             var err = "HKTool.Error.ModMultiInstance"
-                .GetFormat(name ?? mod.GetType().Name, mod.GetType().Assembly.Location);
+                .LocalizeFormat(name ?? mod.GetType().Name, mod.GetType().Assembly.Location);
             mod.LogError(err);
             ModManager.modErrors.Add((name ?? mod.GetType().Name, "HKTool.ErrorShow.ModMultiInstance"
-                .GetFormat(mod.GetType().Assembly.Location)));
+                .LocalizeFormat(mod.GetType().Assembly.Location)));
             throw new InvalidOperationException(err);
         }
 

@@ -13,10 +13,10 @@ class LogMenu : CustomMenu
     {
 
     }
-    public override string title => "HKTool.LogMenu.Title".Get();
+    public override string title => "HKTool.LogMenu.Title".Localize();
     protected override void Build(ContentArea contentArea)
     {
-        AddOption("HKTool.LogMenu.MAPILogLevel".Get(), "", Enum.GetNames(typeof(Modding.LogLevel)),
+        AddOption("HKTool.LogMenu.MAPILogLevel".Localize(), "", Enum.GetNames(typeof(Modding.LogLevel)),
             (val) =>
             {
                 ModHooks.GlobalSettings.LoggingLevel = (Modding.LogLevel)val;
@@ -29,7 +29,7 @@ class LogMenu : CustomMenu
         for (int i = 0; i < 5; i++)
         {
             int id = i;
-            AddOption(string.Format("HKTool.Menu.ULST".Get(), Enum.GetName(typeof(LogType), (LogType)id)),
+            AddOption(string.Format("HKTool.Menu.ULST".Localize(), Enum.GetName(typeof(LogType), (LogType)id)),
                 "", Enum.GetNames(typeof(StackTraceLogType)),
             (int val) =>
             {
@@ -42,7 +42,7 @@ class LogMenu : CustomMenu
                 return (int)Application.GetStackTraceLogType((LogType)id);
             }, MenuResources.Perpetua);
         }
-        AddBoolOption("HKTool.LogMenu.RLogLabel".GetFormat("Assert"), "",
+        AddBoolOption("HKTool.LogMenu.RLogLabel".LocalizeFormat("Assert"), "",
             (val) => 
             {
                 settings.DebugConfig.rUnityAssert = val;
@@ -51,7 +51,7 @@ class LogMenu : CustomMenu
             {
                 return settings.DebugConfig.rUnityAssert;
             }, MenuResources.Perpetua);
-        AddBoolOption("HKTool.LogMenu.RLogLabel".GetFormat("Error"), "",
+        AddBoolOption("HKTool.LogMenu.RLogLabel".LocalizeFormat("Error"), "",
             (val) =>
             {
                 settings.DebugConfig.rUnityError = val;
@@ -60,7 +60,7 @@ class LogMenu : CustomMenu
             {
                 return settings.DebugConfig.rUnityError;
             }, MenuResources.Perpetua);
-        AddBoolOption("HKTool.LogMenu.RLogLabel".GetFormat("Exception"), "",
+        AddBoolOption("HKTool.LogMenu.RLogLabel".LocalizeFormat("Exception"), "",
             (val) =>
             {
                 settings.DebugConfig.rUnityException = val;
@@ -69,7 +69,7 @@ class LogMenu : CustomMenu
             {
                 return settings.DebugConfig.rUnityException;
             }, MenuResources.Perpetua);
-        AddBoolOption("HKTool.LogMenu.RLogLabel".GetFormat("Log"), "",
+        AddBoolOption("HKTool.LogMenu.RLogLabel".LocalizeFormat("Log"), "",
             (val) =>
             {
                 settings.DebugConfig.rUnityLog = val;
@@ -78,7 +78,7 @@ class LogMenu : CustomMenu
             {
                 return settings.DebugConfig.rUnityLog;
             }, MenuResources.Perpetua);
-        AddBoolOption("HKTool.LogMenu.RLogLabel".GetFormat("Warn"), "",
+        AddBoolOption("HKTool.LogMenu.RLogLabel".LocalizeFormat("Warn"), "",
             (val) =>
             {
                 settings.DebugConfig.rUnityWarn = val;

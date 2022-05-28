@@ -100,7 +100,7 @@ public abstract class ModBase : Mod, IHKToolMod
     protected void MissingDependency(string name)
     {
         var err = "HKTool.Error.NeedLibrary"
-                .GetFormat(name);
+                .LocalizeFormat(name);
         LogError(err);
         ModManager.modErrors.Add((GetName(), err));
         throw new NotSupportedException(err);
@@ -108,7 +108,7 @@ public abstract class ModBase : Mod, IHKToolMod
     protected void TooOldDependency(string name, Version needVersion)
     {
         var err = "HKTool.Error.NeedLibraryVersion"
-                .GetFormat(name, needVersion.ToString());
+                .LocalizeFormat(name, needVersion.ToString());
         LogError(err);
         ModManager.modErrors.Add((GetName(), err));
         throw new NotSupportedException(err);
@@ -555,12 +555,12 @@ public abstract class ModBase<T> : ModBase where T : ModBase<T>
                 {
                     if (!typeof(T).IsDefined(typeof(ModAllowEarlyInitializationAttribute)) || isTryLoad)
                     {
-                        throw new InvalidOperationException("HKTool.Error.GetModInstaceBeforeLoad".GetFormat(typeof(T).Name));
+                        throw new InvalidOperationException("HKTool.Error.GetModInstaceBeforeLoad".LocalizeFormat(typeof(T).Name));
                     }
                     PreloadModBeforeModLoader();
                 }
             }
-            if (_instance is null) throw new InvalidOperationException("HKTool.Error.GetModInstaceBeforeLoad".GetFormat(typeof(T).Name));
+            if (_instance is null) throw new InvalidOperationException("HKTool.Error.GetModInstaceBeforeLoad".LocalizeFormat(typeof(T).Name));
             return _instance;
         }
     }

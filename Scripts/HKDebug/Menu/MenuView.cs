@@ -24,7 +24,7 @@ class MenuShow : DebugViewBase
 
         if (MenuManager.groups.Count != 0)
         {
-            if (GUILayout.Button("HKTool.DebugMenu.Back".Get()))
+            if (GUILayout.Button("HKTool.DebugMenu.Back".Localize()))
             {
                 MenuManager.LeaveGroup();
             }

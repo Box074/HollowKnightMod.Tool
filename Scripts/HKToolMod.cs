@@ -134,7 +134,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
         }
     }
 
-    public override string MenuButtonName => "HKTool.Menu.ButtonLabel".Get();
+    public override string MenuButtonName => "HKTool.Menu.ButtonLabel".Localize();
     public override Font MenuButtonLabelFont => MenuResources.Perpetua;
     public static HKToolSettings settings = new HKToolSettings();
     public static HKToolDebugConfig devSettings => settings.DebugConfig;

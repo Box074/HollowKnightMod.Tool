@@ -99,12 +99,12 @@ public static class FakeDebug
     {
         Menu.MenuManager.AddButton(new Menu.ButtonInfo()
         {
-            label = "HKTool.Debug.EnableDebugDraw".Get(),
+            label = "HKTool.Debug.EnableDebugDraw".Localize(),
             submit = (but) =>
             {
                 enable = !enable;
-                but.label = !enable ? "HKTool.Debug.EnableDebugDraw".Get()
-                : "HKTool.Debug.DisableDebugDraw".Get();
+                but.label = !enable ? "HKTool.Debug.EnableDebugDraw".Localize()
+                : "HKTool.Debug.DisableDebugDraw".Localize();
             }
         });
         HookEndpointManager.Add(typeof(Debug).GetMethod("DrawLine", new Type[]{

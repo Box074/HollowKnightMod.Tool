@@ -265,7 +265,7 @@ public abstract class CustomMenu : BindI18n
     }
     protected void AddBoolOption(string label, string desc, Action<bool> onChange, Func<bool> onRefresh, Font? font = default)
     {
-        AddOption(label, desc, new string[] { "HKTool.Menu.Bool.False".Get(), "HKTool.Menu.Bool.True".Get() },
+        AddOption(label, desc, new string[] { "HKTool.Menu.Bool.False".Localize(), "HKTool.Menu.Bool.True".Localize() },
             (id) => { onChange(id == 1); }, () => onRefresh() ? 1 : 0, font);
     }
     protected MenuOptionHorizontal AddOption(string label, string desc, string[] values,

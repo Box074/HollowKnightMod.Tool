@@ -20,25 +20,25 @@ class HKToolSettingsMenu : CustomMenu
     private void DebugOptions()
     {
         
-        AddButton("HKTool.Settings.DebugView".Get(), "HKTool.Settings.DebugView.Desc".Get(),
+        AddButton("HKTool.Settings.DebugView".Localize(), "HKTool.Settings.DebugView.Desc".Localize(),
             () =>
             {
                 DebugTools.DebugView.IsEnable = !DebugTools.DebugView.IsEnable;
             }, MenuResources.Perpetua);
 
-        AddButton("HKTool.LogMenu.Title".Get(), "",
+        AddButton("HKTool.LogMenu.Title".Localize(), "",
         () => 
         {
             LogMenu.instance!.Refresh();
             GoToMenu(LogMenu.instance);
         }, MenuResources.Perpetua);
-        AddBoolOption("HKTool.I18n.ShowOrigin".Get(),
-            "HKTool.Desc.NeverSave".Get(),
+        AddBoolOption("HKTool.I18n.ShowOrigin".Localize(),
+            "HKTool.Desc.NeverSave".Localize(),
             (val) => {
                 HKToolMod.i18nShowOrig = val;
             },
             () => HKToolMod.i18nShowOrig, MenuResources.Perpetua);
-        AddButton("HKTool.Menu.RebuildMenu".Get(), "",
+        AddButton("HKTool.Menu.RebuildMenu".Localize(), "",
             () =>
             {
                 foreach(var v in CustomMenu.menus)
@@ -64,8 +64,8 @@ class HKToolSettingsMenu : CustomMenu
     {
         autoRefresh = true;
 
-        AddOption("HKTool.Settings.DeveloperMode".Get(), "HKTool.Settings.DeveloperMode.Desc".Get(),
-            new string[] { "HKTool.Settings.Off".Get(), "HKTool.Settings.On".Get() },
+        AddOption("HKTool.Settings.DeveloperMode".Localize(), "HKTool.Settings.DeveloperMode.Desc".Localize(),
+            new string[] { "HKTool.Settings.Off".Localize(), "HKTool.Settings.On".Localize() },
             (id) =>
             {
                 settings.DevMode = id == 1;
@@ -74,7 +74,7 @@ class HKToolSettingsMenu : CustomMenu
             {
                 return settings.DevMode ? 1 : 0;
             }, MenuResources.Perpetua);
-        AddButton("HKTool.Menu.RefreshLanguage".Get(), "",
+        AddButton("HKTool.Menu.RefreshLanguage".Localize(), "",
             () =>
             {
                 foreach(var v in I18n.Instances)

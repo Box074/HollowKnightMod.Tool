@@ -72,7 +72,7 @@ class DebugView : MonoBehaviour
         var d = debugViews[select];
         GUILayout.BeginVertical();
 
-        if (GUILayout.Button(string.Format("HKTool.Debug.TopTitle".Get(), d.GetViewName(), select + 1, debugViews.Count)))
+        if (GUILayout.Button(string.Format("HKTool.Debug.TopTitle".Localize(), d.GetViewName(), select + 1, debugViews.Count)))
         {
             s0 = Vector2.zero;
             select++;

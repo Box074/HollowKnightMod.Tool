@@ -68,7 +68,7 @@ public static class ModListMenuHelper
     }
     private static void TestMenuLoad()
     {
-        if(!modListBuildFinished) throw new InvalidOperationException("HKTool.Error.TryGetInstanceWithoutInit".GetFormat("ModListMenu"));
+        if(!modListBuildFinished) throw new InvalidOperationException("HKTool.Error.TryGetInstanceWithoutInit".LocalizeFormat("ModListMenu"));
     }
     public static MenuButton? FindButtonInMenuListMenu(string modName)
     {
