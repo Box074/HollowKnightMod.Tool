@@ -44,11 +44,16 @@ global using HKTool.Attributes;
 global using HKTool.Runtime;
 global using HKTool.MAPI;
 global using HKTool.MAPI.Loader;
+global using HKTool.Patcher;
 
+global using Mono.Cecil;
+global using Mono.Cecil.Cil;
 global using MonoMod.Cil;
 global using MonoMod.RuntimeDetour.HookGen;
 global using MonoMod.Utils;
 global using MOpCodes = Mono.Cecil.Cil.OpCodes;
+global using OpCodes = System.Reflection.Emit.OpCodes;
+global using OpCode = System.Reflection.Emit.OpCode;
 
 global using HutongGames.PlayMaker;
 global using HutongGames.PlayMaker.Actions;
@@ -57,3 +62,4 @@ global using UObject = UnityEngine.Object;
 global using HReflectionHelper = HKTool.Reflection.ReflectionHelper;
 
 global using PreloadObject = System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, UnityEngine.GameObject>>;
+global using MethodAttributes = System.Reflection.MethodAttributes;

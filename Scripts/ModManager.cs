@@ -10,6 +10,7 @@ static class ModManager
     public static List<Type> skipMods = new();
     public static Dictionary<Mod, Func<PreloadObject, bool>> hookInits = new();
     public static Dictionary<Mod, Func<List<(string, string)>, List<(string, string)>>> hookGetPreloads = new();
+    private static Ref<ModVersionDraw> ref_ModVersionDraw = GetFieldRefPointer(null, FindFieldInfo("Modding.ModLoader::modVersionDraw"));
     static ModManager()
     {
         ModHooks.FinishedLoadingModsHook += () =>
@@ -36,7 +37,7 @@ static class ModManager
             {
                 orig();
                 if (modErrors.Count == 0) return;
-                var vd = (ModVersionDraw)FindFieldInfo("Modding.ModLoader::modVersionDraw").FastGet((object?)null)!;
+                var vd = ref_ModVersionDraw.Value;
                 var sb = new StringBuilder();
                 sb.AppendLine(vd?.drawString ?? "");
                 sb.AppendLine();
