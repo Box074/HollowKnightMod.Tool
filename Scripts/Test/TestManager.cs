@@ -4,6 +4,7 @@ namespace HKTool.Test;
 static class TestManager
 {
     public static string Test = " A";
+    public static Ref<string> TestRef = GetRefPointer(ref Test);
     public static IntPtr Pointer;
     public static (string name, Action onClick)[] tests = new(string name, Action onClick)[]{
         ("CSFsm", () => {
@@ -18,7 +19,7 @@ static class TestManager
             r = "BC";
         }),
         ("ILTest2", () => {
-            ref string r = ref GetFieldRefFrom<string>(Pointer);
+            var r = TestRef.Value;
             HKToolMod.logger.Log($"Hello,World2! {r} {r.GetType().FullName}");
         })
     };

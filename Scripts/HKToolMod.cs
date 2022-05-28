@@ -43,7 +43,6 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
                 return HeroController.SilentInstance;
             });
 
-
         if (settings.DevMode)
         {
             DebugTools.DebugManager.Init();
