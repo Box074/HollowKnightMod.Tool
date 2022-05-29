@@ -111,6 +111,8 @@ static class FastReflection
                     }, (Type)field.DeclaringType, true);
         var il = dm.GetILGenerator();
 
+        
+
         if (!field.IsStatic)
         {
             il.Emit(OpCodes.Ldarg_0);

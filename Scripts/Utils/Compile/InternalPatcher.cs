@@ -93,6 +93,7 @@ static class InternalPatcher
 
     public static TypeDefinition? FindType(string name, ModuleDefinition md)
     {
+        if(md is null) return null;
         foreach (var v in md.Types)
         {
             if (v.FullName == name) return v;
@@ -100,13 +101,14 @@ static class InternalPatcher
         foreach (var v in md.AssemblyReferences)
         {
             var t = md.AssemblyResolver.Resolve(v)
-            .MainModule.Types.FirstOrDefault(x => x.FullName == name);
+            ?.MainModule.Types.FirstOrDefault(x => x.FullName == name);
             if (t != null) return t;
         }
         return null;
     }
     public static TypeDefinition? FindTypeEx(string name, ModuleDefinition md)
     {
+        if(md is null) return null;
         var parts = name.Split('+');
         var parent = FindType(parts[0], md);
         if (parent == null) return null;

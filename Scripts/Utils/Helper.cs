@@ -17,6 +17,15 @@ public static class Helper
         cb(self);
         return self;
     }
+    public static TValue TryGetOrAddValue<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key, Func<TValue> init)
+    {
+        if(!dict.TryGetValue(key, out var result))
+        {
+            result = init();
+            dict.Add(key, result);
+        }
+        return result;
+    }
     private static object? DeepCloneIn(object? self, int depth, Hashtable table)
     {
         if(self == null) return null;

@@ -14,6 +14,51 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
             }
             orig(self);
         };
+
+        if (CurrentMAPIVersion is 70 or 71)
+        {
+            try
+            {
+                void NewAPIPatch()
+                {
+                    HookEndpointManager.Modify(FindType("Modding.Preloader+<>c__DisplayClass22_0")!.GetMethods(HReflectionHelper.All).First(
+                        x => x.Name.StartsWith("<DoPreload>g__GetPreloadObjectsOperation")),
+                        (ILContext context) =>
+                        {
+                            var cursor = new ILCursor(context);
+                            cursor.GotoNext(MoveType.Before, x => 
+                            {
+                                if(x.OpCode != MOpCodes.Callvirt) return false;
+                                var mr = (MethodReference)x.Operand;
+                                if(mr.DeclaringType.GetElementType().FullName != typeof(Dictionary<,>).FullName) return false;
+                                if(mr.Name != "Add") return false;
+                                return true;
+                            });
+                            cursor.Next.Operand = typeof(Dictionary<string, GameObject>).GetMethod("set_Item");
+                        });
+                    HookEndpointManager.Modify(FindMethodBase("Modding.Preloader+<DoPreload>d__22::MoveNext"),
+                        (ILContext context) =>
+                        {
+                            var cursor = new ILCursor(context);
+                            cursor.GotoNext(MoveType.Before, x => 
+                            {
+                                if(x.OpCode != MOpCodes.Callvirt) return false;
+                                var mr = (MethodReference)x.Operand;
+                                if(mr.DeclaringType.GetElementType().FullName != typeof(Dictionary<,>).FullName) return false;
+                                if(mr.Name != "Add") return false;
+                                return true;
+                            });
+                            cursor.Next.Operand = typeof(Dictionary<string, GameObject>).GetMethod("set_Item");
+                        });
+                }
+                NewAPIPatch();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e);
+            }
+        }
+
     }
     public static I18n I18N => Instance.I18n;
     public static SimpleLogger unityLogger = new("UNITY");
@@ -24,6 +69,12 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
     {
 
         IsDebugMode = settings.DevMode;
+
+        if (settings.EmulateNewMAPIFeatures)
+        {
+            LegacyMAPISupport.Init();
+        }
+
         try
         {
             Init();

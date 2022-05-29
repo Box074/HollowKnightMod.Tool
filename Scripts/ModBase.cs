@@ -322,8 +322,8 @@ public abstract class ModBase : Mod, IHKToolMod
         }
     }
     private bool needHookGetPreloads = false;
-    private Dictionary<Action<GameObject?>, (string, string, bool)> preloads = new();
-    private Dictionary<string, List<(string, Type, Action<UObject?>)>> assetpreloads = new();
+    internal Dictionary<Action<GameObject?>, (string, string, bool)> preloads = new();
+    internal Dictionary<string, List<(string, Type, Action<UObject?>)>> assetpreloads = new();
     private void CheckPreloads()
     {
         Action<T> CreateSetter<T>(MemberInfo m)
@@ -387,8 +387,10 @@ public abstract class ModBase : Mod, IHKToolMod
     }
     private ModBase(string name, bool _) : base(name)
     {
+        
         CheckHKToolVersion(name);
         OnCheckDependencies();
+
         ModManager.NewMod(this);
 
         sha1 = BitConverter.ToString(

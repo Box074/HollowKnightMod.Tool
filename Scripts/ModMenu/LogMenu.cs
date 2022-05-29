@@ -43,49 +43,14 @@ class LogMenu : CustomMenu
             }, MenuResources.Perpetua);
         }
         AddBoolOption("HKTool.LogMenu.RLogLabel".LocalizeFormat("Assert"), "",
-            (val) => 
-            {
-                settings.DebugConfig.rUnityAssert = val;
-            },
-            () =>
-            {
-                return settings.DebugConfig.rUnityAssert;
-            }, MenuResources.Perpetua);
+                ref settings.DebugConfig.rUnityAssert, null, MenuResources.Perpetua);
         AddBoolOption("HKTool.LogMenu.RLogLabel".LocalizeFormat("Error"), "",
-            (val) =>
-            {
-                settings.DebugConfig.rUnityError = val;
-            },
-            () =>
-            {
-                return settings.DebugConfig.rUnityError;
-            }, MenuResources.Perpetua);
+                ref settings.DebugConfig.rUnityError, null, MenuResources.Perpetua);
         AddBoolOption("HKTool.LogMenu.RLogLabel".LocalizeFormat("Exception"), "",
-            (val) =>
-            {
-                settings.DebugConfig.rUnityException = val;
-            },
-            () =>
-            {
-                return settings.DebugConfig.rUnityException;
-            }, MenuResources.Perpetua);
+                ref settings.DebugConfig.rUnityException, null, MenuResources.Perpetua);
         AddBoolOption("HKTool.LogMenu.RLogLabel".LocalizeFormat("Log"), "",
-            (val) =>
-            {
-                settings.DebugConfig.rUnityLog = val;
-            },
-            () =>
-            {
-                return settings.DebugConfig.rUnityLog;
-            }, MenuResources.Perpetua);
+                ref settings.DebugConfig.rUnityLog, null, MenuResources.Perpetua);
         AddBoolOption("HKTool.LogMenu.RLogLabel".LocalizeFormat("Warn"), "",
-            (val) =>
-            {
-                settings.DebugConfig.rUnityWarn = val;
-            },
-            () =>
-            {
-                return settings.DebugConfig.rUnityWarn;
-            }, MenuResources.Perpetua);
+                ref settings.DebugConfig.rUnityWarn, null, MenuResources.Perpetua);
     }
 }

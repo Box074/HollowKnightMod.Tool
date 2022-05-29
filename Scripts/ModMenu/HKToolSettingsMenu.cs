@@ -19,7 +19,7 @@ class HKToolSettingsMenu : CustomMenu
     }
     private void DebugOptions()
     {
-        
+
         AddButton("HKTool.Settings.DebugView".Localize(), "HKTool.Settings.DebugView.Desc".Localize(),
             () =>
             {
@@ -27,38 +27,35 @@ class HKToolSettingsMenu : CustomMenu
             }, MenuResources.Perpetua);
 
         AddButton("HKTool.LogMenu.Title".Localize(), "",
-        () => 
+        () =>
         {
             LogMenu.instance!.Refresh();
             GoToMenu(LogMenu.instance);
         }, MenuResources.Perpetua);
         AddBoolOption("HKTool.I18n.ShowOrigin".Localize(),
             "HKTool.Desc.NeverSave".Localize(),
-            (val) => {
-                HKToolMod.i18nShowOrig = val;
-            },
-            () => HKToolMod.i18nShowOrig, MenuResources.Perpetua);
+            ref HKToolMod.i18nShowOrig, null, MenuResources.Perpetua);
         AddButton("HKTool.Menu.RebuildMenu".Localize(), "",
             () =>
             {
-                foreach(var v in CustomMenu.menus)
+                foreach (var v in CustomMenu.menus)
                 {
                     try
                     {
                         v.Rebuild();
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         HKToolMod.logger.LogError(e);
                     }
                     Back();
                 }
             }, MenuResources.Perpetua);
-            AddButton("Test Options", "",
-            () =>
-            {
-                if(TestMenu.instance is not null) GoToMenu(TestMenu.instance);
-            }, MenuResources.Perpetua);
+        AddButton("Test Options", "",
+        () =>
+        {
+            if (TestMenu.instance is not null) GoToMenu(TestMenu.instance);
+        }, MenuResources.Perpetua);
     }
     protected override void Build(ContentArea contentArea)
     {
@@ -74,27 +71,32 @@ class HKToolSettingsMenu : CustomMenu
             {
                 return settings.DevMode ? 1 : 0;
             }, MenuResources.Perpetua);
+        if (ModBase.CurrentMAPIVersion < 70)
+        {
+            AddBoolOption("HKTool.Settings.ENMAPI".Localize(), "",
+            ref settings.EmulateNewMAPIFeatures, null, MenuResources.Perpetua);
+        }
         AddButton("HKTool.Menu.RefreshLanguage".Localize(), "",
             () =>
             {
-                foreach(var v in I18n.Instances)
+                foreach (var v in I18n.Instances)
                 {
                     v.TrySwitch();
                 }
-                foreach(var v in CustomMenu.menus)
+                foreach (var v in CustomMenu.menus)
                 {
                     try
                     {
                         v.Rebuild();
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         HKToolMod.logger.LogError(e);
                     }
                     Back();
                 }
             }, MenuResources.Perpetua);
-        
+
         if (HKToolMod.IsDebugMode)
         {
             DebugOptions();

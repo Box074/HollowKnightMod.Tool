@@ -19,6 +19,7 @@ HKTool.Settings.Off=Off
 HKTool.Settings.LoadSettings=Reload Settings
 HKTool.Settings.DebugView=Debug View
 HKTool.Settings.DebugView.Desc=Turn on/off Debug View[Home]
+HKTool.Settings.ENMAPI=Emulate the new features of MAPI70
 
 HKTool.Debug.TopTitle={0} ({1}/{2}) Press Tab to switch
 HKTool.Debug.EnableHitBox=Show HitBox

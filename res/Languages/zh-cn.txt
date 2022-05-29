@@ -19,6 +19,7 @@ HKTool.Settings.Off=关闭
 HKTool.Settings.LoadSettings=重新加载设置
 HKTool.Settings.DebugView=调试视图
 HKTool.Settings.DebugView.Desc=开启/关闭调试视图[Home]
+HKTool.Settings.ENMAPI=模拟MAPI70的新功能
 
 HKTool.Debug.TopTitle={0} ({1}/{2}) Tab键切换
 HKTool.Debug.EnableHitBox=显示碰撞箱

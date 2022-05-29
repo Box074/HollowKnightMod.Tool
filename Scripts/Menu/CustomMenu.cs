@@ -263,6 +263,11 @@ public abstract class CustomMenu : BindI18n
         AddRefreshableComponent(option.menuSetting);
         return option;
     }
+    protected MenuOptionHorizontal AddBoolOptionR(string label, string desc, Action<bool> onChange, Func<bool> onRefresh, Font? font = default)
+    {
+        return AddOption(label, desc, new string[] { "HKTool.Menu.Bool.False".Localize(), "HKTool.Menu.Bool.True".Localize() },
+            (id) => { onChange(id == 1); }, () => onRefresh() ? 1 : 0, font);
+    }
     protected void AddBoolOption(string label, string desc, Action<bool> onChange, Func<bool> onRefresh, Font? font = default)
     {
         AddOption(label, desc, new string[] { "HKTool.Menu.Bool.False".Localize(), "HKTool.Menu.Bool.True".Localize() },
@@ -277,6 +282,15 @@ public abstract class CustomMenu : BindI18n
     protected MenuOptionHorizontal AddOption(string label, string desc,
         Action<MenuSetting, int> onChange, Func<MenuSetting, int> onRefresh,
         Font? font = null, params string[] values) => AddOption(label, desc, values, onChange, onRefresh, font);
+    protected MenuOptionHorizontal AddBoolOption(string label, string desc,
+        ref bool settings, Action? onChange = null, Font? font = null)
+    {
+        Ref<bool> refs = GetRefPointer(ref settings);
+        return AddBoolOptionR(label, desc, x => {
+            refs.Value = x;
+            onChange?.Invoke();
+        }, () => refs.Value, font);
+    }
     protected virtual void Back() => GoToMenu(returnScreen);
     protected void GoToMenu(MenuScreen menu)
     {

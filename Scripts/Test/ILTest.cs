@@ -13,6 +13,6 @@ class ILTest
     {
         GetFieldRef<bool>(GameManager.instance, "GameManager::<IsInSceneTransition>k__BackingField") = true;
         tr1.Value = "Hello,World!";
-        
+        On.HeroController.GetCState += (orig, self, name) => orig(self, name);
     }
 }

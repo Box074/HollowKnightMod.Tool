@@ -31,6 +31,7 @@
         "modifyIL": true,
         "compressResources": true,
         "referenceLib": false,
+        "inlineHook": true,
         "modRes": {
             "HKTool.Languages.en.txt": {
                 "name": "LANGUAGE_EN",

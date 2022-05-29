@@ -10,6 +10,7 @@ static class ModManager
     public static List<Type> skipMods = new();
     public static Dictionary<Mod, Func<PreloadObject, bool>> hookInits = new();
     public static Dictionary<Mod, Func<List<(string, string)>, List<(string, string)>>> hookGetPreloads = new();
+    public static event Action<ModInstance, bool, PreloadObject> onLoadMod = null!;
     private static Ref<ModVersionDraw> ref_ModVersionDraw = GetFieldRefPointer(null, FindFieldInfo("Modding.ModLoader::modVersionDraw"));
     static ModManager()
     {
@@ -60,6 +61,14 @@ static class ModManager
                     {
                         if (mod is null) return;
                         var mi = new ModInstance(mod);
+                        try
+                        {
+                            onLoadMod?.Invoke(mi, updateVer, objs);
+                        }
+                        catch(Exception e)
+                        {
+                            HKToolMod.logger.LogError(e);
+                        }
                         if (mi.Error.HasValue) return;
                         try
                         {
