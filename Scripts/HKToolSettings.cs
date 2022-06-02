@@ -6,8 +6,13 @@ class HKToolSettings
 {
     public static bool TestMode = false;
     public bool DevMode = false;
-    public HKToolDebugConfig DebugConfig { get; set; } = new HKToolDebugConfig();
-    public bool EmulateNewMAPIFeatures = true;
+    public HKToolDebugConfig DebugConfig { get; set; } = new();
+    public HKToolExperimentalConfig ExperimentalConfig { get; set; } = new();
+}
+[Serializable]
+class HKToolExperimentalConfig
+{
+    public bool satchel_use_shader_extract = false;
 }
 [Serializable]
 class HKToolDebugConfig

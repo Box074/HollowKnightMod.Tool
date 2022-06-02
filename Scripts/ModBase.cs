@@ -7,26 +7,19 @@ public abstract class ModBase : Mod, IHKToolMod
     {
         public PreloadSharedAssetsAttribute(string name, Type? type = null)
         {
-            sceneName = "resources";
             inResources = true;
             this.name = name;
             this.targetType = type;
         }
-        public PreloadSharedAssetsAttribute(string sceneName, string name, Type? type = null) : this(name, type)
-        {
-            inResources = sceneName == "resources";
-            this.sceneName = sceneName;
-        }
         public PreloadSharedAssetsAttribute(int id, string name, Type? type = null) : this(name, type)
         {
-            inResources = id == -1;
+            inResources = id == 0;
             this.id = id;
         }
         public Type? targetType;
-        public string sceneName = "";
         public string name;
         public bool inResources;
-        public int? id = null;
+        public int id;
     }
     public const string compileVersion = CompileInfo.MOD_VERSION;
     private static int _currentmapiver = (int)FindFieldInfo("Modding.ModHooks::_modVersion").GetValue(null);
@@ -230,7 +223,7 @@ public abstract class ModBase : Mod, IHKToolMod
         }
 
     }
-    void IHKToolMod.HookInit(Dictionary<string, Dictionary<string, GameObject>> go)
+    void IHKToolMod.HookInit(PreloadObject go, PreloadAsset assets)
     {
         UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
         if (go is not null)
@@ -246,9 +239,31 @@ public abstract class ModBase : Mod, IHKToolMod
                 }
             }
         }
-        if (assetpreloads.TryGetValue("resources", out var inresources))
+        if (assetpreloads.TryGetValue(0, out var inresources) && CurrentMAPIVersion < CompileInfo.SUPPORT_PRELOAD_ASSETS_VERSION)
         {
             LoadPreloadResource(inresources, (type) => Resources.FindObjectsOfTypeAll(type));
+        }
+        if (CurrentMAPIVersion >= CompileInfo.SUPPORT_PRELOAD_ASSETS_VERSION)
+        {
+            List<Action<UObject>> notFound = new();
+            foreach (var v in assetpreloads)
+            {
+                if (!assets.TryGetValue(v.Key, out var scene))
+                {
+                    notFound.AddRange(v.Value.Select(x => x.Item3));
+                    continue;
+                }
+                foreach (var v2 in v.Value)
+                {
+                    if (!scene.TryGetValue(v2.Item1, out var obj) || obj.GetType() != v2.Item2)
+                    {
+                        notFound.Add(v2.Item3);
+                        continue;
+                    }
+                    v2.Item3.Invoke(obj);
+                }
+            }
+            foreach (var v in notFound) v.Invoke(null!);
         }
         foreach (var v in preloads)
         {
@@ -283,7 +298,22 @@ public abstract class ModBase : Mod, IHKToolMod
     {
         preloads = preloads ?? new();
         foreach (var v in this.preloads) preloads.Add((v.Value.Item1, v.Value.Item2));
-        foreach (var v in assetpreloads) if (v.Key != "resources") preloads.Add((v.Key, "FakeGameObject"));
+        if (CurrentMAPIVersion < CompileInfo.SUPPORT_PRELOAD_ASSETS_VERSION)
+        {
+            foreach (var v in assetpreloads) if (v.Key != 0) preloads.Add((Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(v.Key)), "FakeGameObject"));
+        }
+        return preloads;
+    }
+    private List<(int, string, Type)> HookGetPreloadAssetNames(List<(int, string, Type)> preloads)
+    {
+        preloads = preloads ?? new();
+        foreach (var v in assetpreloads)
+        {
+            foreach (var v2 in v.Value)
+            {
+                preloads.Add((v.Key, v2.Item1, v2.Item2));
+            }
+        }
         return preloads;
     }
     private void CheckHookGetPreloads()
@@ -307,15 +337,35 @@ public abstract class ModBase : Mod, IHKToolMod
             {
                 ModManager.hookGetPreloads[this] = HookGetPreloads;
             }
-            if (assetpreloads.Count != 0)
+            if (assetpreloads.Count != 0 && CurrentMAPIVersion < CompileInfo.SUPPORT_PRELOAD_ASSETS_VERSION)
             {
                 UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+            }
+        }
+        if (CurrentMAPIVersion >= CompileInfo.SUPPORT_PRELOAD_ASSETS_VERSION && assetpreloads.Count > 0)
+        {
+            var gpM = GetType().GetTypeInfo().DeclaredMethods.FirstOrDefault(x => x.Name == "GetPreloadAssetsNames"
+                && x.GetParameters().Length == 0 &&
+                x.ReturnType == typeof(List<(int, string, Type)>));
+            if (gpM is not null)
+            {
+                HookEndpointManager.Add(
+                    gpM,
+                    (Func<ModBase, List<(int, string, Type)>> orig, ModBase self) =>
+                    {
+                        return HookGetPreloadAssetNames(orig(self));
+                    }
+                );
+            }
+            else
+            {
+                ModManager.hookGetAssetPreloads[this] = HookGetPreloadAssetNames;
             }
         }
     }
     private void OnSceneLoaded(Scene scene, LoadSceneMode _1)
     {
-        if (assetpreloads.TryGetValue(scene.name, out var v))
+        if (assetpreloads.TryGetValue(scene.buildIndex, out var v))
         {
             UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(new GameObject("FakeGameObject"), scene);
             LoadPreloadResource(v, (type) => Resources.FindObjectsOfTypeAll(type));
@@ -323,21 +373,46 @@ public abstract class ModBase : Mod, IHKToolMod
     }
     private bool needHookGetPreloads = false;
     internal Dictionary<Action<GameObject?>, (string, string, bool)> preloads = new();
-    internal Dictionary<string, List<(string, Type, Action<UObject?>)>> assetpreloads = new();
+    internal Dictionary<int, List<(string, Type, Action<UObject?>)>> assetpreloads = new();
+    protected void AddPreloadSharedAsset(int? id, string name, Type type, Action<UObject?> callback)
+    {
+        if(ModLoaderHelper.modLoadState.HasFlag(ModLoadState.Preloaded)) throw new InvalidOperationException();
+        if (!typeof(UObject).IsAssignableFrom(type)) return;
+
+        var sceneId = id ?? 0;
+        #region Use MAPI Prelaod Prefab
+        if (type == typeof(GameObject) && CurrentMAPIVersion >= CompileInfo.SUPPORT_PRELOAD_PREFAB_VERSION)
+        {
+            if (id != 0)
+            {
+                needHookGetPreloads = true;
+                preloads.Add(callback, ("sharedassets" + id, name, false));
+            }
+            return;
+        }
+        #endregion
+        if (!assetpreloads.TryGetValue(sceneId, out var list))
+        {
+            list = new();
+            assetpreloads.Add(sceneId, list);
+        }
+        needHookGetPreloads = true;
+        list.Add((name, type, callback));
+    }
     private void CheckPreloads()
     {
         Action<T> CreateSetter<T>(MemberInfo m)
         {
-            if(m is FieldInfo f) return val => f.FastSet(this, val);
-            if(m is PropertyInfo p) return val => p.FastSet(this, val);
-            if(m is MethodInfo met) return val => met.FastInvoke(this, val);
-            return _ => {};
+            if (m is FieldInfo f) return val => f.FastSet(this, val);
+            if (m is PropertyInfo p) return val => p.FastSet(this, val);
+            if (m is MethodInfo met) return val => met.FastInvoke(this, val);
+            return _ => { };
         }
         var t = GetType();
         foreach (var v in t.GetMembers(HReflectionHelper.All))
         {
             if (v is not (FieldInfo or MethodInfo or PropertyInfo)) continue;
-            if(v is MethodInfo m && m.GetParameters().Length != 1) continue;
+            if (v is MethodInfo m && m.GetParameters().Length != 1) continue;
             var p = v.GetCustomAttribute<PreloadAttribute>();
             if (p is not null)
             {
@@ -349,34 +424,14 @@ public abstract class ModBase : Mod, IHKToolMod
             if (pa is not null)
             {
                 var targetType = pa.targetType;
-                if(targetType is null)
+                if (targetType is null)
                 {
-                    if(v is FieldInfo f) targetType = f.FieldType;
-                    else if(v is MethodInfo method) targetType = method.GetParameters()[0].ParameterType;
-                    else if(v is PropertyInfo prop) targetType = prop.PropertyType;
+                    if (v is FieldInfo f) targetType = f.FieldType;
+                    else if (v is MethodInfo method) targetType = method.GetParameters()[0].ParameterType;
+                    else if (v is PropertyInfo prop) targetType = prop.PropertyType;
                     else continue;
                 }
-                if(!typeof(UObject).IsAssignableFrom(targetType)) continue;
-                if (pa.targetType == typeof(GameObject) && CurrentMAPIVersion >= CompileInfo.SUPPORT_PRELOAD_PREFAB_VERSION)
-                {
-                    if (!pa.inResources)
-                    {
-                        var id = pa.id ??
-                        (Array.IndexOf(sceneNames, pa.sceneName));
-                        preloads.Add(CreateSetter<GameObject?>(v), ("sharedassets" + id, pa.name, false));
-                    }
-                    continue;
-                }
-                string scene = pa.inResources ? "resources"
-                    : (pa.id is null ? pa.sceneName :
-                    Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(pa.id ?? throw new NullReferenceException())));
-                if (!assetpreloads.TryGetValue(scene, out var list))
-                {
-                    list = new();
-                    assetpreloads.Add(scene, list);
-                }
-                needHookGetPreloads = true;
-                list.Add((pa.name, targetType, CreateSetter<UObject?>(v)));
+                AddPreloadSharedAsset(pa.inResources ? null : pa.id, pa.name, targetType, CreateSetter<UObject?>(v));
             }
         }
     }
@@ -387,7 +442,6 @@ public abstract class ModBase : Mod, IHKToolMod
     }
     private ModBase(string name, bool _) : base(name)
     {
-        
         CheckHKToolVersion(name);
         OnCheckDependencies();
 

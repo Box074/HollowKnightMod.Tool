@@ -1,10 +1,23 @@
 {
     "modName": "HKTool",
-    "modVersion": "1.8.2.0",
+    "modVersion": "1.8.3.0",
     "codeDir": "./scripts",
     "csCompileInfo": true,
+    "libraryDir": "./Library",
     "supportPreloadPrefabVersion": 70,
+    "supportPreloadAssetsVersion": 71,
     "dependencies": [
+        {
+            "name": "Vanilla",
+            "url": "https://files.catbox.moe/i4sdl6.zip",
+            "ignoreFiles": [
+                "Assembly-CSharp.dll",
+                "mscorlib.dll",
+                "Newtonsoft.Json.dll",
+                "MMHOOK_Assembly-CSharp.dll"
+            ],
+            "copyToOutput": false
+        },
         {
             "name": "Modding API",
             "url": "https://github.com/hk-modding/api/releases/latest/download/ModdingApiWin.zip",
@@ -12,19 +25,14 @@
                 "MMHOOK_PlayMaker.dll",
                 "Mono.Cecil.dll",
                 "MonoMod.RuntimeDetour.dll",
-                "MonoMod.Utils.dll"
+                "MonoMod.Utils.dll",
+                "MMHOOK_Assembly-CSharp.dll"
             ],
             "copyToOutput": false
         },
         {
-            "name": "Vanilla",
-            "url": "https://files.catbox.moe/i4sdl6.zip",
-            "ignoreFiles": [
-                "Assembly-CSharp.dll",
-                "mscorlib.dll",
-                "Newtonsoft.Json.dll"
-            ],
-            "copyToOutput": false
+            "name": "Satchel",
+            "url": "https://github.com/PrashantMohta/Satchel/releases/latest/download/Satchel.dll"
         }
     ],
     "hktool": {
@@ -35,11 +43,11 @@
         "modRes": {
             "HKTool.Languages.en.txt": {
                 "name": "LANGUAGE_EN",
-                "type": "text"
+                "type": "utf8"
             },
             "HKTool.Languages.zh.txt": {
                 "name": "LANGUAGE_ZH",
-                "type": "text"
+                "type": "utf8"
             }
         }
     },
@@ -59,5 +67,6 @@
             "attr": {}
         }
     },
-    "enableNullableCheck": true
+    "enableNullableCheck": true,
+    "$schema": "https://github.com/HKLab/hkmod-utils/raw/master/schemca/modProject.json"
 }

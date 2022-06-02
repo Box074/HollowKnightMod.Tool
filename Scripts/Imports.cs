@@ -62,4 +62,10 @@ global using UObject = UnityEngine.Object;
 global using HReflectionHelper = HKTool.Reflection.ReflectionHelper;
 
 global using PreloadObject = System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, UnityEngine.GameObject>>;
+global using PreloadAsset = System.Collections.Generic.Dictionary<int, System.Collections.Generic.Dictionary<string, UnityEngine.Object>>;
 global using MethodAttributes = System.Reflection.MethodAttributes;
+
+global using WebSocketSharp.Net;
+global using WebSocketSharp.Server;
+global using System.Net;
+global using System.Net.Sockets;

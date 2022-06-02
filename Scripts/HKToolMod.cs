@@ -15,7 +15,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
             orig(self);
         };
 
-        if (CurrentMAPIVersion is 70 or 71)
+        if (CurrentMAPIVersion < CompileInfo.SUPPORT_PRELOAD_ASSETS_VERSION && CurrentMAPIVersion >= CompileInfo.SUPPORT_PRELOAD_PREFAB_VERSION)
         {
             try
             {
@@ -69,11 +69,6 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
     {
 
         IsDebugMode = settings.DevMode;
-
-        if (settings.EmulateNewMAPIFeatures)
-        {
-            LegacyMAPISupport.Init();
-        }
 
         try
         {
