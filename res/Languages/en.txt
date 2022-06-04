@@ -11,6 +11,7 @@ HKTool.Menu.ButtonLabel=HKTool Options
 HKTool.Menu.OnlyMainMenu=Please use in the main menu 
 HKTool.Menu.RebuildMenu=Rebuild the menu
 HKTool.Menu.RefreshLanguage=Refresh language
+HKTool.Experimental.Title=Experimental
 
 HKTool.Settings.DeveloperMode=Developer mode
 HKTool.Settings.DeveloperMode.Desc=Turn on/off developer mode, it will take effect after restarting the game

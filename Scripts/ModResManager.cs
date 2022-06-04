@@ -6,9 +6,7 @@ public static class ModResManager
     internal static void Init()
     {
         HKToolMod.logger.Log("Init ModResManager");
-        HookEndpointManager.Add(typeof(Assembly).GetMethod("GetManifestResourceStream", new Type[] {
-            typeof(string)
-        }), (Func<Assembly, string, Stream> orig, Assembly self, string name) =>
+        On.System.Reflection.Assembly.GetManifestResourceStream_string += (orig, self, name) =>
         {
             HKToolMod.logger.LogFine($"GetManifestResourceStream: '{name}' in '{self.FullName}'");
             var stream = orig(self, name);
@@ -25,7 +23,7 @@ public static class ModResManager
                 }
             }
             return stream;
-        });
+        };
     }
     public static byte[]? GetManifestResourceBytes(this Assembly ass, string name)
     {

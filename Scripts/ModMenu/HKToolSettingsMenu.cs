@@ -71,11 +71,17 @@ class HKToolSettingsMenu : CustomMenu
             {
                 return settings.DevMode ? 1 : 0;
             }, MenuResources.Perpetua);
-        if (ModBase.CurrentMAPIVersion < 70)
+        
+        AddButton("HKTool.Experimental.Title".Localize(), "",
+        () =>
         {
-            AddBoolOption("HKTool.Settings.ENMAPI".Localize(), "",
-            ref settings.EmulateNewMAPIFeatures, null, MenuResources.Perpetua);
-        }
+            if(ExperimentalMenu.instance is null)
+            {
+                ExperimentalMenu.instance = new(this);
+            }
+            ExperimentalMenu.instance.Refresh();
+            GoToMenu(ExperimentalMenu.instance);
+        }, MenuResources.Perpetua);
         AddButton("HKTool.Menu.RefreshLanguage".Localize(), "",
             () =>
             {

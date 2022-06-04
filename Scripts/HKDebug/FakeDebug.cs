@@ -107,28 +107,8 @@ public static class FakeDebug
                 : "HKTool.Debug.DisableDebugDraw".Localize();
             }
         });
-        HookEndpointManager.Add(typeof(Debug).GetMethod("DrawLine", new Type[]{
-                typeof(Vector3),
-                typeof(Vector3),
-                typeof(Color),
-                typeof(float),
-                typeof(bool)
-                }), new Action<Action<Vector3, Vector3, Color, float, bool>, Vector3, Vector3, Color, float, bool>(
-                (orig, s, e, c, d, dep) => DrawLine(s, e, c, d, dep)
-                ));
-        HookEndpointManager.Add(typeof(Debug).GetMethod("DrawRay", new Type[]{
-                typeof(Vector3),
-                typeof(Vector3),
-                typeof(Color),
-                typeof(float),
-                typeof(bool)
-                }), new Action<Action<Vector3, Vector3, Color, float, bool>, Vector3, Vector3, Color, float, bool>(
-                (orig, s, dir, c, d, dep) =>
-                {
-                    DrawLine(s, s + (dir * d), c, d, dep);
-                }
-                ));
-
+        On.UnityEngine.Debug.DrawLine_Vector3_Vector3_Color_float_bool += (orig, s, e, c, d, dep) => DrawLine(s, e, c, d, dep);
+        On.UnityEngine.Debug.DrawRay_Vector3_Vector3_Color_float_bool += (orig, s, dir, c, d, dep) => DrawLine(s, s + (dir * d), c, d, dep);
     }
     public static void DrawLine(Vector3 start, Vector3 end, Color color, float duration = 0, bool depthTest = true, bool keepFixed = false)
     {

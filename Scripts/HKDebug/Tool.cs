@@ -110,10 +110,11 @@ static class Tool
             submit = (_) => HeroController.instance.AddMPCharge(33)
         });
         On.HeroController.TakeDamage += HeroController_TakeDamage;
+        
     }
     static bool canDamage = true;
-    private static void HeroController_TakeDamage(On.HeroController.orig_TakeDamage orig, HeroController self, GameObject go,
-        GlobalEnums.CollisionSide damageSide, int damageAmount, int hazardType)
+    private static void HeroController_TakeDamage(On.HeroController.orig_TakeDamage orig, global::HeroController self, object go,
+        CollisionSide damageSide, int damageAmount, int hazardType)
     {
         if (canDamage)
         {
