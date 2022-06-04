@@ -383,10 +383,10 @@ public abstract class ModBase : Mod, IHKToolMod
         #region Use MAPI Prelaod Prefab
         if (type == typeof(GameObject) && CurrentMAPIVersion >= CompileInfo.SUPPORT_PRELOAD_PREFAB_VERSION)
         {
-            if (id != 0)
+            if (sceneId != 0)
             {
                 needHookGetPreloads = true;
-                preloads.Add(callback, ("sharedassets" + id, name, false));
+                preloads.Add(callback, ("sharedassets" + sceneId, name, false));
             }
             return;
         }
