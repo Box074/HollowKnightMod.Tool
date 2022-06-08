@@ -8,7 +8,7 @@ class ExperimentalMenu : CustomMenu
     {
 
     }
-    protected override void Build(ContentArea contentArea)
+    private void HasSatchel()
     {
         Texture2D HookETFS(On.Satchel.SpriteUtils.orig_ExtractTextureFromSprite orig, object testSprite, bool saveTriangles)
         {
@@ -33,5 +33,16 @@ class ExperimentalMenu : CustomMenu
                 On.Satchel.SpriteUtils.ExtractTextureFromSprite -= HookETFS;
             }
         });
+    }
+    protected override void Build(ContentArea contentArea)
+    {
+        try
+        {
+            HasSatchel();
+        }
+        catch(Exception)
+        {
+
+        }
     }
 }

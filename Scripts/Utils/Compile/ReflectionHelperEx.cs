@@ -30,10 +30,20 @@ public static class ReflectionHelperEx
         if(type == null) throw new MissingFieldException(tn, fn);
         return type.GetField(fn, HReflectionHelper.All) ?? throw new MissingFieldException(tn, fn);
     }
-    [PatchCaller(typeof(InternalPatcher), nameof(InternalPatcher.Patch_GetFieldRef))]
-    public static ref T GetFieldRef<T>(object? self, string fieldName)
+    [PatchCaller(typeof(InternalPatcher), nameof(InternalPatcher.Patch_FindFieldInfoEx))]
+    public static FieldInfo FindFieldInfo<TType>(string name)
     {
-        return ref GetFieldRefFrom<T>(GetFieldRefPointer(self, FindFieldInfo(fieldName)));
+        return typeof(TType).GetField(name, HReflectionHelper.All) ?? throw new MissingFieldException(typeof(TType).FullName, name);
+    }
+    [PatchCaller(typeof(InternalPatcher), nameof(InternalPatcher.Patch_GetFieldRef))]
+    public static ref TRef GetFieldRef<TRef>(object? self, string fieldName)
+    {
+        return ref GetFieldRefFrom<TRef>(GetFieldRefPointer(self, FindFieldInfo(fieldName)));
+    }
+    [PatchCaller(typeof(InternalPatcher), nameof(InternalPatcher.Patch_GetFieldRefEx))]
+    public static ref TRef GetFieldRef<TRef, TType>(object? self, string fieldName)
+    {
+        return ref GetFieldRefFrom<TRef>(GetFieldRefPointer(self, typeof(TType).GetField(fieldName, HReflectionHelper.All)));
     }
     [PatchCaller(typeof(InternalPatcher), nameof(InternalPatcher.Patch_Nop))]
     public static ref T GetFieldRefFrom<T>(IntPtr pointer)
@@ -54,5 +64,6 @@ public static class ReflectionHelperEx
     {
         return GetRefPointer(ref r);
     }
-    public static IntPtr GetFieldRefPointer(object? self, FieldInfo field) => FastReflection.GetFieldRef(self, field);
+    public static IntPtr GetFieldRefPointer(object? self, FieldInfo field) => FastReflection.GetFieldRef(self, field, out _);
+    public static IntPtr GetFieldRefPointerEx(object? self, FieldInfo field, ref RT_GetFieldPtr cache) => FastReflection.GetFieldRefEx(self, field, ref cache);
 }

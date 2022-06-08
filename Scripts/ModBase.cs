@@ -380,17 +380,7 @@ public abstract class ModBase : Mod, IHKToolMod
         if (!typeof(UObject).IsAssignableFrom(type)) return;
 
         var sceneId = id ?? 0;
-        #region Use MAPI Prelaod Prefab
-        if (type == typeof(GameObject) && CurrentMAPIVersion >= CompileInfo.SUPPORT_PRELOAD_PREFAB_VERSION)
-        {
-            if (sceneId != 0)
-            {
-                needHookGetPreloads = true;
-                preloads.Add(callback, ("sharedassets" + sceneId, name, false));
-            }
-            return;
-        }
-        #endregion
+
         if (!assetpreloads.TryGetValue(sceneId, out var list))
         {
             list = new();

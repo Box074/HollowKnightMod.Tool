@@ -1,13 +1,11 @@
 ﻿
-using HKTool.Reflection.Runtime;
-
 namespace HKTool.Reflection;
 
 static class FastReflection
 {
     public static Dictionary<FieldInfo, RD_SetField> fsetter = new();
     public static Dictionary<FieldInfo, RD_GetField> fgetter = new();
-    public static Dictionary<FieldInfo, Func<object, IntPtr>> frefgetter = new();
+    public static Dictionary<FieldInfo, RT_GetFieldPtr> frefgetter = new();
     public static Dictionary<MethodInfo, FastReflectionDelegate> mcaller = new();
     public static RD_GetField GetGetter(FieldInfo field)
     {
@@ -101,17 +99,26 @@ static class FastReflection
             return field.GetValue(@this);
         }
     }
-    internal static IntPtr GetFieldRef(object? @this, FieldInfo field)
+    internal static IntPtr GetFieldRefEx(object? @this, FieldInfo field, ref RT_GetFieldPtr cache)
+    {
+        if(cache is not null) return cache.Invoke(@this);
+        return GetFieldRef(@this, field, out cache);
+    }
+    internal static IntPtr GetFieldRef(object? @this, FieldInfo field, out RT_GetFieldPtr cache)
     {
         if (field is null) throw new ArgumentNullException(nameof(field));
-        if (frefgetter.TryGetValue(field, out var getter)) return getter.Invoke(@this!);
+        if (frefgetter.TryGetValue(field, out var getter))
+        {
+            cache = getter;
+            return getter.Invoke(@this!);
+        }
         DynamicMethod dm = new("", MethodAttributes.Static | MethodAttributes.Public,
                 CallingConventions.Standard, typeof(IntPtr), new Type[]{
                         typeof(object)
                     }, (Type)field.DeclaringType, true);
         var il = dm.GetILGenerator();
 
-        
+
 
         if (!field.IsStatic)
         {
@@ -128,8 +135,9 @@ static class FastReflection
         }
         //il.Emit(OpCodes.Box, field.FieldType.MakeByRefType());
         il.Emit(OpCodes.Ret);
-        getter = (Func<object, IntPtr>)dm.CreateDelegate(typeof(Func<object, IntPtr>));
+        getter = (RT_GetFieldPtr)dm.CreateDelegate(typeof(RT_GetFieldPtr));
         frefgetter[field] = getter;
+        cache = getter;
         return getter.Invoke(@this!);
     }
 
