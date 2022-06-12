@@ -1,6 +1,6 @@
 {
     "modName": "HKTool",
-    "modVersion": "1.8.5.0",
+    "modVersion": "1.8.6.0",
     "codeDir": "./scripts",
     "csCompileInfo": true,
     "libraryDir": "./Library",

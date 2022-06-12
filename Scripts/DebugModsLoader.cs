@@ -81,7 +81,7 @@ class DebugModsLoader
             if (!File.Exists(v2)) continue;
             try
             {
-                ass.Add(Assembly.Load(ModifyAssembly(v2)));
+                ass.Add(Assembly.Load(ModifyAssembly(v2), File.Exists(Path.ChangeExtension(v2, "pdb")) ? File.ReadAllBytes(Path.ChangeExtension(v2, "pdb")) : null));
             }
             catch (Exception e)
             {
