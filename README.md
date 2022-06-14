@@ -1,6 +1,8 @@
 
 # HKTool
 
+[![Build](https://github.com/HKLab/HollowKnightMod.Tool/actions/workflows/build.yml/badge.svg)](https://github.com/HKLab/HollowKnightMod.Tool/actions/workflows/build.yml)
+
 ## How to Build
 
 1. Clone repo
