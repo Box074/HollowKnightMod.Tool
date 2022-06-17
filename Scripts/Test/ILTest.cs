@@ -16,5 +16,7 @@ class ILTest
         tr1.Value = "Hello,World!";
         On.HeroController.GetCState += (orig, self, name) => orig(self, name);
         GetFieldRef<bool, GameManager>(GameManager.instance, "<IsInSceneTransition>k__BackingField") = false;
+        StaticHeroController.private__instance().private_audioCtrl().private_m_CachedPtr();
+        HeroController.instance.CanDash();
     }
 }

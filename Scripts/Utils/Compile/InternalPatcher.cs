@@ -4,13 +4,91 @@ namespace HKTool.Utils.Compile;
 static class InternalPatcher
 {
     public static Dictionary<string, FieldDefinition> refCache = new();
+    public static Dictionary<string, MethodDefinition> callerCache = new();
     public static TypeDefinition? refCacheType;
+    public static TypeDefinition? callerCacheType;
     public static MethodBase GetFieldFromHandle = typeof(FieldInfo)
         .GetMethod("GetFieldFromHandle", new Type[] { typeof(RuntimeFieldHandle) });
     public static MethodBase GetMethodFromHandle = typeof(MethodBase)
         .GetMethod("GetMethodFromHandle", new Type[] { typeof(RuntimeMethodHandle) });
     public static MethodBase GetTypeFromHandle = typeof(Type)
         .GetMethod("GetTypeFromHandle", new Type[] { typeof(RuntimeTypeHandle) });
+
+    public static FieldReference GetRefCache(string name, ModuleDefinition module)
+    {
+        if(refCacheType is null)
+        {
+            refCacheType = new(null, "<FieldRefCache>", Mono.Cecil.TypeAttributes.NotPublic | Mono.Cecil.TypeAttributes.Sealed, module.TypeSystem.Object);
+            refCacheType.IsClass = true;
+            module.Types.Add(refCacheType);
+        }
+
+        return refCache.TryGetOrAddValue(name, () => {
+            var fd = new FieldDefinition("R_" + refCache.Count, Mono.Cecil.FieldAttributes.Assembly | Mono.Cecil.FieldAttributes.Static,
+                module.ImportReference(typeof(RT_GetFieldPtr)));
+            refCacheType.Fields.Add(fd);
+            return fd;
+        });
+    }
+    public static MethodReference GetRefCache(MethodReference method, ModuleDefinition module)
+    {
+        if(callerCacheType is null)
+        {
+            callerCacheType = new(null, "<CallerCache>", Mono.Cecil.TypeAttributes.NotPublic | Mono.Cecil.TypeAttributes.Sealed, module.TypeSystem.Object);
+            callerCacheType.IsClass = true;
+            module.Types.Add(callerCacheType);
+        }
+
+        return callerCache.TryGetOrAddValue(method.FullName, () => {
+            var md = new MethodDefinition(method.Name + "|" + callerCache.Count, Mono.Cecil.MethodAttributes.Assembly | Mono.Cecil.MethodAttributes.Static,
+                module.ImportReference(method.ReturnType));
+            var body = md.Body = new(md);
+            var ilp = body.GetILProcessor();
+            ilp.Emit(MOpCodes.Ldtoken, module.ImportReference(method));
+            ilp.Emit(MOpCodes.Ldtoken, md);
+            ilp.Emit(MOpCodes.Call, module.ImportReference(typeof(CompilerHelper).GetMethod(nameof(CompilerHelper.Prepare_Caller))));
+            int id = 0;
+            if(!method.Resolve().IsStatic)
+            {
+                md.Parameters.Add(new(module.ImportReference(method.DeclaringType)));
+                ilp.Emit(MOpCodes.Ldarg, id++);
+            }
+            foreach(var v in method.Resolve().Parameters)
+            {
+                md.Parameters.Add(new(module.ImportReference(v.ParameterType)));
+                ilp.Emit(MOpCodes.Ldarg, id++);
+            }
+            ilp.Emit(MOpCodes.Call, md);
+            ilp.Emit(MOpCodes.Ret);
+            callerCacheType.Methods.Add(md);
+            return md;
+        });
+    }
+    public static void Patch_PrivateMethodCaller(MemberReference mr, MethodDefinition caller, Instruction il)
+    {
+        var ilp = caller.Body.GetILProcessor();
+        var md = ((MethodReference)mr).Resolve();
+        var method = (MethodReference) md.Body.Instructions[0].Operand;
+        il.OpCode = MOpCodes.Call;
+        il.Operand = GetRefCache(method, caller.Module);
+    }
+    public static void Patch_RefHelperEx(MemberReference mr, MethodDefinition caller, Instruction il)
+    {
+        var ilp = caller.Body.GetILProcessor();
+        var md = ((MethodReference)mr).Resolve();
+        var field = (FieldReference) md.Body.Instructions[0].Operand;
+
+        ilp.InsertAfter(il, Instruction.Create(MOpCodes.Call, caller.Module.ImportReference(
+            typeof(ReflectionHelperEx).GetMethod("GetFieldRefPointerEx")
+            )));
+        ilp.InsertAfter(il, Instruction.Create(MOpCodes.Ldsflda, GetRefCache(field.FullName, caller.Module)));
+        ilp.InsertAfter(il, Instruction.Create(MOpCodes.Call, caller.Module.ImportReference(
+            GetFieldFromHandle
+            )));
+        ilp.InsertAfter(il, Instruction.Create(MOpCodes.Ldtoken, caller.Module.ImportReference(field)));
+        il.OpCode = field.Resolve().IsStatic ? MOpCodes.Ldnull : MOpCodes.Nop;
+        il.Operand = null;
+    }
 
     public static void Patch_Nop(MemberReference mr, MethodDefinition caller, Instruction il)
     {
@@ -33,12 +111,7 @@ static class InternalPatcher
         var field = type.Fields.FirstOrDefault(x => x.Name == fn);
         if (field == null) return;
 
-        if(refCacheType is null)
-        {
-            refCacheType = new(null, "<FieldRefCache>", Mono.Cecil.TypeAttributes.NotPublic | Mono.Cecil.TypeAttributes.Sealed, caller.Module.TypeSystem.Object);
-            refCacheType.IsClass = true;
-            caller.Module.Types.Add(refCacheType);
-        }
+        
 
         lastLdstr.OpCode = MOpCodes.Ldtoken;
         lastLdstr.Operand = caller.Module.ImportReference(field);
@@ -46,12 +119,7 @@ static class InternalPatcher
             GetFieldFromHandle
             )));
 
-        ilp.InsertBefore(il, Instruction.Create(MOpCodes.Ldsflda, refCache.TryGetOrAddValue(field.FullName, () => {
-            var fd = new FieldDefinition("R_" + refCache.Count, Mono.Cecil.FieldAttributes.Assembly | Mono.Cecil.FieldAttributes.Static,
-                caller.Module.ImportReference(typeof(RT_GetFieldPtr)));
-            refCacheType.Fields.Add(fd);
-            return fd;
-        })));
+        ilp.InsertBefore(il, Instruction.Create(MOpCodes.Ldsflda, GetRefCache(field.FullName, caller.Module)));
         il.OpCode = MOpCodes.Call;
         il.Operand = caller.Module.ImportReference(
             typeof(ReflectionHelperEx).GetMethod("GetFieldRefPointerEx")
@@ -69,26 +137,13 @@ static class InternalPatcher
         if (f == null) return;
         var field = new FieldReference(s, caller.Module.ImportReference(f.FieldType), type);
         
-
-        if(refCacheType is null)
-        {
-            refCacheType = new(null, "<FieldRefCache>", Mono.Cecil.TypeAttributes.NotPublic | Mono.Cecil.TypeAttributes.Sealed, caller.Module.TypeSystem.Object);
-            refCacheType.IsClass = true;
-            caller.Module.Types.Add(refCacheType);
-        }
-
         lastLdstr.OpCode = MOpCodes.Ldtoken;
         lastLdstr.Operand = caller.Module.ImportReference(field);
         ilp.InsertAfter(lastLdstr, Instruction.Create(MOpCodes.Call, caller.Module.ImportReference(
             GetFieldFromHandle
             )));
 
-        ilp.InsertBefore(il, Instruction.Create(MOpCodes.Ldsflda, refCache.TryGetOrAddValue(field.FullName, () => {
-            var fd = new FieldDefinition("R_" + refCache.Count, Mono.Cecil.FieldAttributes.Assembly | Mono.Cecil.FieldAttributes.Static,
-                caller.Module.ImportReference(typeof(RT_GetFieldPtr)));
-            refCacheType.Fields.Add(fd);
-            return fd;
-        })));
+        ilp.InsertBefore(il, Instruction.Create(MOpCodes.Ldsflda, GetRefCache(field.FullName, caller.Module)));
         il.OpCode = MOpCodes.Call;
         il.Operand = caller.Module.ImportReference(
             typeof(ReflectionHelperEx).GetMethod("GetFieldRefPointerEx")
