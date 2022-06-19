@@ -9,7 +9,6 @@ public static class ModResManager
         HKToolMod.logger.Log("Init ModResManager");
         On.System.Reflection.Assembly.GetManifestResourceStream_string += (orig, self, name) =>
         {
-            HKToolMod.logger.LogFine($"GetManifestResourceStream: '{name}' in '{self.FullName}'");
             var modResList = self.GetCustomAttribute<ModResourcesListAttribute>();
             var isCompression = self.IsDefined(typeof(EmbeddedResourceCompressionAttribute));
             if (modResList == null)
@@ -22,7 +21,6 @@ public static class ModResManager
                         var ms = new MemoryStream();
                         gzip.CopyTo(ms);
                         ms.Position = 0;
-                        HKToolMod.logger.LogFine($"GetManifestResourceStream Decompress({ms.Length} byte): '{name}' in '{self.FullName}'");
                         return ms;
                     }
                 }
@@ -53,13 +51,8 @@ public static class ModResManager
             });
             var id = Array.FindIndex(modResList.names, x => x == name);
             if(id == -1) return null;
-            var data = new byte[modResList.size[id]];
             var offset = modResList.offset[id];
-            for(int i = 0 ; i < data.Length ; i++)
-            {
-                data[i] = resFile[i + offset];
-            }
-            return new MemoryStream(data, false);
+            return new MemoryStream(resFile, offset, modResList.size[id], false);
         };
     }
     public static byte[]? GetManifestResourceBytes(this Assembly ass, string name)
@@ -78,7 +71,6 @@ public static class ModResManager
                 result = new byte[s.Length];
                 s.Read(result, 0, result.Length);
             }
-            HKToolMod.logger.LogFine($"GetManifestResourceBytes: {name}({result.Length} byte)");
             return result;
         }
     }

@@ -7,7 +7,6 @@ static class ModManager
     public static List<ModBase> modsTable = new();
     public static Dictionary<Type, ModBase> instanceMap = new();
     public static List<(string, string)> modErrors = new();
-    public static List<Type> skipMods = new();
     public static Dictionary<Mod, Func<PreloadObject, bool>> hookInits = new();
     public static Dictionary<Mod, Func<List<(string, string)>, List<(string, string)>>> hookGetPreloads = new();
     public static Dictionary<Mod, Func<List<(int, string, Type)>, List<(int, string, Type)>>> hookGetAssetPreloads = new();
@@ -15,18 +14,6 @@ static class ModManager
     private static Ref<ModVersionDraw> ref_ModVersionDraw = GetFieldRefPointer(null, FindFieldInfo("Modding.ModLoader::modVersionDraw"));
     static ModManager()
     {
-        ModHooks.FinishedLoadingModsHook += () =>
-        {
-            skipMods.Clear();
-        };
-        On.System.Type.GetConstructor_TypeArray +=
-            (orig, self, types) =>
-            {
-                if (modLoaded || skipMods is null || !self.IsSubclassOf(typeof(ModBase))) return orig(self, types);
-                if (types is null) return orig(self, types);
-                if ((types?.Length ?? -1) == 0 && skipMods.Contains(self)) return null;
-                else return orig(self, types);
-            };
         On.Modding.ModLoader.UpdateModText += (orig) =>
         {
             orig();

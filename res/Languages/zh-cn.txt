@@ -12,6 +12,8 @@ HKTool.Menu.OnlyMainMenu=请在主菜单中使用
 HKTool.Menu.RebuildMenu=重新构造菜单
 HKTool.Menu.RefreshLanguage=刷新语言
 HKTool.Experimental.Title=实验性功能
+HKTool.Experimental.AIBM.Title=允许在MAPI启动前初始化
+HKTool.Experimental.StartWithoutSteam=允许绕过Steam启动
 
 HKTool.Settings.DeveloperMode=开发者模式
 HKTool.Settings.DeveloperMode.Desc=开启/关闭开发者模式，重启游戏后生效

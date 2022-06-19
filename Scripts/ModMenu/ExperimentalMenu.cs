@@ -4,45 +4,35 @@ namespace HKTool.ModMenu;
 class ExperimentalMenu : CustomMenu
 {
     public static ExperimentalMenu instance = null!;
+    private bool cacheAIBM = HKToolMod.settings.ExperimentalConfig.allow_init_before_mapi;
     public ExperimentalMenu(MenuScreen rs) : base(rs, "HKTool.Experimental.Title".Localize())
     {
-
+        OnChangeAIBM();
     }
-    private void HasSatchel()
+    private void OnChangeAIBM()
     {
-        Texture2D HookETFS(On.Satchel.SpriteUtils.orig_ExtractTextureFromSprite orig, object testSprite, bool saveTriangles)
+        if(HKToolMod.settings.ExperimentalConfig.allow_init_before_mapi)
         {
-            return Satchel.SpriteUtils.ExtractTextureFromSpriteExperimental((Sprite)testSprite, saveTriangles);
+            InitManager.InstallInit();
         }
-        if (HKToolMod.settings.ExperimentalConfig.satchel_use_shader_extract)
+        else
         {
-            On.Satchel.SpriteUtils.ExtractTextureFromSprite += HookETFS;
+            InitManager.UninstallInit();
         }
-
-        AddBoolOption("satchel use shader extract", "",
-        ref HKToolMod.settings.ExperimentalConfig.satchel_use_shader_extract,
-        () =>
+        if(HKToolMod.settings.ExperimentalConfig.allow_init_before_mapi != cacheAIBM)
         {
-
-            if (HKToolMod.settings.ExperimentalConfig.satchel_use_shader_extract)
-            {
-                On.Satchel.SpriteUtils.ExtractTextureFromSprite += HookETFS;
-            }
-            else
-            {
-                On.Satchel.SpriteUtils.ExtractTextureFromSprite -= HookETFS;
-            }
-        });
+            cacheAIBM = HKToolMod.settings.ExperimentalConfig.allow_init_before_mapi;
+            Rebuild();
+            GoToMenu(this);
+        }
     }
     protected override void Build(ContentArea contentArea)
     {
-        try
+        AddBoolOption("HKTool.Experimental.AIBM.Title".Localize(), "", ref HKToolMod.settings.ExperimentalConfig.allow_init_before_mapi, 
+            OnChangeAIBM, FontPerpetua);
+        if(HKToolMod.settings.ExperimentalConfig.allow_init_before_mapi)
         {
-            HasSatchel();
-        }
-        catch(Exception)
-        {
-
+            AddBoolOption("HKTool.Experimental.StartWithoutSteam".Localize(), "", ref HKToolMod.settings.ExperimentalConfig.allow_start_without_steam, null, FontPerpetua);
         }
     }
 }

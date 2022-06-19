@@ -1,6 +1,6 @@
 ﻿
 namespace HKTool;
-[ModAllowEarlyInitialization]
+
 class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMenuMod
 {
     public static List<WeakReference<FsmState>> ignoreLoadActionsState = new();
@@ -83,12 +83,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
         I18n.AddLanguage(SupportedLanguages.ZH, ModRes.LANGUAGE_ZH);
         I18n.UseGameLanguage(SupportedLanguages.EN, true);
 
-        HookEndpointManager.Add(FindMethodBase("HeroController::get_instance"),
-            (Func<HeroController> _) =>
-            {
-                return HeroController.SilentInstance;
-            });
-
+        On.HeroController.get_instance += (_) => HeroController.SilentInstance;
         if (settings.DevMode)
         {
             DebugTools.DebugManager.Init();
@@ -182,7 +177,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
 
     public override string MenuButtonName => "HKTool.Menu.ButtonLabel".Localize();
     public override Font MenuButtonLabelFont => MenuResources.Perpetua;
-    public static HKToolSettings settings = new HKToolSettings();
+    public static HKToolSettings settings = HKToolSettings.TryLoad();
     public static HKToolDebugConfig devSettings => settings.DebugConfig;
     public bool ToggleButtonInsideMenu => true;
     public static HKToolSettingsMenu? SettingsMenu;
@@ -196,7 +191,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
     {
         return base.GetVersion() + (settings.DevMode ? "-DevMode" : "");
     }
-    public void OnLoadGlobal(HKToolSettings s) => settings = s;
+    public void OnLoadGlobal(HKToolSettings s) {}
     public HKToolSettings OnSaveGlobal() => settings;
 }
 

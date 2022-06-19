@@ -239,7 +239,7 @@ public abstract class ModBase : Mod, IHKToolMod
                 }
             }
         }
-        if (assetpreloads.TryGetValue(0, out var inresources) && CurrentMAPIVersion < CompileInfo.SUPPORT_PRELOAD_ASSETS_VERSION)
+        if (assetpreloads.TryGetValue(0, out var inresources))
         {
             LoadPreloadResource(inresources, (type) => Resources.FindObjectsOfTypeAll(type));
         }
@@ -309,6 +309,7 @@ public abstract class ModBase : Mod, IHKToolMod
         preloads = preloads ?? new();
         foreach (var v in assetpreloads)
         {
+            if(v.Key == 0) continue;
             foreach (var v2 in v.Value)
             {
                 preloads.Add((v.Key, v2.Item1, v2.Item2));
@@ -376,7 +377,7 @@ public abstract class ModBase : Mod, IHKToolMod
     internal Dictionary<int, List<(string, Type, Action<UObject?>)>> assetpreloads = new();
     protected void AddPreloadSharedAsset(int? id, string name, Type type, Action<UObject?> callback)
     {
-        if(ModLoaderHelper.modLoadState.HasFlag(ModLoadState.Preloaded)) throw new InvalidOperationException();
+        if (ModLoaderHelper.modLoadState.HasFlag(ModLoadState.Preloaded)) throw new InvalidOperationException();
         if (!typeof(UObject).IsAssignableFrom(type)) return;
 
         var sceneId = id ?? 0;
@@ -556,40 +557,6 @@ public abstract class ModBase : Mod, IHKToolMod
 }
 public abstract class ModBase<T> : ModBase where T : ModBase<T>
 {
-    private static bool isTryLoad = false;
-    private static void PreloadModBeforeModLoader()
-    {
-        isTryLoad = true;
-        var type = typeof(T);
-        try
-        {
-            ConstructorInfo constructor = type.GetConstructor(new Type[0]);
-            if ((constructor?.Invoke(new object[0])) is Mod mod)
-            {
-                ModManager.skipMods.Add(typeof(T));
-                ModLoaderHelper.AddModInstance(type, new()
-                {
-                    Mod = mod,
-                    Enabled = false,
-                    Error = null,
-                    Name = mod.GetName()
-                });
-                //ModLoaderHelper.AddModInstance(type, mod, false, null, mod.GetName());
-            }
-        }
-        catch (Exception e)
-        {
-            HKToolMod.logger.LogError(e);
-            ModLoaderHelper.AddModInstance(type, new()
-            {
-                Mod = null,
-                Enabled = false,
-                Error = ModErrorState.Construct,
-                Name = type.Name
-            });
-            //ModLoaderHelper.AddModInstance(type, null, false, "Construct", type.Name);
-        }
-    }
     public static T Instance
     {
         get
@@ -599,14 +566,9 @@ public abstract class ModBase<T> : ModBase where T : ModBase<T>
                 _instance = FindMod(typeof(T)) as T;
                 if (_instance == null)
                 {
-                    if (!typeof(T).IsDefined(typeof(ModAllowEarlyInitializationAttribute)) || isTryLoad)
-                    {
-                        throw new InvalidOperationException("HKTool.Error.GetModInstaceBeforeLoad".LocalizeFormat(typeof(T).Name));
-                    }
-                    PreloadModBeforeModLoader();
+                    throw new InvalidOperationException("HKTool.Error.GetModInstaceBeforeLoad".LocalizeFormat(typeof(T).Name));
                 }
             }
-            if (_instance is null) throw new InvalidOperationException("HKTool.Error.GetModInstaceBeforeLoad".LocalizeFormat(typeof(T).Name));
             return _instance;
         }
     }
