@@ -24,13 +24,13 @@ static class InternalPatcher
         }
 
         return refCache.TryGetOrAddValue(name, () => {
-            var fd = new FieldDefinition("R_" + refCache.Count, Mono.Cecil.FieldAttributes.Assembly | Mono.Cecil.FieldAttributes.Static,
+            var fd = new FieldDefinition("RH_" + name.Replace(' ', '_').Replace('.', '_') + "|" + refCache.Count, Mono.Cecil.FieldAttributes.Assembly | Mono.Cecil.FieldAttributes.Static,
                 module.ImportReference(typeof(RT_GetFieldPtr)));
             refCacheType.Fields.Add(fd);
             return fd;
         });
     }
-    public static MethodReference GetRefCache(MethodReference method, ModuleDefinition module)
+    public static MethodReference GetMethodCallerCache(MethodReference method, TypeReference returnType, ModuleDefinition module)
     {
         if(callerCacheType is null)
         {
@@ -39,9 +39,10 @@ static class InternalPatcher
             module.Types.Add(callerCacheType);
         }
 
-        return callerCache.TryGetOrAddValue(method.FullName, () => {
-            var md = new MethodDefinition(method.Name + "|" + callerCache.Count, Mono.Cecil.MethodAttributes.Assembly | Mono.Cecil.MethodAttributes.Static,
-                module.ImportReference(method.ReturnType));
+        return callerCache.TryGetOrAddValue(method.FullName + "|" + returnType.FullName, () => {
+            
+            var md = new MethodDefinition("MC_" + method.Name + "|" + callerCache.Count, Mono.Cecil.MethodAttributes.Assembly | Mono.Cecil.MethodAttributes.Static,
+                module.ImportReference(returnType));
             var body = md.Body = new(md);
             var ilp = body.GetILProcessor();
             ilp.Emit(MOpCodes.Ldtoken, module.ImportReference(method));
@@ -69,8 +70,10 @@ static class InternalPatcher
         var ilp = caller.Body.GetILProcessor();
         var md = ((MethodReference)mr).Resolve();
         var method = (MethodReference) md.Body.Instructions[0].Operand;
+        var rt = method.ReturnType;
+        if(method is GenericInstanceMethod gm) rt = gm.GenericArguments[0];
         il.OpCode = MOpCodes.Call;
-        il.Operand = GetRefCache(method, caller.Module);
+        il.Operand = GetMethodCallerCache(method, rt, caller.Module);
     }
     public static void Patch_RefHelperEx(MemberReference mr, MethodDefinition caller, Instruction il)
     {

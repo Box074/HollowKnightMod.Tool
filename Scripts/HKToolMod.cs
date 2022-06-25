@@ -87,7 +87,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
         if (settings.DevMode)
         {
             DebugTools.DebugManager.Init();
-
+            DebugManager.Init();
             if (settings.DebugConfig.DebugMods?.Count > 0)
             {
                 DebugModsLoader.LoadMods(settings.DebugConfig.DebugMods);

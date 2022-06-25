@@ -248,6 +248,7 @@ public abstract class ModBase : Mod, IHKToolMod
             List<Action<UObject>> notFound = new();
             foreach (var v in assetpreloads)
             {
+                if(v.Key == 0) continue;
                 if (!assets.TryGetValue(v.Key, out var scene))
                 {
                     notFound.AddRange(v.Value.Select(x => x.Item3));
@@ -382,11 +383,7 @@ public abstract class ModBase : Mod, IHKToolMod
 
         var sceneId = id ?? 0;
 
-        if (!assetpreloads.TryGetValue(sceneId, out var list))
-        {
-            list = new();
-            assetpreloads.Add(sceneId, list);
-        }
+        var list = assetpreloads.TryGetOrAddValue(sceneId, () => new());
         needHookGetPreloads = true;
         list.Add((name, type, callback));
     }

@@ -33,11 +33,11 @@ public static class InitManager
     }
     private static void ExperimentalFeat()
     {
-        if(HKToolMod.settings.ExperimentalConfig.allow_start_without_steam)
+        if (HKToolMod.settings.ExperimentalConfig.allow_start_without_steam)
         {
             On.Steamworks.SteamAPI.RestartAppIfNecessary += (orig, id) =>
             {
-                if(id.m_AppId == 367520U) return false;
+                if (id.m_AppId == 367520U) return false;
                 return orig(id);
             };
         }
@@ -70,6 +70,32 @@ public static class InitManager
             cur.Emit(MOpCodes.Pop);
             cur.Emit(MOpCodes.Ldc_I4_0);
         };
+        BuildFakeHK();
+    }
+
+    private static void BuildFakeHK()
+    {
+        //HKTool.FakeHK
+        var fhkp = Path.Combine(Path.GetDirectoryName(typeof(InitManager).Assembly.Location), "HKTool.FakeHK.dll");
+        if (!File.Exists(fhkp))
+        {
+            var hkf = AppDomain.CurrentDomain.GetAssemblies().First(x => x.GetName().Name == "Assembly-CSharp");
+
+            using (AssemblyDefinition def = AssemblyDefinition.CreateAssembly(new("HKTool.FakeHK", new()), "HKTool.FakeHK", ModuleKind.Dll))
+            {
+                
+                foreach (var v in hkf.GetTypes())
+                {
+                    var type = def.MainModule.ImportReference(v);
+                    var attr = new CustomAttribute(def.MainModule.ImportReference(typeof(TypeForwardedToAttribute).GetConstructors()[0]));
+                    attr.ConstructorArguments.Add(new(def.MainModule.ImportReference(typeof(Type)), type));
+                    def.CustomAttributes.Add(attr);
+                    def.MainModule.ExportedTypes.Add(new(type.Namespace, type.Name, def.MainModule, type.Scope));
+                }
+                def.Write(fhkp);
+            }
+        }
+        Assembly.LoadFile(fhkp);
     }
 }
 

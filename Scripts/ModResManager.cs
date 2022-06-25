@@ -50,9 +50,23 @@ public static class ModResManager
                 }
             });
             var id = Array.FindIndex(modResList.names, x => x == name);
-            if(id == -1) return null;
+            if (id == -1) return null;
             var offset = modResList.offset[id];
-            return new MemoryStream(resFile, offset, modResList.size[id], false);
+            var st = new MemoryStream(resFile, offset, modResList.size[id], false);
+            if (modResList.compress?[id] ?? false)
+            {
+                using (var gzip = new GZipStream(st, CompressionMode.Decompress))
+                {
+                    Debug.Log($"Decompress: {name}");
+                    var ms = new MemoryStream();
+                    gzip.CopyTo(ms);
+                    st.Close();
+                    Debug.Log($"Decompress finsihed: {ms.Length}");
+                    ms.Position = 0;
+                    return ms;
+                }
+            }
+            return st;
         };
     }
     public static byte[]? GetManifestResourceBytes(this Assembly ass, string name)

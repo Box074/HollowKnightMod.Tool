@@ -6,28 +6,6 @@ namespace HKTool;
 class DebugModsLoader
 {
     public static List<Mod> DebugMods { get; } = new List<Mod>();
-    public static Dictionary<string, string> locationMap = new();
-
-    static DebugModsLoader()
-    {
-        HookEndpointManager.Add(FindMethodBase("System.Reflection.Assembly::get_Location"),
-            (Func<Assembly, string> orig, Assembly self) =>
-            {
-                if (locationMap.TryGetValue(self.FullName, out var p)) return p;
-                return orig(self);
-            });
-    }
-    private static byte[] ModifyAssembly(string path)
-    {
-        using (MemoryStream stream = new MemoryStream())
-        {
-            AssemblyDefinition ass = AssemblyDefinition.ReadAssembly(path);
-            ass.Write(stream);
-            var b = stream.ToArray();
-            locationMap.Add(ass.FullName, path);
-            return b;
-        }
-    }
 
     public static void LoadMod(Assembly ass)
     {
@@ -81,7 +59,7 @@ class DebugModsLoader
             if (!File.Exists(v2)) continue;
             try
             {
-                ass.Add(Assembly.Load(ModifyAssembly(v2), File.Exists(Path.ChangeExtension(v2, "pdb")) ? File.ReadAllBytes(Path.ChangeExtension(v2, "pdb")) : null));
+                ass.Add(Assembly.LoadFile(v2));
             }
             catch (Exception e)
             {
