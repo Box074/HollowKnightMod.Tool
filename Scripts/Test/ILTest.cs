@@ -10,7 +10,7 @@ class ILTest
     public static Type ml = FindType("Modding.ModLoader+ModInstance")!;
     public static FieldInfo mlf1 = FindFieldInfo<PlayerData>("atBench");
     public static Ref<string> tr1 = GetRefPointer(ref test3);
-    public static void Test()
+    public static void Test12()
     {
         GetFieldRef<bool>(GameManager.instance, "GameManager::<IsInSceneTransition>k__BackingField") = true;
         tr1.Value = "Hello,World!";

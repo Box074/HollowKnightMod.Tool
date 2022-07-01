@@ -1,9 +1,10 @@
 
 namespace HKTool.Utils.Compile;
 
-static class InternalPatcher
+static partial class InternalPatcher
 {
     public static Dictionary<string, FieldDefinition> refCache = new();
+    public static Dictionary<string, FieldDefinition> fieldInfoCache = new Dictionary<string, FieldDefinition>();
     public static Dictionary<string, MethodDefinition> callerCache = new();
     public static TypeDefinition? refCacheType;
     public static TypeDefinition? callerCacheType;
@@ -26,6 +27,22 @@ static class InternalPatcher
         return refCache.TryGetOrAddValue(name, () => {
             var fd = new FieldDefinition("RH_" + name.Replace(' ', '_').Replace('.', '_') + "|" + refCache.Count, Mono.Cecil.FieldAttributes.Assembly | Mono.Cecil.FieldAttributes.Static,
                 module.ImportReference(typeof(RT_GetFieldPtr)));
+            refCacheType.Fields.Add(fd);
+            return fd;
+        });
+    }
+    public static FieldReference GetFieldInfoCache(string name, ModuleDefinition module)
+    {
+        if(refCacheType is null)
+        {
+            refCacheType = new(null, "<FieldRefCache>", Mono.Cecil.TypeAttributes.NotPublic | Mono.Cecil.TypeAttributes.Sealed, module.TypeSystem.Object);
+            refCacheType.IsClass = true;
+            module.Types.Add(refCacheType);
+        }
+
+        return fieldInfoCache.TryGetOrAddValue(name, () => {
+            var fd = new FieldDefinition("FI_" + name.Replace(' ', '_').Replace('.', '_') + "|" + fieldInfoCache.Count, Mono.Cecil.FieldAttributes.Assembly | Mono.Cecil.FieldAttributes.Static,
+                module.ImportReference(typeof(FieldInfo)));
             refCacheType.Fields.Add(fd);
             return fd;
         });
@@ -84,11 +101,18 @@ static class InternalPatcher
         ilp.InsertAfter(il, Instruction.Create(MOpCodes.Call, caller.Module.ImportReference(
             typeof(ReflectionHelperEx).GetMethod("GetFieldRefPointerEx")
             )));
-        ilp.InsertAfter(il, Instruction.Create(MOpCodes.Ldsflda, GetRefCache(field.FullName, caller.Module)));
+        var lfrefc = Instruction.Create(MOpCodes.Ldsflda, GetRefCache(field.FullName, caller.Module));
+        ilp.InsertAfter(il, lfrefc);
+        ilp.InsertAfter(il, Instruction.Create(MOpCodes.Stsfld, GetFieldInfoCache(field.FullName, caller.Module)));
+        ilp.InsertAfter(il, Instruction.Create(MOpCodes.Dup));
         ilp.InsertAfter(il, Instruction.Create(MOpCodes.Call, caller.Module.ImportReference(
             GetFieldFromHandle
             )));
         ilp.InsertAfter(il, Instruction.Create(MOpCodes.Ldtoken, caller.Module.ImportReference(field)));
+        ilp.InsertAfter(il, Instruction.Create(MOpCodes.Pop));
+        ilp.InsertAfter(il, Instruction.Create(MOpCodes.Brtrue, lfrefc));
+        ilp.InsertAfter(il, Instruction.Create(MOpCodes.Dup));
+        ilp.InsertAfter(il, Instruction.Create(MOpCodes.Ldsfld, GetFieldInfoCache(field.FullName, caller.Module)));
         il.OpCode = field.Resolve().IsStatic ? MOpCodes.Ldnull : MOpCodes.Nop;
         il.Operand = null;
     }
