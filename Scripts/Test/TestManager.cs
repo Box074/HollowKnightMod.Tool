@@ -19,8 +19,14 @@ static class TestManager
             r = "BC";
         }),
         ("ILTest2", () => {
-            var r = TestRef.Value;
-            HKToolMod.logger.Log($"Hello,World2! {r} {r.GetType().FullName}");
+            ILTest.Test02();
+        }),
+        ("ILTest3", () => {
+            FsmInt i = 1024;
+            HKToolMod.logger.Log($"T {i.private_value()}");
+            i.private_value() = 2048;
+            HKToolMod.logger.Log($"T2 {i.private_value()}");
+            HKToolMod.logger.Log($"T3 {i.Value}");
         })
     };
 }

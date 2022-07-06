@@ -19,4 +19,21 @@ class ILTest
         StaticHeroController.private__instance().private_audioCtrl().private_m_CachedPtr();
         HeroController.instance.CanDash();
     }
+    public static void Test01()
+    {
+
+    }
+    public static void Test02()
+    {
+        try
+        {
+            Test01();
+        }
+        catch(Exception e)
+        {
+            HKToolMod.logger.LogError(e);
+        }
+        //HReflectionHelper.SetSkipVisibility(FindMethodBase("HKTool.Test.ILTest::Test01"));
+        Test01();
+    }
 }

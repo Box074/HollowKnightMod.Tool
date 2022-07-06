@@ -16,6 +16,11 @@ public abstract class ModBase : Mod, IHKToolMod
             inResources = id == 0;
             this.id = id;
         }
+        [Obsolete]
+        public PreloadSharedAssetsAttribute(string scene, string name, Type? type = null) : this(Array.IndexOf(sceneNames, scene), name, type)
+        {
+
+        }
         public Type? targetType;
         public string name;
         public bool inResources;

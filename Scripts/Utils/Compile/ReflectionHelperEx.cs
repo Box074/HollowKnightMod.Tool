@@ -4,7 +4,7 @@ namespace HKTool.Utils.Compile;
 public static class ReflectionHelperEx
 {
     [PatchCaller(typeof(InternalPatcher), nameof(InternalPatcher.Patch_Ldarg0))]
-    public static object GetSelf() => new NotSupportedException();
+    public static object GetSelf() => throw new NotSupportedException();
 
     [PatchCaller(typeof(InternalPatcher), nameof(InternalPatcher.Patch_FindType))]
     public static Type? FindType(string fullname)
@@ -64,6 +64,7 @@ public static class ReflectionHelperEx
     {
         return GetRefPointer(ref r);
     }
-    public static IntPtr GetFieldRefPointer(object? self, FieldInfo field) => FastReflection.GetFieldRef(self, field, out _);
+    public static IntPtr GetFieldRefPointer(object? self, FieldInfo field) => field.IsStatic ?
+        FastReflection.GetFieldRef(self, field, out _) : HReflectionHelper.GetInstanceFieldRef(self!.UnsafeCast<object, IntPtr>(), field);
     public static IntPtr GetFieldRefPointerEx(object? self, FieldInfo field, ref RT_GetFieldPtr cache) => FastReflection.GetFieldRefEx(self, field, ref cache);
 }

@@ -15,7 +15,7 @@ public static class ResourcesUtils
             if(cacheT.TryGetValue(v, out var obj)) dict[v] = obj;
             else missAssets.Add(v);
         }
-        var assets = Resources.FindObjectsOfTypeAll(type);
+        var assets = UnityEngine.Resources.FindObjectsOfTypeAll(type);
         foreach(var v in assets)
         {
             if(v.GetInstanceID() < 0) continue;

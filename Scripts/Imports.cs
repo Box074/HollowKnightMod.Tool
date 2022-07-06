@@ -6,7 +6,6 @@ global using System.Diagnostics;
 global using System.Collections.Generic;
 global using System.Reflection;
 global using System.Reflection.Emit;
-global using System.Runtime.Serialization.Formatters.Binary;
 global using System.Runtime.CompilerServices;
 global using System.Runtime.InteropServices;
 global using System.Text;
@@ -45,6 +44,7 @@ global using HKTool.Runtime;
 global using HKTool.MAPI;
 global using HKTool.MAPI.Loader;
 global using HKTool.Patcher;
+global using HKTool.Unsafe;
 
 global using Mono.Cecil;
 global using Mono.Cecil.Cil;
@@ -65,3 +65,6 @@ global using HReflectionHelper = HKTool.Reflection.ReflectionHelper;
 global using PreloadObject = System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, UnityEngine.GameObject>>;
 global using PreloadAsset = System.Collections.Generic.Dictionary<int, System.Collections.Generic.Dictionary<string, UnityEngine.Object>>;
 global using MethodAttributes = System.Reflection.MethodAttributes;
+
+
+global using Type = System.Type;

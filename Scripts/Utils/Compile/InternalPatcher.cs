@@ -15,32 +15,34 @@ static partial class InternalPatcher
     public static MethodBase GetTypeFromHandle = typeof(Type)
         .GetMethod("GetTypeFromHandle", new Type[] { typeof(RuntimeTypeHandle) });
 
-    public static FieldReference GetRefCache(string name, ModuleDefinition module)
+    public static FieldReference GetRefCache(string name, ModuleDefinition module, bool isStatic)
     {
-        if(refCacheType is null)
+        if (refCacheType is null)
         {
             refCacheType = new(null, "<FieldRefCache>", Mono.Cecil.TypeAttributes.NotPublic | Mono.Cecil.TypeAttributes.Sealed, module.TypeSystem.Object);
             refCacheType.IsClass = true;
             module.Types.Add(refCacheType);
         }
 
-        return refCache.TryGetOrAddValue(name, () => {
+        return refCache.TryGetOrAddValue(name, () =>
+        {
             var fd = new FieldDefinition("RH_" + name.Replace(' ', '_').Replace('.', '_') + "|" + refCache.Count, Mono.Cecil.FieldAttributes.Assembly | Mono.Cecil.FieldAttributes.Static,
-                module.ImportReference(typeof(RT_GetFieldPtr)));
+                isStatic ? module.ImportReference(typeof(RT_GetFieldPtr)) : module.TypeSystem.Int32);
             refCacheType.Fields.Add(fd);
             return fd;
         });
     }
     public static FieldReference GetFieldInfoCache(string name, ModuleDefinition module)
     {
-        if(refCacheType is null)
+        if (refCacheType is null)
         {
             refCacheType = new(null, "<FieldRefCache>", Mono.Cecil.TypeAttributes.NotPublic | Mono.Cecil.TypeAttributes.Sealed, module.TypeSystem.Object);
             refCacheType.IsClass = true;
             module.Types.Add(refCacheType);
         }
 
-        return fieldInfoCache.TryGetOrAddValue(name, () => {
+        return fieldInfoCache.TryGetOrAddValue(name, () =>
+        {
             var fd = new FieldDefinition("FI_" + name.Replace(' ', '_').Replace('.', '_') + "|" + fieldInfoCache.Count, Mono.Cecil.FieldAttributes.Assembly | Mono.Cecil.FieldAttributes.Static,
                 module.ImportReference(typeof(FieldInfo)));
             refCacheType.Fields.Add(fd);
@@ -49,15 +51,16 @@ static partial class InternalPatcher
     }
     public static MethodReference GetMethodCallerCache(MethodReference method, TypeReference returnType, ModuleDefinition module)
     {
-        if(callerCacheType is null)
+        if (callerCacheType is null)
         {
             callerCacheType = new(null, "<CallerCache>", Mono.Cecil.TypeAttributes.NotPublic | Mono.Cecil.TypeAttributes.Sealed, module.TypeSystem.Object);
             callerCacheType.IsClass = true;
             module.Types.Add(callerCacheType);
         }
 
-        return callerCache.TryGetOrAddValue(method.FullName + "|" + returnType.FullName, () => {
-            
+        return callerCache.TryGetOrAddValue(method.FullName + "|" + returnType.FullName, () =>
+        {
+
             var md = new MethodDefinition("MC_" + method.Name + "|" + callerCache.Count, Mono.Cecil.MethodAttributes.Assembly | Mono.Cecil.MethodAttributes.Static,
                 module.ImportReference(returnType));
             var body = md.Body = new(md);
@@ -66,12 +69,12 @@ static partial class InternalPatcher
             ilp.Emit(MOpCodes.Ldtoken, md);
             ilp.Emit(MOpCodes.Call, module.ImportReference(typeof(CompilerHelper).GetMethod(nameof(CompilerHelper.Prepare_Caller))));
             int id = 0;
-            if(!method.Resolve().IsStatic)
+            if (!method.Resolve().IsStatic)
             {
                 md.Parameters.Add(new(module.ImportReference(method.DeclaringType)));
                 ilp.Emit(MOpCodes.Ldarg, id++);
             }
-            foreach(var v in method.Resolve().Parameters)
+            foreach (var v in method.Resolve().Parameters)
             {
                 md.Parameters.Add(new(module.ImportReference(v.ParameterType)));
                 ilp.Emit(MOpCodes.Ldarg, id++);
@@ -86,9 +89,9 @@ static partial class InternalPatcher
     {
         var ilp = caller.Body.GetILProcessor();
         var md = ((MethodReference)mr).Resolve();
-        var method = (MethodReference) md.Body.Instructions[0].Operand;
+        var method = (MethodReference)md.Body.Instructions[0].Operand;
         var rt = method.ReturnType;
-        if(method is GenericInstanceMethod gm) rt = gm.GenericArguments[0];
+        if (method is GenericInstanceMethod gm) rt = gm.GenericArguments[0];
         il.OpCode = MOpCodes.Call;
         il.Operand = GetMethodCallerCache(method, rt, caller.Module);
     }
@@ -96,25 +99,10 @@ static partial class InternalPatcher
     {
         var ilp = caller.Body.GetILProcessor();
         var md = ((MethodReference)mr).Resolve();
-        var field = (FieldReference) md.Body.Instructions[0].Operand;
-
-        ilp.InsertAfter(il, Instruction.Create(MOpCodes.Call, caller.Module.ImportReference(
-            typeof(ReflectionHelperEx).GetMethod("GetFieldRefPointerEx")
-            )));
-        var lfrefc = Instruction.Create(MOpCodes.Ldsflda, GetRefCache(field.FullName, caller.Module));
-        ilp.InsertAfter(il, lfrefc);
-        ilp.InsertAfter(il, Instruction.Create(MOpCodes.Stsfld, GetFieldInfoCache(field.FullName, caller.Module)));
-        ilp.InsertAfter(il, Instruction.Create(MOpCodes.Dup));
-        ilp.InsertAfter(il, Instruction.Create(MOpCodes.Call, caller.Module.ImportReference(
-            GetFieldFromHandle
-            )));
-        ilp.InsertAfter(il, Instruction.Create(MOpCodes.Ldtoken, caller.Module.ImportReference(field)));
-        ilp.InsertAfter(il, Instruction.Create(MOpCodes.Pop));
-        ilp.InsertAfter(il, Instruction.Create(MOpCodes.Brtrue, lfrefc));
-        ilp.InsertAfter(il, Instruction.Create(MOpCodes.Dup));
-        ilp.InsertAfter(il, Instruction.Create(MOpCodes.Ldsfld, GetFieldInfoCache(field.FullName, caller.Module)));
+        var field = (FieldReference)md.Body.Instructions[0].Operand;
         il.OpCode = field.Resolve().IsStatic ? MOpCodes.Ldnull : MOpCodes.Nop;
         il.Operand = null;
+        Patch_InsertFieldRef(ilp, il, caller, field);
     }
 
     public static void Patch_Nop(MemberReference mr, MethodDefinition caller, Instruction il)
@@ -124,6 +112,51 @@ static partial class InternalPatcher
     public static void Patch_Ldarg0(MemberReference mr, MethodDefinition caller, Instruction il)
     {
         il.OpCode = MOpCodes.Ldarg_0;
+    }
+    public static void Patch_InsertFieldRef(ILProcessor ilp, Instruction il, MethodDefinition caller, FieldReference field)
+    {
+        var isStatic = field.Resolve().IsStatic;
+        if (isStatic)
+        {
+            ilp.InsertAfter(il, Instruction.Create(MOpCodes.Call, caller.Module.ImportReference(
+                typeof(ReflectionHelperEx).GetMethod("GetFieldRefPointerEx")
+                )));
+            var lfrefc = Instruction.Create(MOpCodes.Ldsflda, GetRefCache(field.FullName, caller.Module, true));
+            ilp.InsertAfter(il, lfrefc);
+            ilp.InsertAfter(il, Instruction.Create(MOpCodes.Stsfld, GetFieldInfoCache(field.FullName, caller.Module)));
+            ilp.InsertAfter(il, Instruction.Create(MOpCodes.Dup));
+            ilp.InsertAfter(il, Instruction.Create(MOpCodes.Call, caller.Module.ImportReference(
+                GetFieldFromHandle
+                )));
+            ilp.InsertAfter(il, Instruction.Create(MOpCodes.Ldtoken, caller.Module.ImportReference(field)));
+            ilp.InsertAfter(il, Instruction.Create(MOpCodes.Pop));
+            ilp.InsertAfter(il, Instruction.Create(MOpCodes.Brtrue, lfrefc));
+            ilp.InsertAfter(il, Instruction.Create(MOpCodes.Dup));
+            ilp.InsertAfter(il, Instruction.Create(MOpCodes.Ldsfld, GetFieldInfoCache(field.FullName, caller.Module)));
+        }
+        else
+        {
+            ilp.InsertAfter(il, Instruction.Create(MOpCodes.Call, caller.Module.ImportReference(
+                typeof(IntPtr).GetMethod("op_Addition")
+            )));
+            var lfrefc = Instruction.Create(MOpCodes.Ldsfld, GetRefCache(field.FullName, caller.Module, false));
+            ilp.InsertAfter(il, lfrefc);
+            ilp.InsertAfter(il, Instruction.Create(MOpCodes.Stsfld, GetRefCache(field.FullName, caller.Module, false)));
+            ilp.InsertAfter(il, Instruction.Create(MOpCodes.Call, caller.Module.ImportReference(
+                typeof(HReflectionHelper).GetMethod(nameof(HReflectionHelper.GetInstanceFieldOffset))
+            )));
+            ilp.InsertAfter(il, Instruction.Create(MOpCodes.Stsfld, GetFieldInfoCache(field.FullName, caller.Module)));
+            ilp.InsertAfter(il, Instruction.Create(MOpCodes.Dup));
+            ilp.InsertAfter(il, Instruction.Create(MOpCodes.Call, caller.Module.ImportReference(
+                GetFieldFromHandle
+                )));
+            ilp.InsertAfter(il, Instruction.Create(MOpCodes.Ldtoken, caller.Module.ImportReference(field)));
+            //ilp.InsertAfter(il, Instruction.Create(MOpCodes.Pop));
+            ilp.InsertAfter(il, Instruction.Create(MOpCodes.Brtrue, lfrefc));
+            //ilp.InsertAfter(il, Instruction.Create(MOpCodes.Dup));
+            ilp.InsertAfter(il, Instruction.Create(MOpCodes.Ldsfld, GetFieldInfoCache(field.FullName, caller.Module)));
+            
+        }
     }
     public static void Patch_GetFieldRef(MemberReference mr, MethodDefinition caller, Instruction il)
     {
@@ -137,20 +170,9 @@ static partial class InternalPatcher
         if (type == null) return;
         var field = type.Fields.FirstOrDefault(x => x.Name == fn);
         if (field == null) return;
-
-        
-
-        lastLdstr.OpCode = MOpCodes.Ldtoken;
-        lastLdstr.Operand = caller.Module.ImportReference(field);
-        ilp.InsertAfter(lastLdstr, Instruction.Create(MOpCodes.Call, caller.Module.ImportReference(
-            GetFieldFromHandle
-            )));
-
-        ilp.InsertBefore(il, Instruction.Create(MOpCodes.Ldsflda, GetRefCache(field.FullName, caller.Module)));
-        il.OpCode = MOpCodes.Call;
-        il.Operand = caller.Module.ImportReference(
-            typeof(ReflectionHelperEx).GetMethod("GetFieldRefPointerEx")
-            );
+        lastLdstr.OpCode = MOpCodes.Nop;
+        il.OpCode = MOpCodes.Nop;
+        Patch_InsertFieldRef(ilp, il, caller, field);
     }
     public static void Patch_GetFieldRefEx(MemberReference mr, MethodDefinition caller, Instruction il)
     {
@@ -163,18 +185,9 @@ static partial class InternalPatcher
         var f = type.GetElementType().Resolve().Fields.First(x => x.Name == s);
         if (f == null) return;
         var field = new FieldReference(s, caller.Module.ImportReference(f.FieldType), type);
-        
-        lastLdstr.OpCode = MOpCodes.Ldtoken;
-        lastLdstr.Operand = caller.Module.ImportReference(field);
-        ilp.InsertAfter(lastLdstr, Instruction.Create(MOpCodes.Call, caller.Module.ImportReference(
-            GetFieldFromHandle
-            )));
-
-        ilp.InsertBefore(il, Instruction.Create(MOpCodes.Ldsflda, GetRefCache(field.FullName, caller.Module)));
-        il.OpCode = MOpCodes.Call;
-        il.Operand = caller.Module.ImportReference(
-            typeof(ReflectionHelperEx).GetMethod("GetFieldRefPointerEx")
-            );
+        lastLdstr.OpCode = MOpCodes.Nop;
+        il.OpCode = MOpCodes.Nop;
+        Patch_InsertFieldRef(ilp, il, caller, field);
     }
     public static void Patch_FindMethodBase(MemberReference mr, MethodDefinition caller, Instruction il)
     {
@@ -222,7 +235,7 @@ static partial class InternalPatcher
         if (f == null) return;
 
         var field = new FieldReference(s, caller.Module.ImportReference(f.FieldType), type);
-        
+
         lastLdstr.OpCode = MOpCodes.Ldtoken;
         lastLdstr.Operand = caller.Module.ImportReference(field);
         il.Operand = caller.Module.ImportReference(
@@ -245,7 +258,7 @@ static partial class InternalPatcher
 
     public static TypeDefinition? FindType(string name, ModuleDefinition md)
     {
-        if(md is null) return null;
+        if (md is null) return null;
         foreach (var v in md.Types)
         {
             if (v.FullName == name) return v;
@@ -260,7 +273,7 @@ static partial class InternalPatcher
     }
     public static TypeDefinition? FindTypeEx(string name, ModuleDefinition md)
     {
-        if(md is null) return null;
+        if (md is null) return null;
         var parts = name.Split('+');
         var parent = FindType(parts[0], md);
         if (parent == null) return null;
