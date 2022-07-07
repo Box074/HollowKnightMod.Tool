@@ -143,7 +143,7 @@ static partial class InternalPatcher
             ilp.InsertAfter(il, lfrefc);
             ilp.InsertAfter(il, Instruction.Create(MOpCodes.Stsfld, GetRefCache(field.FullName, caller.Module, false)));
             ilp.InsertAfter(il, Instruction.Create(MOpCodes.Call, caller.Module.ImportReference(
-                typeof(HReflectionHelper).GetMethod(nameof(HReflectionHelper.GetInstanceFieldOffset))
+                typeof(HReflectionHelper).GetMethod(nameof(HReflectionHelper.GetFieldOffset))
             )));
             ilp.InsertAfter(il, Instruction.Create(MOpCodes.Stsfld, GetFieldInfoCache(field.FullName, caller.Module)));
             ilp.InsertAfter(il, Instruction.Create(MOpCodes.Dup));

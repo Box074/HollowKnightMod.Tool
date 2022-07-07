@@ -65,6 +65,6 @@ public static class ReflectionHelperEx
         return GetRefPointer(ref r);
     }
     public static IntPtr GetFieldRefPointer(object? self, FieldInfo field) => field.IsStatic ?
-        FastReflection.GetFieldRef(self, field, out _) : HReflectionHelper.GetInstanceFieldRef(self!.UnsafeCast<object, IntPtr>(), field);
+        UnsafeUtils.ToPointer(ref UnsafeUtils.GetStaticFieldRef<object>(field)) : HReflectionHelper.GetInstanceField(self!.UnsafeCast<object, IntPtr>(), field);
     public static IntPtr GetFieldRefPointerEx(object? self, FieldInfo field, ref RT_GetFieldPtr cache) => FastReflection.GetFieldRefEx(self, field, ref cache);
 }

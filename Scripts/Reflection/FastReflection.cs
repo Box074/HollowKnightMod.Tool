@@ -112,7 +112,7 @@ static class FastReflection
             cache = getter;
             return getter.Invoke(@this!);
         }
-        DynamicMethod dm = new("", MethodAttributes.Static | MethodAttributes.Public,
+        /*DynamicMethod dm = new("", MethodAttributes.Static | MethodAttributes.Public,
                 CallingConventions.Standard, typeof(IntPtr), new Type[]{
                         typeof(object)
                     }, (Type)field.DeclaringType, true);
@@ -135,7 +135,17 @@ static class FastReflection
         }
         //il.Emit(OpCodes.Box, field.FieldType.MakeByRefType());
         il.Emit(OpCodes.Ret);
-        getter = (RT_GetFieldPtr)dm.CreateDelegate(typeof(RT_GetFieldPtr));
+        getter = (RT_GetFieldPtr)dm.CreateDelegate(typeof(RT_GetFieldPtr));*/
+        if(field.IsStatic)
+        {
+            IntPtr ptr = UnsafeUtils.ToPointer(ref UnsafeUtils.GetStaticFieldRef<object>(field));
+            getter = _ => ptr;
+        }
+        else
+        {
+            int offset = UnsafeUtils.GetFieldOffset(field);
+            getter = obj => IntPtr.Add(obj!.ToPointer(), offset);
+        }
         frefgetter[field] = getter;
         cache = getter;
         return getter.Invoke(@this!);

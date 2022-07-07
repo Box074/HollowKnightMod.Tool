@@ -30,20 +30,15 @@ public static class ReflectionHelper
     public static void FastSet(this PropertyInfo p, object? @this, object? val) => p.SetMethod.FastInvoke(@this, val);
     public static unsafe void SetSkipVisibility(MethodBase method)
     {
-        var m = (MonoReflectionMethod*) method.UnsafeCast<MethodBase, IntPtr>();
+        var m = (MonoReflectionMethod*)method.UnsafeCast<MethodBase, IntPtr>();
         m->method->flag1 |= MonoMethod.Flag1.skip_visibility;
     }
-    public static unsafe IntPtr GetInstanceFieldRef(IntPtr obj, FieldInfo field)
-    {
-        return (IntPtr)((byte*)obj + GetInstanceFieldOffset(field));
-    }
-    public static unsafe int GetInstanceFieldOffset(FieldInfo field)
-    {
-        return ((MonoClassField*)field.FieldHandle.Value)->offset;
-    }
+    public static unsafe IntPtr GetInstanceField(IntPtr obj, FieldInfo field) => UnsafeUtils.GetInstanceField(obj, field);
+    public static unsafe int GetFieldOffset(FieldInfo field) => UnsafeUtils.GetFieldOffset(field);
     public static ref TField GetInstanceFieldRef<TSelf, TField>(ref TSelf self, FieldInfo field)
     {
-        return ref UnsafeUtils.ToRef<TField>(GetInstanceFieldRef(typeof(TSelf).IsValueType ? UnsafeUtils.ToPointer(ref self) : self.UnsafeCast<TSelf, IntPtr>(), field));
+        return ref UnsafeUtils.ToRef<TField>(GetInstanceField(typeof(TSelf).IsValueType ? UnsafeUtils.ToPointer(ref self) : self!.ToPointer(), field));
     }
+    
 }
 
