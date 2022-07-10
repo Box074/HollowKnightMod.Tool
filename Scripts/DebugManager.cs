@@ -8,7 +8,8 @@ public static class DebugManager
     public static int? DebugPort { get; private set; } = null;
     public static void Init()
     {
-        List<string> files = new();
+        List<string> debugFiles = new();
+        Dictionary<string, string> libraryMods = new();
         var cmds = Environment.GetCommandLineArgs();
         bool isInputFile = false;
         foreach(var v in cmds)
@@ -30,7 +31,15 @@ public static class DebugManager
             {
                 if(isInputFile)
                 {
-                    files.Add(v);
+                    var split = v.Split('=');
+                    if(split.Length == 0)
+                    {
+                        debugFiles.Add(v);
+                    }
+                    else
+                    {
+                        libraryMods.Add(split[0], split[1]);
+                    }
                     continue;
                 }
             }
@@ -39,7 +48,21 @@ public static class DebugManager
                 isInputFile = false;
             }
         }
-        DebugModsLoader.LoadMods(files);
+        AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
+        {
+            var name = args.Name.Split(',')[0];
+            if(!libraryMods.TryGetValue(name, out var path)) return null;
+            if(!File.Exists(path)) return null;
+            try
+            {
+                return Assembly.LoadFile(path);
+            }
+            catch(Exception)
+            {
+                return null;
+            }
+        };
+        DebugModsLoader.LoadMods(debugFiles);
     }
 }
 

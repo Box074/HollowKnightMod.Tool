@@ -53,13 +53,15 @@ class DebugModsLoader
     public static void LoadMods(List<string> p)
     {
         List<Assembly> ass = new List<Assembly>();
+        var allAssemblies = AppDomain.CurrentDomain.GetAssemblies();
         foreach (var v in p)
         {
             var v2 = Path.GetFullPath(v);
             if (!File.Exists(v2)) continue;
             try
             {
-                ass.Add(Assembly.LoadFile(v2));
+                var asm = Assembly.LoadFile(v2);
+                if(!allAssemblies.Contains(asm)) ass.Add(asm);
             }
             catch (Exception e)
             {
