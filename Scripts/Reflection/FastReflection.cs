@@ -101,7 +101,7 @@ static class FastReflection
     }
     internal static IntPtr GetFieldRefEx(object? @this, FieldInfo field, ref RT_GetFieldPtr cache)
     {
-        if(cache is not null) return cache.Invoke(@this);
+        if (cache is not null) return cache.Invoke(@this);
         return GetFieldRef(@this, field, out cache);
     }
     internal static IntPtr GetFieldRef(object? @this, FieldInfo field, out RT_GetFieldPtr cache)
@@ -112,34 +112,31 @@ static class FastReflection
             cache = getter;
             return getter.Invoke(@this!);
         }
-        /*DynamicMethod dm = new("", MethodAttributes.Static | MethodAttributes.Public,
-                CallingConventions.Standard, typeof(IntPtr), new Type[]{
+        if (field.IsStatic)
+        {
+            DynamicMethod dm = new("", MethodAttributes.Static | MethodAttributes.Public,
+        CallingConventions.Standard, typeof(IntPtr), new Type[]{
                         typeof(object)
-                    }, (Type)field.DeclaringType, true);
-        var il = dm.GetILGenerator();
+            }, (Type)field.DeclaringType, true);
+            var il = dm.GetILGenerator();
 
 
 
-        if (!field.IsStatic)
-        {
-            il.Emit(OpCodes.Ldarg_0);
-            if (field.DeclaringType.IsValueType)
+            if (!field.IsStatic)
             {
-                il.Emit(OpCodes.Unbox_Any, field.DeclaringType);
+                il.Emit(OpCodes.Ldarg_0);
+                if (field.DeclaringType.IsValueType)
+                {
+                    il.Emit(OpCodes.Unbox_Any, field.DeclaringType);
+                }
+                il.Emit(OpCodes.Ldflda, field);
             }
-            il.Emit(OpCodes.Ldflda, field);
-        }
-        else
-        {
-            il.Emit(OpCodes.Ldsflda, field);
-        }
-        //il.Emit(OpCodes.Box, field.FieldType.MakeByRefType());
-        il.Emit(OpCodes.Ret);
-        getter = (RT_GetFieldPtr)dm.CreateDelegate(typeof(RT_GetFieldPtr));*/
-        if(field.IsStatic)
-        {
-            IntPtr ptr = UnsafeUtils.ToPointer(ref UnsafeUtils.GetStaticFieldRef<object>(field));
-            getter = _ => ptr;
+            else
+            {
+                il.Emit(OpCodes.Ldsflda, field);
+            }
+            il.Emit(OpCodes.Ret);
+            getter = (RT_GetFieldPtr)dm.CreateDelegate(typeof(RT_GetFieldPtr));
         }
         else
         {

@@ -248,7 +248,7 @@ public abstract class ModBase : Mod, IHKToolMod
         {
             LoadPreloadResource(inresources, (type) => Resources.FindObjectsOfTypeAll(type));
         }
-        if (CurrentMAPIVersion >= CompileInfo.SUPPORT_PRELOAD_ASSETS_VERSION)
+        if (ModManager.SupportPreloadAssets)
         {
             List<Action<UObject>> notFound = new();
             foreach (var v in assetpreloads)
@@ -304,7 +304,7 @@ public abstract class ModBase : Mod, IHKToolMod
     {
         preloads = preloads ?? new();
         foreach (var v in this.preloads) preloads.Add((v.Value.Item1, v.Value.Item2));
-        if (CurrentMAPIVersion < CompileInfo.SUPPORT_PRELOAD_ASSETS_VERSION)
+        if (!ModManager.SupportPreloadAssets)
         {
             foreach (var v in assetpreloads) if (v.Key != 0) preloads.Add((Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(v.Key)), "FakeGameObject"));
         }
@@ -344,12 +344,12 @@ public abstract class ModBase : Mod, IHKToolMod
             {
                 ModManager.hookGetPreloads[this] = HookGetPreloads;
             }
-            if (assetpreloads.Count != 0 && CurrentMAPIVersion < CompileInfo.SUPPORT_PRELOAD_ASSETS_VERSION)
+            if (assetpreloads.Count != 0 && !ModManager.SupportPreloadAssets)
             {
                 UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
             }
         }
-        if (CurrentMAPIVersion >= CompileInfo.SUPPORT_PRELOAD_ASSETS_VERSION && assetpreloads.Count > 0)
+        if (ModManager.SupportPreloadAssets && assetpreloads.Count > 0)
         {
             var gpM = GetType().GetTypeInfo().DeclaredMethods.FirstOrDefault(x => x.Name == "GetPreloadAssetsNames"
                 && x.GetParameters().Length == 0 &&

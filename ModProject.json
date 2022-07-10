@@ -4,8 +4,6 @@
     "codeDir": "./scripts",
     "csCompileInfo": true,
     "libraryDir": "./Library",
-    "supportPreloadPrefabVersion": 70,
-    "supportPreloadAssetsVersion": 72,
     "dependencies": [
         {
             "name": "Vanilla",

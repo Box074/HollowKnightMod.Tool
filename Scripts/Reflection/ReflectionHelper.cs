@@ -39,6 +39,6 @@ public static class ReflectionHelper
     {
         return ref UnsafeUtils.ToRef<TField>(GetInstanceField(typeof(TSelf).IsValueType ? UnsafeUtils.ToPointer(ref self) : self!.ToPointer(), field));
     }
-    
+    public static int GetInstanceFieldOffset(FieldInfo field) => UnsafeUtils.GetFieldOffset(field);
 }
 

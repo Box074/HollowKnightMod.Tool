@@ -3,6 +3,7 @@ namespace HKTool;
 
 static class ModManager
 {
+    public static readonly bool SupportPreloadAssets = FindType("Modding.ModLoader")!.GetMethod("LoadMod", HReflectionHelper.All).GetParameters().Length == 4;
     public static bool modLoaded => ModLoaderHelper.modLoadState.HasFlag(ModLoadState.Loaded);
     public static List<ModBase> modsTable = new();
     public static Dictionary<Type, ModBase> instanceMap = new();
@@ -33,7 +34,7 @@ static class ModManager
             if (vd is not null) vd.drawString = sb.ToString();
         };
 
-        if (ModBase.CurrentMAPIVersion >= CompileInfo.SUPPORT_PRELOAD_ASSETS_VERSION)
+        if (SupportPreloadAssets)
         {
             HookEndpointManager.Add(
                 FindType("Modding.ModLoader")!.GetMethod("LoadMod", HReflectionHelper.All),
