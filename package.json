@@ -13,6 +13,7 @@
     "scripts": {
         "commit": "cz",
         "proj": "hkmod generateCsproj",
-        "build": "hkmod build -CZ -H256 > Info.txt"
+        "build": "hkmod build -CZ -H256 > Info.txt",
+        "debug": "hkmod build -debug"
     }
 }

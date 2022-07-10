@@ -14,6 +14,7 @@ public static class DebugManager
         bool isInputFile = false;
         foreach(var v in cmds)
         {
+            HKToolMod.logger.Log("Parse Command: " + v);
             if(v.Equals("--hktool-debug-mods", StringComparison.OrdinalIgnoreCase))
             {
                 isInputFile = true;
@@ -32,12 +33,14 @@ public static class DebugManager
                 if(isInputFile)
                 {
                     var split = v.Split('=');
-                    if(split.Length == 0)
+                    if(split.Length == 1)
                     {
-                        debugFiles.Add(v);
+                        HKToolMod.logger.Log("Debug Mod: " + split[0]);
+                        debugFiles.Add(split[0]);
                     }
                     else
                     {
+                        HKToolMod.logger.Log($"Library Mod({split[0]}): {split[1]}");
                         libraryMods.Add(split[0], split[1]);
                     }
                     continue;
