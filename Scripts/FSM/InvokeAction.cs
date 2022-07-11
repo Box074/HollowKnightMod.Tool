@@ -12,6 +12,8 @@ public class InvokeAction : FsmStateAction
     {
 
     }
+    public static implicit operator InvokeAction(Action action) => new(action);
+    public static implicit operator InvokeAction(Action<FsmStateAction> action) => new(action);
     public override void OnEnter()
     {
         action(this);

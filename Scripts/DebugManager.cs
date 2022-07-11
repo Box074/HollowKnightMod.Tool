@@ -9,39 +9,52 @@ public static class DebugManager
     public static void Init()
     {
         List<string> debugFiles = new();
+        List<Assembly> assemblies = new();
         Dictionary<string, string> libraryMods = new();
         var cmds = Environment.GetCommandLineArgs();
         bool isInputFile = false;
-        foreach(var v in cmds)
+        foreach (var v in cmds.Skip(1))
         {
             HKToolMod.logger.Log("Parse Command: " + v);
-            if(v.Equals("--hktool-debug-mods", StringComparison.OrdinalIgnoreCase))
+            if (v.Equals("--hktool-debug-mods", StringComparison.OrdinalIgnoreCase))
             {
                 isInputFile = true;
                 continue;
             }
-            if(v.StartsWith("--hktool-debug-port=", StringComparison.OrdinalIgnoreCase))
+            if (v.StartsWith("--hktool-debug-port=", StringComparison.OrdinalIgnoreCase))
             {
-                if(int.TryParse(v.Split('=')[1], out var port))
+                if (int.TryParse(v.Split('=')[1], out var port))
                 {
                     DebugPort = port;
                 }
             }
 
-            if(!v.StartsWith("--"))
+            if (!v.StartsWith("--"))
             {
-                if(isInputFile)
+                if (isInputFile)
                 {
                     var split = v.Split('=');
-                    if(split.Length == 1)
+                    if (split.Length == 1)
                     {
                         HKToolMod.logger.Log("Debug Mod: " + split[0]);
                         debugFiles.Add(split[0]);
                     }
                     else
                     {
-                        HKToolMod.logger.Log($"Library Mod({split[0]}): {split[1]}");
-                        libraryMods.Add(split[0], split[1]);
+                        var p = split[1];
+                        HKToolMod.logger.Log($"Library Mod({split[0]}): {p}");
+                        libraryMods.Add(split[0], p);
+                        if (File.Exists(p))
+                        {
+                            try
+                            {
+                                var asm = Assembly.LoadFile(p);
+                            }
+                            catch (Exception e)
+                            {
+                                HKToolMod.logger.LogError(e);
+                            }
+                        }
                     }
                     continue;
                 }
@@ -51,20 +64,7 @@ public static class DebugManager
                 isInputFile = false;
             }
         }
-        AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
-        {
-            var name = args.Name.Split(',')[0];
-            if(!libraryMods.TryGetValue(name, out var path)) return null;
-            if(!File.Exists(path)) return null;
-            try
-            {
-                return Assembly.LoadFile(path);
-            }
-            catch(Exception)
-            {
-                return null;
-            }
-        };
+        foreach(var v in assemblies) DebugModsLoader.LoadMod(v);
         DebugModsLoader.LoadMods(debugFiles);
     }
 }

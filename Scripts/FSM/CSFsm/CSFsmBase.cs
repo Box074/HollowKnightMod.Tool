@@ -28,7 +28,7 @@ public abstract class CSFsmBase
     private Dictionary<MethodInfo, StateInfo> stateCache = new();
     protected static object StartActionContent { get; } = new object();
     private CSFsmAction? current = null;
-    public PlayMakerFSM? FsmComponent { get; private set; }
+    public PlayMakerFSM FsmComponent { get; private set; } = null!;
     private StateInfo? currentState;
     private FsmStateAction[]? _origActions;
     private FsmState? _origState;
@@ -107,6 +107,10 @@ public abstract class CSFsmBase
         CheckInit();
         currentState!.events.Add((eventName, toState));
     }
+    protected void DefineEvenet(FsmEvent eventName, string toState)
+    {
+        DefineEvent(eventName.Name, toState);
+    }
     protected void CopyEvent(string eventName)
     {
         CheckInit();
@@ -114,6 +118,7 @@ public abstract class CSFsmBase
             OriginalState?.Transitions?.First(x => x.EventName == eventName).ToState 
             ?? throw new InvalidOperationException());
     }
+    protected void CopyEvent(FsmEvent eventName) => CopyEvent(eventName.Name);
     protected void DefineGlobalEvent(string eventName)
     {
         CheckInit();
@@ -308,10 +313,9 @@ public abstract class CSFsmBase
 
             state.Actions = new FsmStateAction[]
             {
-                new CSFsmAction()
+                new CSFsmAction(ie)
                 {
                     fsm = this,
-                    template = ie,
                     ActionMethod = m.DeclaringType.FullName + "::" + m.Name
                 }
             };
@@ -349,12 +353,14 @@ public abstract class CSFsmBase
     }
     private class CSFsmAction : FsmStateAction
     {
+        public CSFsmAction(IEnumerator template)
+        {
+            _current = template.AsResettable();
+        }
         [NonSerialized]
-        public CSFsmBase? fsm;
+        public CSFsmBase fsm = null!;
         [NonSerialized]
-        public IEnumerator? template;
-        [NonSerialized]
-        public IEnumerator? currentAction;
+        public ResettableEnumerator _current;
         [NonSerialized]
         public CoroutineInfo? currentEx;
         [NonSerialized]
@@ -366,7 +372,7 @@ public abstract class CSFsmBase
             currentEx = ExecuteAction().CreateCoroutine();
             currentEx.onFinished += (_) =>
             {
-                if (currentAction is null) return;
+                if (_current is null) return;
                 Fsm.Event(FsmEvent.Finished);
             };
             currentEx.onException += (_, e) =>
@@ -377,7 +383,7 @@ public abstract class CSFsmBase
         }
         private IEnumerator ExecuteAction()
         {
-            currentAction = template!.MemberwiseClone();
+            _current.Reset();
             while (true)
             {
                 if (!(fsm?.FsmComponent?.gameObject?.activeInHierarchy ?? false)
@@ -386,13 +392,23 @@ public abstract class CSFsmBase
                     yield return null;
                     continue;
                 }
-                var r = currentAction.MoveNext();
+                var r = _current.MoveNext();
                 if (!r) break;
-                var result = currentAction.Current;
+                var result = _current.Current;
                 if (result is string eventName)
                 {
                     Fsm.Event(FsmEvent.GetFsmEvent(eventName));
                     yield return null;
+                    continue;
+                }
+                else if(result is FsmStateAction action)
+                {
+                    fsm.InvokeAction(action);
+                    continue;
+                }
+                else if(result is FsmStateAction[] actions)
+                {
+                    fsm.InvokeActions(actions);
                     continue;
                 }
                 yield return result;
@@ -401,7 +417,6 @@ public abstract class CSFsmBase
         }
         public override void OnExit()
         {
-            currentAction = null;
             currentEx?.Stop();
             currentEx = null;
             State.Actions = new FsmStateAction[]

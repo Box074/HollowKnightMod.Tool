@@ -5,6 +5,17 @@ public delegate FsmTransition ForEachFsmTransitionDelegate(FsmTransition transit
 
 public static class FSMHelper
 {
+    public static PlayMakerFSM CopyTo(this PlayMakerFSM src, GameObject dst)
+    {
+        var template = new FsmTemplate()
+        {
+            fsm = src.Fsm
+        };
+        var pm = dst.AddComponent<PlayMakerFSM>();
+        pm.SetFsmTemplate(template);
+        pm.Fsm.Name = src.Fsm.Name;
+        return pm;
+    }
     public static void IgnoreLoadActionData(this FsmState state)
     {
         foreach(var v in HKToolMod.ignoreLoadActionsState)

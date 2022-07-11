@@ -11,12 +11,12 @@ public static class I18nHelper
         return string.Format(key.Localize(), args);
     }
     [Obsolete]
-    public static string GetA(string key)
+    public static string Get(string key)
     {
         return I18n.GlobalGet(key);
     }
     [Obsolete]
-    public static string GetFormatA(string key, params object[] args)
+    public static string GetFormat(string key, params object[] args)
     {
         return string.Format(key.Localize(), args);
     }

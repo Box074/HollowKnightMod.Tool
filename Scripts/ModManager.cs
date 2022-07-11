@@ -5,7 +5,7 @@ static class ModManager
 {
     public static readonly bool SupportPreloadAssets = FindType("Modding.ModLoader")!.GetMethod("LoadMod", HReflectionHelper.All).GetParameters().Length == 4;
     public static bool modLoaded => ModLoaderHelper.modLoadState.HasFlag(ModLoadState.Loaded);
-    public static List<ModBase> modsTable = new();
+    public static List<ModBase> mods = new();
     public static Dictionary<Type, ModBase> instanceMap = new();
     public static List<(string, string)> modErrors = new();
     public static Dictionary<Mod, Func<PreloadObject, bool>> hookInits = new();
@@ -18,18 +18,41 @@ static class ModManager
         On.Modding.ModLoader.UpdateModText += (orig) =>
         {
             orig();
-            if (modErrors.Count == 0) return;
             var vd = ref_ModVersionDraw.Value;
+            var ds = vd?.drawString ?? "";
+            var lines = ds.Split('\n');
             var sb = new StringBuilder();
-            sb.AppendLine(vd?.drawString ?? "");
-            sb.AppendLine();
-            foreach (var v in modErrors)
+            var displayNames = mods.Select(x => (x.GetName().Trim(), x.DisplayName.Trim())).Where(x => x.Item1 != x.Item2)
+                .ToDictionary(x => x.Item1, x => x.Item2);
+            foreach (var v in lines)
             {
-                sb.Append("<color=" + ModHooks.GlobalSettings.ConsoleSettings.ErrorColor + ">");
-                sb.Append(v.Item1);
-                sb.Append(" : ");
-                sb.Append(v.Item2);
-                sb.AppendLine("</color>");
+                int pos = v.IndexOf(':');
+                if(pos == -1)
+                {
+                    sb.AppendLine(v);
+                    continue;
+                }
+                var name = v.Substring(0, pos).Trim();
+                if (displayNames.TryGetValue(name, out var displayName))
+                {
+                    sb.AppendLine(displayName + " " + v.Substring(pos));
+                }
+                else
+                {
+                    sb.AppendLine(v);
+                }
+            }
+            if (modErrors.Count > 0)
+            {
+                sb.AppendLine();
+                foreach (var v in modErrors)
+                {
+                    sb.Append("<color=" + ModHooks.GlobalSettings.ConsoleSettings.ErrorColor + ">");
+                    sb.Append(v.Item1);
+                    sb.Append(" : ");
+                    sb.Append(v.Item2);
+                    sb.AppendLine("</color>");
+                }
             }
             if (vd is not null) vd.drawString = sb.ToString();
         };
@@ -149,7 +172,7 @@ static class ModManager
     public static void NewMod(ModBase mod, string? name = null)
     {
         if (mod is null) return;
-        if (modsTable.Contains(mod)) return;
+        if (mods.Contains(mod)) return;
 
         if (instanceMap.ContainsKey(mod.GetType()))
         {
@@ -162,7 +185,7 @@ static class ModManager
         }
 
         instanceMap.Add(mod.GetType(), mod);
-        modsTable.Add(mod);
+        mods.Add(mod);
         foreach (var v in mod.GetType().Assembly.GetTypes())
         {
             if (v.GetCustomAttribute<AttachHeroControllerAttribute>() is not null)

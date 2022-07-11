@@ -56,6 +56,7 @@ public abstract class ModBase : Mod, IHKToolMod
         }
     }
     public virtual string MenuButtonName => GetName();
+    public virtual string DisplayName => GetName();
     public virtual Font MenuButtonLabelFont => MenuResources.TrajanBold;
     public virtual Version? HKToolMinVersion
     {
@@ -140,7 +141,6 @@ public abstract class ModBase : Mod, IHKToolMod
         if (ModManager.instanceMap.TryGetValue(type, out var v)) return v;
         return null;
     }
-
     public readonly string sha1;
     protected static bool HaveAssembly(string name)
     {
