@@ -16,18 +16,6 @@ public static class FSMHelper
         pm.Fsm.Name = src.Fsm.Name;
         return pm;
     }
-    public static void IgnoreLoadActionData(this FsmState state)
-    {
-        foreach(var v in HKToolMod.ignoreLoadActionsState)
-        {
-            if(!v.TryGetTarget(out var s) || ReferenceEquals(s, state))
-            {
-                v.SetTarget(state);
-                return;
-            }
-        }
-        HKToolMod.ignoreLoadActionsState.Add(new(state));
-    }
     public static PropertyInfo GetVariableArray(VariableType type)
     {
         string name = type switch

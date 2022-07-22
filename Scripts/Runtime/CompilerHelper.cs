@@ -12,4 +12,11 @@ public static class CompilerHelper
     {
         hooks.Add(new(MethodBase.GetMethodFromHandle(self), MethodBase.GetMethodFromHandle(target)));
     }
+    public static void FsmThrowException(Exception ex)
+    {
+        if(ex == null) return;
+        var fsm = FsmExecutionStack.ExecutingFsm;
+        var s = new StackTrace(2);
+        HKToolMod.logger.LogError($"{ex.ToString()}\n{s.ToString()}\n[Fsm: \"{fsm?.Name}\" State: \"{fsm?.ActiveState?.Name}\" GameObject: \"{fsm?.GameObject?.GetPath()}\"]");
+    }
 }

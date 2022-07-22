@@ -58,18 +58,6 @@ public static class InitManager
             self.Reset();
         };
 
-        IL.System.Reflection.Emit.ILGenerator.Emit_OpCode_Type += context =>
-        {
-            var cur = new ILCursor(context);
-            cur.TryGotoNext(MoveType.After, x =>
-            {
-                if (x.OpCode != MOpCodes.Callvirt) return false;
-                var m = (Mono.Cecil.MethodReference)x.Operand;
-                return m.DeclaringType.FullName == "System.Type" && m.Name == "get_IsByRef";
-            });
-            cur.Emit(MOpCodes.Pop);
-            cur.Emit(MOpCodes.Ldc_I4_0);
-        };
         BuildFakeHK();
     }
 

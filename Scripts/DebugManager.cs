@@ -4,9 +4,11 @@ public static class DebugManager
 {
     public static bool IsDebugMode => HKToolMod.IsDebugMode;
     public static bool IsDebug(Mod mod) => DebugModsLoader.DebugMods.Contains(mod);
-    public static Mod[] DebugMods => DebugModsLoader.DebugMods.ToArray();
-    public static int? DebugPort { get; private set; } = null;
-    public static void Init()
+    internal static Mod[] DebugMods => DebugModsLoader.DebugMods.ToArray();
+    internal static int? DebugPort { get; private set; } = null;
+    internal record FsmExcpetionInfo(string stateName, Fsm fsm, FsmStateAction action);
+    internal static ConditionalWeakTable<Exception, FsmExcpetionInfo> fsmExcpetionInfo = new();
+    internal static void Init()
     {
         List<string> debugFiles = new();
         List<Assembly> assemblies = new();
@@ -64,8 +66,62 @@ public static class DebugManager
                 isInputFile = false;
             }
         }
-        foreach(var v in assemblies) DebugModsLoader.LoadMod(v);
+        foreach (var v in assemblies) DebugModsLoader.LoadMod(v);
         DebugModsLoader.LoadMods(debugFiles);
+
+        var fsmThrowCatch = typeof(CompilerHelper).GetMethod(nameof(CompilerHelper.FsmThrowException));
+        foreach (var v in typeof(FsmState).GetMethods().Where(x => x.Name.StartsWith("On") && !x.IsStatic))
+        {
+            if (v.Name == "OnEnter") continue;
+            HookEndpointManager.Modify(v, (ILContext il) =>
+            {
+                var blts = il.Body.Instructions.First(x => x.OpCode == MOpCodes.Blt_S || x.OpCode == MOpCodes.Blt);
+                var next = blts.Next;
+                var ilp = il.IL;
+                var leave = Instruction.Create(MOpCodes.Leave, next);
+                var catchStart = Instruction.Create(MOpCodes.Nop);
+                var catchEnd = Instruction.Create(MOpCodes.Leave, next);
+
+                var exBlock = new Mono.Cecil.Cil.ExceptionHandler(ExceptionHandlerType.Catch);
+                exBlock.CatchType = il.Import(typeof(Exception));
+                exBlock.TryStart = ((ILLabel)blts.Operand).Target;
+                exBlock.TryEnd = leave;
+                exBlock.HandlerStart = catchStart;
+                exBlock.HandlerEnd = catchEnd;
+                il.Body.ExceptionHandlers.Add(exBlock);
+
+                ilp.InsertAfter(blts, leave);
+                ilp.InsertAfter(leave, catchStart);
+                ilp.InsertAfter(catchStart, Instruction.Create(MOpCodes.Call, il.Import(fsmThrowCatch)));
+                ilp.InsertBefore(next, catchEnd);
+            });
+        }
+        IL.HutongGames.PlayMaker.FsmState.ActivateActions += il =>
+        {
+            var call = il.Body.Instructions.First(x => {
+                var mr = x.Operand as MethodReference;
+                if(mr == null) return false;
+                return x.OpCode == MOpCodes.Callvirt && (mr.DeclaringType.Name == nameof(FsmStateAction)) && mr.Name == nameof(FsmStateAction.OnEnter);
+            });
+            var next = call.Next;
+            var ilp = il.IL;
+            var leave = Instruction.Create(MOpCodes.Leave, next);
+            var catchStart = Instruction.Create(MOpCodes.Nop);
+            var catchEnd = Instruction.Create(MOpCodes.Leave, next);
+
+            var exBlock = new Mono.Cecil.Cil.ExceptionHandler(ExceptionHandlerType.Catch);
+            exBlock.CatchType = il.Import(typeof(Exception));
+            exBlock.TryStart = call;
+            exBlock.TryEnd = leave;
+            exBlock.HandlerStart = catchStart;
+            exBlock.HandlerEnd = catchEnd;
+            il.Body.ExceptionHandlers.Add(exBlock);
+
+            ilp.InsertAfter(call, leave);
+            ilp.InsertAfter(leave, catchStart);
+            ilp.InsertAfter(catchStart, Instruction.Create(MOpCodes.Call, il.Import(fsmThrowCatch)));
+            ilp.InsertBefore(next, catchEnd);
+        };
     }
 }
 

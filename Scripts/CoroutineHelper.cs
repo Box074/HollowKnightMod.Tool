@@ -12,7 +12,8 @@ public class CoroutineInfo
     public Exception? LastException { get; internal set; } = null;
     public bool IsAttendGameObject { get; private set; } = false;
     public bool IsFinished => State == CoroutineState.Done || State == CoroutineState.Exception;
-    public IEnumerator? Coroutine { get; internal set; } = null;
+    internal Stack<IEnumerator> ExecutionStack { get; private set; } = new();
+    public IEnumerator? Coroutine => ExecutionStack.TryPeek(out var cor) ? cor : null;
     public CoroutineState State
     {
         get
@@ -39,6 +40,8 @@ public class CoroutineInfo
     public void Stop() => State = CoroutineState.Done;
     public event Action<CoroutineInfo, Exception> onException = (_, _1) => { };
     public event Action<CoroutineInfo> onFinished = (_) => { };
+    public delegate bool CustomResultHandler(ref object? result);
+    public CustomResultHandler customResult = (ref object? _) => true;
     internal Coroutine? _cor = null;
     internal void OnExcpetion(Exception e)
     {
@@ -50,7 +53,7 @@ public class CoroutineInfo
             }
             catch (Exception)
             {
-
+                
             }
         }
     }
@@ -68,9 +71,13 @@ public class CoroutineInfo
             }
         }
     }
+    internal bool OnProcessingResult(ref object? result)
+    {
+        return customResult?.Invoke(ref result) ?? true;
+    }
     public CoroutineInfo(IEnumerator coroutine, GameObject? attendGameObject = null)
     {
-        Coroutine = coroutine;
+        ExecutionStack.Push(coroutine);
         if (attendGameObject != null)
         {
             IsAttendGameObject = true;
@@ -121,7 +128,6 @@ public static class CoroutineHelper
                         CurrentCoroutine = info;
                         result = cor.MoveNext();
                         CurrentCoroutine = null;
-                        if (result == false) info.State = CoroutineInfo.CoroutineState.Done;
                     }
                     catch (Exception e)
                     {
@@ -139,17 +145,30 @@ public static class CoroutineHelper
                     if (result == false)
                     {
                         info._cor = null;
-                        yield break;
+                        info.ExecutionStack.TryPop(out _);
+                        cor = info.Coroutine;
+                        continue;
                     }
-                    yield return cor.Current;
+                    var r = cor.Current;
+                    if(r is IEnumerator ie)
+                    {
+                        info.ExecutionStack.Push(ie);
+                        cor = info.Coroutine;
+                        continue;
+                    }
+                    if(info.OnProcessingResult(ref r))
+                    {
+                        yield return r;
+                    }
                 }
                 info._cor = null;
+                info.State = CoroutineInfo.CoroutineState.Done;
             }
         }
         private void CleanUp()
         {
             coroutines.RemoveAll(x => x.IsFinished
-            || (x.AttendGameObject && x.AttendGameObject == null));
+            || (x.IsAttendGameObject && x.AttendGameObject == null));
         }
         public void StartCor(CoroutineInfo info)
         {
@@ -162,7 +181,7 @@ public static class CoroutineHelper
                 }
             }
             if(!coroutines.Contains(info)) coroutines.Add(info);
-            StartCoroutine(CoroutineExecuter(info));
+            info._cor = StartCoroutine(CoroutineExecuter(info));
         }
         private void OnEnable()
         {
@@ -180,7 +199,7 @@ public static class CoroutineHelper
         {
             foreach (var v in coroutines)
             {
-                if (v.State == CoroutineInfo.CoroutineState.Execute)
+                if (v.State != CoroutineInfo.CoroutineState.Execute && v.State != CoroutineInfo.CoroutineState.Done)
                 {
                     v.State = CoroutineInfo.CoroutineState.Pause;
                     if (v._cor != null)
