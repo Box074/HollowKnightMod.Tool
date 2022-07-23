@@ -22,11 +22,18 @@ static class TestManager
             ILTest.Test02();
         }),
         ("ILTest3", () => {
-            FsmInt i = 1024;
-            HKToolMod.logger.Log($"T {i.private_value()}");
-            i.private_value() = 2048;
-            HKToolMod.logger.Log($"T2 {i.private_value()}");
-            HKToolMod.logger.Log($"T3 {i.Value}");
+            Test0().StartCoroutine().Start();
         })
     };
+    public static IEnumerator Test1()
+    {
+        yield return null;
+        throw null!;
+    }
+    public static IEnumerator Test0()
+    {
+        yield return Test1().Catch<Exception>(e => {
+            HKToolMod.logger.Log($"Catch {e.Message}");
+        });
+    }
 }
