@@ -50,4 +50,5 @@ public static class Helper
         StaticArray.FastCopy(array, Offset, array2, 0, Length);
         return array2;
     }
+    
 }

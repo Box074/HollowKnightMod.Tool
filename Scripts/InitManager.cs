@@ -45,6 +45,7 @@ public static class InitManager
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
     public static void CheckInit()
     {
+        if(ModBase.CurrentMAPIVersion < 72) return;
         if (_isInit) return;
         _isInit = true;
 

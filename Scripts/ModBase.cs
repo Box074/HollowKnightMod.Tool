@@ -100,7 +100,6 @@ public abstract class ModBase : Mod, IHKToolMod
     {
         var err = "HKTool.Error.NeedLibrary"
                 .LocalizeFormat(name);
-        LogError(err);
         ModManager.modErrors.Add((GetName(), err));
         throw new NotSupportedException(err);
     }
@@ -108,7 +107,13 @@ public abstract class ModBase : Mod, IHKToolMod
     {
         var err = "HKTool.Error.NeedLibraryVersion"
                 .LocalizeFormat(name, needVersion.ToString());
-        LogError(err);
+        ModManager.modErrors.Add((GetName(), err));
+        throw new NotSupportedException(err);
+    }
+    protected void TooOldDependency(string name, string needVersion)
+    {
+        var err = "HKTool.Error.NeedLibraryVersion"
+                .LocalizeFormat(name, needVersion.ToString());
         ModManager.modErrors.Add((GetName(), err));
         throw new NotSupportedException(err);
     }
@@ -228,48 +233,11 @@ public abstract class ModBase : Mod, IHKToolMod
         }
 
     }
-    void IHKToolMod.HookInit(PreloadObject go, PreloadAsset assets)
+    void IHKToolMod.HookInit(PreloadObject go)
     {
-        UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
-        if (go is not null)
-        {
-            foreach (var v in go)
-            {
-                foreach (var v2 in v.Value)
-                {
-                    if (v2.Key == "FakeGameObject")
-                    {
-                        UObject.Destroy(v2.Value);
-                    }
-                }
-            }
-        }
         if (assetpreloads.TryGetValue(0, out var inresources))
         {
             LoadPreloadResource(inresources, (type) => Resources.FindObjectsOfTypeAll(type));
-        }
-        if (ModManager.SupportPreloadAssets)
-        {
-            List<Action<UObject>> notFound = new();
-            foreach (var v in assetpreloads)
-            {
-                if(v.Key == 0) continue;
-                if (!assets.TryGetValue(v.Key, out var scene))
-                {
-                    notFound.AddRange(v.Value.Select(x => x.Item3));
-                    continue;
-                }
-                foreach (var v2 in v.Value)
-                {
-                    if (!scene.TryGetValue(v2.Item1, out var obj) || obj.GetType() != v2.Item2)
-                    {
-                        notFound.Add(v2.Item3);
-                        continue;
-                    }
-                    v2.Item3.Invoke(obj);
-                }
-            }
-            foreach (var v in notFound) v.Invoke(null!);
         }
         foreach (var v in preloads)
         {
@@ -304,11 +272,16 @@ public abstract class ModBase : Mod, IHKToolMod
     {
         preloads = preloads ?? new();
         foreach (var v in this.preloads) preloads.Add((v.Value.Item1, v.Value.Item2));
-        if (!ModManager.SupportPreloadAssets)
-        {
-            foreach (var v in assetpreloads) if (v.Key != 0) preloads.Add((Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(v.Key)), "FakeGameObject"));
-        }
         return preloads;
+    }
+    public override (string, Func<IEnumerator>)[] PreloadSceneHooks()
+    {
+        IEnumerator PreloadAssets(List<(string, System.Type, Action<UnityEngine.Object?>)> assets)
+        {
+            LoadPreloadResource(assets, t => Resources.FindObjectsOfTypeAll(t));
+            yield break;
+        }
+        return assetpreloads.Select(x => (sceneNames[x.Key],(Func<IEnumerator>)PreloadAssets(x.Value).AsEnumerable().GetEnumerator)).ToArray();
     }
     private List<(int, string, Type)> HookGetPreloadAssetNames(List<(int, string, Type)> preloads)
     {
@@ -344,38 +317,6 @@ public abstract class ModBase : Mod, IHKToolMod
             {
                 ModManager.hookGetPreloads[this] = HookGetPreloads;
             }
-            if (assetpreloads.Count != 0 && !ModManager.SupportPreloadAssets)
-            {
-                UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
-            }
-        }
-        if (ModManager.SupportPreloadAssets && assetpreloads.Count > 0)
-        {
-            var gpM = GetType().GetTypeInfo().DeclaredMethods.FirstOrDefault(x => x.Name == "GetPreloadAssetsNames"
-                && x.GetParameters().Length == 0 &&
-                x.ReturnType == typeof(List<(int, string, Type)>));
-            if (gpM is not null)
-            {
-                HookEndpointManager.Add(
-                    gpM,
-                    (Func<ModBase, List<(int, string, Type)>> orig, ModBase self) =>
-                    {
-                        return HookGetPreloadAssetNames(orig(self));
-                    }
-                );
-            }
-            else
-            {
-                ModManager.hookGetAssetPreloads[this] = HookGetPreloadAssetNames;
-            }
-        }
-    }
-    private void OnSceneLoaded(Scene scene, LoadSceneMode _1)
-    {
-        if (assetpreloads.TryGetValue(scene.buildIndex, out var v))
-        {
-            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(new GameObject("FakeGameObject"), scene);
-            LoadPreloadResource(v, (type) => Resources.FindObjectsOfTypeAll(type));
         }
     }
     private bool needHookGetPreloads = false;

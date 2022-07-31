@@ -10,11 +10,12 @@ static class ModManager
     public static List<(string, string)> modErrors = new();
     public static Dictionary<Mod, Func<PreloadObject, bool>> hookInits = new();
     public static Dictionary<Mod, Func<List<(string, string)>, List<(string, string)>>> hookGetPreloads = new();
-    public static Dictionary<Mod, Func<List<(int, string, Type)>, List<(int, string, Type)>>> hookGetAssetPreloads = new();
-    public static event Action<ModInstance, bool, PreloadObject> onLoadMod = null!;
+    public static event OnLoadModHandler onLoadMod = null!;
+    public delegate void OnLoadModHandler(ModInstance mi,ref bool updateVer, ref PreloadObject preloads);
     private static Ref<ModVersionDraw> ref_ModVersionDraw = GetFieldRefPointer(null, FindFieldInfo("Modding.ModLoader::modVersionDraw"));
     static ModManager()
     {
+        
         On.Modding.ModLoader.UpdateModText += (orig) =>
         {
             orig();
@@ -27,7 +28,7 @@ static class ModManager
             foreach (var v in lines)
             {
                 int pos = v.IndexOf(':');
-                if(pos == -1)
+                if (pos == -1)
                 {
                     sb.AppendLine(v);
                     continue;
@@ -56,40 +57,11 @@ static class ModManager
             }
             if (vd is not null) vd.drawString = sb.ToString();
         };
-
-        if (SupportPreloadAssets)
-        {
-            HookEndpointManager.Add(
-                FindType("Modding.ModLoader")!.GetMethod("LoadMod", HReflectionHelper.All),
-                    HookLoadMod
-            );
-            HookEndpointManager.Add(
-                typeof(Mod).GetMethod("GetPreloadAssetsNames", HReflectionHelper.All),
-                (Func<Mod, List<(int, string, Type)>> orig, Mod self) =>
-            {
-                var list = orig(self);
-                if (!hookGetAssetPreloads.TryGetValue(self, out var mod)) return list;
-                if (list is null) list = new();
-                list = mod.Invoke(list);
-                return list;
-            }
-            );
-        }
-        else
-        {
-            HookEndpointManager.Add(
-                FindType("Modding.ModLoader")!.GetMethod("LoadMod", HReflectionHelper.All),
-                    (Action<object, bool, PreloadObject> orig,
-                        object mod, bool updateVer, PreloadObject objs
-                        ) =>
-                        {
-                            HookLoadMod((m, uv, po, pa) =>
-                            {
-                                orig(m, uv, po);
-                            }, mod, updateVer, objs, null!);
-                        }
-            );
-        }
+        if(ModBase.CurrentMAPIVersion < 72) return;
+        HookEndpointManager.Add(
+            FindType("Modding.ModLoader")!.GetMethod("LoadMod", HReflectionHelper.All),
+                HookLoadMod
+        );
         On.Modding.Mod.GetPreloadNames += (orig, self) =>
             {
                 var list = orig(self);
@@ -99,14 +71,14 @@ static class ModManager
                 return list;
             };
     }
-    private static void HookLoadMod(Action<object, bool, PreloadObject, PreloadAsset> orig,
-                    object mod, bool updateVer, PreloadObject objs, PreloadAsset assets)
+    private static void HookLoadMod(Action<object, bool, PreloadObject> orig,
+                    object mod, bool updateVer, PreloadObject objs)
     {
         if (mod is null) return;
         var mi = new ModInstance(mod);
         try
         {
-            onLoadMod?.Invoke(mi, updateVer, objs);
+            onLoadMod?.Invoke(mi, ref updateVer, ref objs);
         }
         catch (Exception e)
         {
@@ -118,11 +90,11 @@ static class ModManager
             var ms = mi.Mod;
             if (ms is IHKToolMod hmod && !modLoaded)
             {
-                hmod.HookInit(objs, assets);
+                hmod.HookInit(objs);
             }
             if (!modLoaded)
             {
-                orig(mod, updateVer, objs, assets);
+                orig(mod, updateVer, objs);
             }
             if (ms is ITogglableModBase thmod)
             {
@@ -144,7 +116,7 @@ static class ModManager
             }
             else if (modLoaded)
             {
-                orig(mod, updateVer, objs, assets);
+                orig(mod, updateVer, objs);
             }
         }
         catch (Exception e)

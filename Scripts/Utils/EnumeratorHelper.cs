@@ -5,11 +5,22 @@ public static class EnumeratorHelper
 {
     public static ResettableEnumerator AsResettable(this IEnumerator template) => new(template);
     public static CatchEnumerator<T> Catch<T>(this IEnumerator ie, Action<T> handler) where T : Exception => new(ie, handler);
+    public static IEnumerable AsEnumerable(this IEnumerator template) => new FakeEnumerable(template);
+}
+internal class FakeEnumerable : IEnumerable
+{
+    private readonly IEnumerator _enumerator;
+    public FakeEnumerable(IEnumerator enumerator)
+    {
+        _enumerator = enumerator;
+    }
+    public IEnumerator GetEnumerator() => _enumerator.MemberwiseClone();
+
 }
 public class FlatEnumerator : IEnumerator
 {
     private IEnumerator _ie;
-    internal FlatEnumerator(IEnumerator ie)
+    public FlatEnumerator(IEnumerator ie)
     {
         _ie = ie;
         executionStack.Push(_ie);
