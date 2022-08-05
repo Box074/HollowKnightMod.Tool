@@ -44,6 +44,10 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
         }
 
         On.HeroController.get_instance += (_) => HeroController.SilentInstance;
+        On.HutongGames.PlayMaker.ReflectionUtils.GetGlobalType += (orig, name) =>
+        {
+            return orig(name) ?? HReflectionHelper.FindType(name);
+        };
         FakePreloadPrefab();
         if (settings.DevMode)
         {
@@ -96,7 +100,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
                                 list.RemoveAt(i);
                                 i--;
                                 modPreload = modPreload ?? new();
-                                HKToolMod.logger.LogWarn($"[API Compatibility]'{self.GetName()}' tries to preload '{objName}' using Preload Prefab, which was removed in Modding API 72");
+                                Modding.Logger.LogWarn($"[API Compatibility]'{self.GetName()}' tries to preload '{objName}' using Preload Prefab, which was removed in Modding API 72");
                                 this.AddPreloadSharedAsset(sceneId, objName, typeof(GameObject), obj =>
                                 {
                                     modPreload.TryGetOrAddValue(sceneName, () => new())[objName] = (GameObject?)obj;

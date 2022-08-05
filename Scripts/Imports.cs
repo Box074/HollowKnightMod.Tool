@@ -15,6 +15,7 @@ global using UnityEngine;
 global using UnityEngine.UI;
 global using UnityEngine.SceneManagement;
 global using Debug = UnityEngine.Debug;
+global using USceneManager = UnityEngine.SceneManagement.SceneManager;
 
 global using Newtonsoft.Json;
 global using Newtonsoft.Json.Converters;
@@ -45,6 +46,7 @@ global using HKTool.MAPI;
 global using HKTool.MAPI.Loader;
 global using HKTool.Patcher;
 global using HKTool.Unsafe;
+global using HKTool.Debugger;
 
 global using Mono.Cecil;
 global using Mono.Cecil.Cil;

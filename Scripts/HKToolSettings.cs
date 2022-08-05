@@ -7,6 +7,7 @@ class HKToolSettings
     private static string _globalSettingsPath = Path.Combine(Application.persistentDataPath, "HKToolMod.GlobalSettings.json");
     public static HKToolSettings TryLoad()
     {
+        if(_settings is not null) return _settings;
         try
         {
             if (!File.Exists(_globalSettingsPath))
@@ -37,7 +38,7 @@ class HKToolSettings
                 File.Copy(globalSettingsBackup, _globalSettingsPath);
                 return TryLoad();
             }
-
+            _settings = obj;
             return obj;
         }
         catch (Exception)
@@ -45,7 +46,8 @@ class HKToolSettings
             return new();
         }
     }
-
+    private static HKToolSettings? _settings;
+    public static HKToolSettings settings => _settings ?? TryLoad();
     public static bool TestMode = false;
     public bool DevMode = false;
     public HKToolDebugConfig DebugConfig { get; set; } = new();
@@ -67,5 +69,6 @@ class HKToolDebugConfig
     public bool rUnityError;
     public bool rUnityException;
     public bool rUnityAssert;
+    public List<string> disabledModules { get; set; } = new();
 }
 

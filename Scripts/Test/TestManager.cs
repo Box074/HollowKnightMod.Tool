@@ -23,6 +23,9 @@ static class TestManager
         }),
         ("ILTest3", () => {
             Test0().StartCoroutine().Start();
+        }),
+        ("Test 0", () => {
+            TestBeh.Instance.StartCoroutine(Test2());
         })
     };
     public static IEnumerator Test1()
@@ -32,8 +35,11 @@ static class TestManager
     }
     public static IEnumerator Test0()
     {
-        yield return Test1().Catch<Exception>(e => {
-            HKToolMod.logger.Log($"Catch {e.Message}");
-        });
+        yield return Test1();
+    }
+    public static IEnumerator Test2()
+    {
+        yield return null;
+        yield return Test0();
     }
 }

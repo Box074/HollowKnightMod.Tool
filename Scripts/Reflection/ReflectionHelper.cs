@@ -12,12 +12,23 @@ public static class ReflectionHelper
     public static ReflectionObject CreateReflectionObject(this object obj) => new ReflectionObject(obj);
     public static ReflectionObject CreateReflectionObject(this Type type) => new ReflectionObject(type);
     public static ReflectionObject CreateReflectionObject(this ReflectionObject obj) => obj;
+    private static Dictionary<string, Type> typemap = new();
     public static Type? FindType(string fullname)
     {
+        if(fullname == null) return null;
+        if(typemap.TryGetValue(fullname, out var ot) && ot != null) return ot;
+        ot = Type.GetType(fullname);
+        if(ot != null)
+        {
+            typemap[fullname] = ot;
+            return ot;
+        }
         foreach (var v in AppDomain.CurrentDomain.GetAssemblies())
         {
             var t = v.GetType(fullname);
-            if (t != null) return t;
+            if (t == null) continue;
+            typemap[fullname] = t;
+            return t;
         }
         return null;
     }

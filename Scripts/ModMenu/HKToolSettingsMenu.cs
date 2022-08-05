@@ -7,10 +7,12 @@ class HKToolSettingsMenu : CustomMenu
     public override Font titleFont => MenuResources.Perpetua;
     public static HKToolSettings settings => HKToolMod.settings;
     public override bool DelayBuild => true;
+    private DebugModuleMenu debugModule;
     public HKToolSettingsMenu(MenuScreen returnScreen) : base(returnScreen, "HKTool")
     {
         LogMenu.instance = new(this);
         TestMenu.instance = new(this);
+        debugModule = new(this);
     }
     protected override void Back()
     {
@@ -25,6 +27,14 @@ class HKToolSettingsMenu : CustomMenu
             {
                 DebugTools.DebugView.IsEnable = !DebugTools.DebugView.IsEnable;
             }, MenuResources.Perpetua);
+
+        AddButton("Debug Modules", "",
+            () =>
+            {
+                debugModule.Refresh();
+                GoToMenu(debugModule);
+            }, MenuResources.Perpetua);
+
 
         AddButton("HKTool.LogMenu.Title".Localize(), "",
         () =>
@@ -71,11 +81,11 @@ class HKToolSettingsMenu : CustomMenu
             {
                 return settings.DevMode ? 1 : 0;
             }, MenuResources.Perpetua);
-        
+
         AddButton("HKTool.Experimental.Title".Localize(), "",
         () =>
         {
-            if(ExperimentalMenu.instance is null)
+            if (ExperimentalMenu.instance is null)
             {
                 ExperimentalMenu.instance = new(this);
             }

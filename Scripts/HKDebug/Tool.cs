@@ -47,35 +47,30 @@ static class Tool
     {
         MenuManager.AddButton(new ButtonInfo()
         {
-            label = "工具",
-            submit = (_) => MenuManager.EnterGroup(group)
-        });
-        group.AddButton(new ButtonInfo()
-        {
             label = "重新加载当前场景",
             submit = (_) => ReloadScene()
         });
-        group.AddButton(new ButtonInfo()
+        MenuManager.AddButton(new ButtonInfo()
         {
             label = "从Gate进入当前场景",
             submit = (_) => EnterSceneFormGate()
         });
-        group.AddButton(new ButtonInfo()
+        MenuManager.AddButton(new ButtonInfo()
         {
             label = "Hazard Respawn",
             submit = (_) => HeroController.instance.StartCoroutine(HeroController.instance.HazardRespawn())
         });
-        group.AddButton(new ButtonInfo()
+        MenuManager.AddButton(new ButtonInfo()
         {
             label = "允许暂停",
             submit = (_) => PlayerData.instance.disablePause = false
         });
-        group.AddButton(new ButtonInfo()
+        MenuManager.AddButton(new ButtonInfo()
         {
             label = "结束当前GG",
             submit = (_) => BossSceneController.Instance.EndBossScene()
         });
-        group.AddButton(new ButtonInfo()
+        MenuManager.AddButton(new ButtonInfo()
         {
             label = "允许移动",
             submit = (_) =>
@@ -84,7 +79,7 @@ static class Tool
                 HeroController.instance.AcceptInput();
             }
         });
-        group.AddButton(new ButtonInfo()
+        MenuManager.AddButton(new ButtonInfo()
         {
             label = "启用无敌",
             submit = (but) =>
@@ -93,18 +88,18 @@ static class Tool
                 but.label = (!canDamage ? "禁用" : "启用") + "无敌";
             }
         });
-        group.AddButton(new ButtonInfo()
+        MenuManager.AddButton(new ButtonInfo()
         {
             label = "返回菜单",
             submit = (_) => UnityEngine.SceneManagement.SceneManager.LoadScene("Quit_To_Menu",
             UnityEngine.SceneManagement.LoadSceneMode.Single)
         });
-        group.AddButton(new ButtonInfo()
+        MenuManager.AddButton(new ButtonInfo()
         {
             label = "Fade Out",
             submit = (_) => PlayMakerFSM.BroadcastEvent("FADE OUT")
         });
-        group.AddButton(new ButtonInfo()
+        MenuManager.AddButton(new ButtonInfo()
         {
             label = "增加33灵魂",
             submit = (_) => HeroController.instance.AddMPCharge(33)
