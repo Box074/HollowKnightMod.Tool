@@ -51,9 +51,9 @@ public class CoroutineInfo
             {
                 v.DynamicInvoke(this, e);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                
+                HKToolMod.logger.LogError(ex);
             }
         }
     }
@@ -65,9 +65,9 @@ public class CoroutineInfo
             {
                 v.DynamicInvoke(this);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-
+                HKToolMod.logger.LogError(e);
             }
         }
     }
@@ -122,7 +122,7 @@ public static class CoroutineHelper
                             yield break;
                         }
                     }
-                    bool? result;
+                    bool result;
                     try
                     {
                         CurrentCoroutine = info;
@@ -137,15 +137,12 @@ public static class CoroutineHelper
                         info.OnExcpetion(e);
                         info.State = CoroutineInfo.CoroutineState.Exception;
                         result = false;
+                        yield break;
                     }
-                    if (result == null)
+                    if (!result)
                     {
-                        continue;
-                    }
-                    if (result == false)
-                    {
-                        info._cor = null;
-                        info.ExecutionStack.TryPop(out _);
+                        if(info.ExecutionStack.Count == 1) break;
+                        info.ExecutionStack.Pop();
                         cor = info.Coroutine;
                         continue;
                     }
@@ -161,6 +158,7 @@ public static class CoroutineHelper
                         yield return r;
                     }
                 }
+                info.ExecutionStack.Clear();
                 info._cor = null;
                 info.State = CoroutineInfo.CoroutineState.Done;
             }

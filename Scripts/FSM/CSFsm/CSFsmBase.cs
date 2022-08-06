@@ -419,7 +419,8 @@ public abstract class CSFsmBase : MonoBehaviour, ISerializationCallbackReceiver
             currentEx = ExecuteAction().CreateCoroutine();
             currentEx.onFinished += (_) =>
             {
-                if (_current is null) return;
+                if(currentEx is null) return;
+                HKToolMod.logger.LogFine($"Finished State: {ActionMethod}");
                 Fsm.Event(FsmEvent.Finished);
             };
             currentEx.onException += (_, e) =>

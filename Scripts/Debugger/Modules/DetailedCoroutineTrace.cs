@@ -60,6 +60,7 @@ internal class DetailedCoroutineTrace : DebugModule
             foreach(var t in v.GetTypes().Where(x => typeof(IEnumerator).IsAssignableFrom(x) && !x.IsGenericType 
                 && !x.IsGenericTypeDefinition && x.IsDefined(typeof(CompilerGeneratedAttribute))))
             {
+                if(t.FullName.StartsWith("UnityEngine.") || t.FullName.StartsWith("System.")) continue;
                 foreach(var c in t.GetConstructors(HReflectionHelper.All))
                 {
                     if(c.IsStatic) continue;
