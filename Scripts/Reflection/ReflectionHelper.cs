@@ -15,7 +15,7 @@ public static class ReflectionHelper
     private static Dictionary<string, Type> typemap = new();
     public static Type? FindType(string fullname)
     {
-        if(fullname == null) return null;
+        if(fullname == null || fullname == "") return null;
         if(typemap.TryGetValue(fullname, out var ot) && ot != null) return ot;
         ot = Type.GetType(fullname);
         if(ot != null)
