@@ -158,8 +158,9 @@ static class ModManager
 
         instanceMap.Add(mod.GetType(), mod);
         mods.Add(mod);
-        foreach (var v in mod.GetType().Assembly.GetTypes())
+        foreach (var v in mod.GetType().Assembly.SafeGetTypes())
         {
+            if(v is null) continue;
             if (v.GetCustomAttribute<AttachHeroControllerAttribute>() is not null)
             {
                 HookManager.attachHeroController.Add(v);

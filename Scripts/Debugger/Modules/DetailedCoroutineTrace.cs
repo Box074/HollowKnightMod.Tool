@@ -57,7 +57,7 @@ internal class DetailedCoroutineTrace : DebugModule
         var newHandle = typeof(DCT).GetMethod(nameof(DCT.NewIEnumerator));
         foreach(var v in AppDomain.CurrentDomain.GetAssemblies())
         {
-            foreach(var t in v.GetTypes().Where(x => typeof(IEnumerator).IsAssignableFrom(x) && !x.IsGenericType 
+            foreach(var t in v.SafeGetTypes().Where(x => x is not null).Where(x => typeof(IEnumerator).IsAssignableFrom(x) && !x.IsGenericType 
                 && !x.IsGenericTypeDefinition && x.IsDefined(typeof(CompilerGeneratedAttribute))))
             {
                 if(t.FullName.StartsWith("UnityEngine.") || t.FullName.StartsWith("System.")) continue;

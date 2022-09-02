@@ -32,6 +32,17 @@ public static class ReflectionHelper
         }
         return null;
     }
+    public static Type[] SafeGetTypes(this Assembly ass)
+    {
+        try
+        {
+            return ass.GetTypes();
+        }
+        catch(ReflectionTypeLoadException tle)
+        {
+            return tle.Types;
+        }
+    }
     public static object? FastGet(this object obj, string name) => obj.GetType().GetField(name, All).FastGet(obj);
     public static void FastSet(this object obj, string name, object val) => obj.GetType().GetField(name, All).FastSet(obj, val);
     public static object? FastInvoke(this MethodInfo m, object? @this, params object?[]? args) => FastReflection.CallMethod(@this, m, args);

@@ -5,7 +5,6 @@ on: [push, pull_request]
 jobs:
   release:
     runs-on: windows-latest
-    if: startsWith(github.ref, 'refs/tags')
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET 5
@@ -24,8 +23,8 @@ jobs:
         npm run build
     - name: Release
       uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
       with:
-        body_path: Info.txt
         files: |
           ./Output.zip
 

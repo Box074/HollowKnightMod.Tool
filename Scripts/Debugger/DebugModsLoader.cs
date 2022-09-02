@@ -10,7 +10,7 @@ class DebugModsLoader
     {
         try
         {
-            foreach (var type in ass.GetTypes())
+            foreach (var type in ass.SafeGetTypes())
             {
                 if (type.IsClass && !type.IsAbstract && type.IsSubclassOf(typeof(Mod)))
                 {
