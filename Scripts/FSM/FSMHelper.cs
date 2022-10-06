@@ -73,6 +73,7 @@ public static class FSMHelper
             arr[i] = state.Actions[i + offset];
         }
         state.Actions = arr;
+        action.Init(state);
         return action;
     }
     public static T AppendFsmStateAction<T>(this FsmState state, T action) where T : FsmStateAction
@@ -81,6 +82,7 @@ public static class FSMHelper
         Array.Copy(state.Actions, arr, state.Actions.Length);
         arr[arr.Length - 1] = action;
         state.Actions = arr;
+        action.Init(state);
         return action;
     }
     public static void RemoveAllFsmStateActions<T>(this FsmState state) where T : FsmStateAction

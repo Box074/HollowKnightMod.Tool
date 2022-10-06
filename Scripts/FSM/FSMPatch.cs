@@ -102,6 +102,7 @@ public class FSMPatch : IPatch
         TestIsClose();
         LastOperationAction = action;
         Actions.Insert(index, action);
+        action.Init(CurrentState);
         return this;
     }
     public FSMPatch AppendAction(FsmStateAction action)
@@ -109,6 +110,7 @@ public class FSMPatch : IPatch
         TestIsClose();
         LastOperationAction = action;
         Actions.Add(action);
+        action.Init(CurrentState);
         return this;
     }
     public FSMPatch FindTransition(string name, Action<FsmTransition> func)
