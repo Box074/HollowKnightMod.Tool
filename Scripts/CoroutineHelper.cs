@@ -2,12 +2,13 @@
 
 namespace HKTool;
 
-public class CoroutineInfo
+public class CoroutineInfo : CustomYieldInstruction
 {
     public enum CoroutineState
     {
         Ready, Execute, Pause, Done, Exception
     }
+    public override bool keepWaiting => !IsFinished;
     public GameObject? AttendGameObject { get; private set; } = null;
     public Exception? LastException { get; internal set; } = null;
     public bool IsAttendGameObject { get; private set; } = false;

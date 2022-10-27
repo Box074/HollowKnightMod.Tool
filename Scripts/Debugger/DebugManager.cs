@@ -62,6 +62,7 @@ public static class DebugManager
                             try
                             {
                                 var asm = Assembly.LoadFile(p);
+                                assemblies.Add(asm);
                             }
                             catch (Exception e)
                             {

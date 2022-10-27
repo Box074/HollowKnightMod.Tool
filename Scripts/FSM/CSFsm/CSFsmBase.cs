@@ -501,6 +501,10 @@ public abstract class CSFsm<T> : CSFsmBase where T : CSFsm<T>, new()
     }
     public static PlayMakerFSM Attach(GameObject go, string startState = "")
     {
+        return Attach(go, out _, startState);
+    }
+    public static PlayMakerFSM Attach(GameObject go, out T fsm, string startState = "")
+    {
         
         var pm = go.AddComponent<PlayMakerFSM>();
         pm.InitFsm();
@@ -509,6 +513,7 @@ public abstract class CSFsm<T> : CSFsmBase where T : CSFsm<T>, new()
         pm.Fsm.StartState = startState;
         pm.Fsm.Name = typeof(T).Name;
         pm.SetState(startState);
+        fsm = t;
         return pm;
     }
 }
