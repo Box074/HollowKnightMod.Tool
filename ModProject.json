@@ -1,6 +1,6 @@
 {
     "modName": "HKTool",
-    "modVersion": "1.10.6.0",
+    "modVersion": "1.11.7.0",
     "codeDir": "./scripts",
     "csCompileInfo": true,
     "libraryDir": "./Library",
@@ -27,10 +27,6 @@
                 "MMHOOK_Assembly-CSharp.dll"
             ],
             "copyToOutput": false
-        },
-        {
-            "name": "Satchel",
-            "url": "https://github.com/PrashantMohta/Satchel/releases/latest/download/Satchel.dll"
         }
     ],
     "hktool": {
@@ -38,7 +34,7 @@
         "compressResources": true,
         "referenceLib": false,
         "inlineHook": true,
-        "externRes": true,
+        "externRes": false,
         "modRes": {
             "HKTool.Languages.en.txt": {
                 "name": "LANGUAGE_EN",

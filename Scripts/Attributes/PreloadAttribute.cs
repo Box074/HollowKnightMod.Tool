@@ -13,7 +13,12 @@ public class PreloadAttribute : Attribute
     {
         this.throwExceptionOnMissing = throwExceptionOnMissing;
     }
+    public PreloadAttribute(string scene, string obj, bool throwExceptionOnMissing, bool setActive) : this(scene, obj, throwExceptionOnMissing)
+    {
+        this.setActive = setActive;
+    }
+    public bool setActive;
     public string sceneName;
     public string objPath;
-    public bool throwExceptionOnMissing = true;
+    public bool throwExceptionOnMissing = false;
 }

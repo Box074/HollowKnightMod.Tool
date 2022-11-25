@@ -28,8 +28,22 @@ public static class ModResManager
             }
             var resFile = resFileData.TryGetOrAddValue(self, () =>
             {
-                var resPath = Path.Combine(Path.GetDirectoryName(self.Location), self.GetName().Name + ".modres");
-                using (Stream rstream = File.OpenRead(resPath))
+                Stream rfstream;
+                if (!modResList.embedded)
+                {
+                    var resPath = Path.Combine(Path.GetDirectoryName(self.Location), self.GetName().Name + ".modres");
+                    rfstream = File.OpenRead(resPath);
+                }
+                else
+                {
+                    rfstream = orig(self, "modres");
+                    if (rfstream == null)
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+
+                using (Stream rstream = rfstream)
                 {
                     if (isCompression)
                     {

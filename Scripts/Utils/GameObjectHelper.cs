@@ -11,6 +11,20 @@ public static class GameObjectHelper
         return go;
     });
     public static GameObject PrefabHolder => prefabHolder.Value;
+    public static GameObject CloneAsPrefab(this GameObject go)
+    {
+        var result = UObject.Instantiate(go, PrefabHolder.transform);
+        if(!result.activeSelf) result.SetActive(true);
+        result.name = go.name;
+        return result;
+    }
+    public static Component CloneAsPrefab(this Component c)
+    {
+        var result = UObject.Instantiate(c, PrefabHolder.transform);
+        if(!result.gameObject.activeSelf) result.gameObject.SetActive(true);
+        result.gameObject.name = c.gameObject.name;
+        return result;
+    }
     public static IEnumerable<GameObject> ForEachChildren(this GameObject parent)
     {
         if (parent == null) throw new ArgumentNullException(nameof(parent));
@@ -59,15 +73,14 @@ public static class GameObjectHelper
     {
         StringBuilder sb = new StringBuilder();
         bool first = true;
-        GameObject? go1 = go;
-        while (go1 != null)
+        while (go != null)
         {
             if (!first)
             {
                 sb.Insert(0, '/');
             }
             sb.Insert(0, go.name);
-            go1 = go.transform.parent?.gameObject;
+            go = go.transform.parent?.gameObject!;
             first = false;
         }
         return sb.ToString();

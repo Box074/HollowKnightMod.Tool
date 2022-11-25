@@ -12,8 +12,8 @@
     },
     "scripts": {
         "commit": "cz",
-        "proj": "hkmod generateCsproj",
+        "csproj": "hkmod generateCsproj",
         "build": "hkmod build -CZ -H256 > Info.txt",
-        "debug": "hkmod build -debug"
+        "debug": "hkmod build -debug & hkmod modlog --autoExit"
     }
 }

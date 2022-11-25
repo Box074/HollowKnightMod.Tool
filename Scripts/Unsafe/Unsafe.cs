@@ -38,9 +38,16 @@ public static class UnsafeUtils
         return (IntPtr)((byte*)obj + GetFieldOffset(field));
     }
     [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-    public static unsafe int GetFieldOffset(FieldInfo field)
+    public static unsafe IntPtr GetInstanceField(IntPtr obj, RuntimeFieldHandle field)
     {
-        MonoClassField* monofield = (MonoClassField*)field.FieldHandle.Value;
+        return (IntPtr)((byte*)obj + GetFieldOffset(field));
+    }
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    public static unsafe int GetFieldOffset(FieldInfo field) => GetFieldOffset(field.FieldHandle);
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    public static unsafe int GetFieldOffset(RuntimeFieldHandle field)
+    {
+        MonoClassField* monofield = (MonoClassField*)field.Value;
         return monofield->offset;
     }
 }

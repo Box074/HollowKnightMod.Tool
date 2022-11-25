@@ -6,6 +6,7 @@ HKTool.Error.NeedModule=未找到模块{0}
 HKTool.Error.NeedModuleEx=未找到模块{0}，版本{1}
 HKTool.Error.GetModInstaceBeforeLoad=尝试在{0}被加载前获取其实例
 HKTool.Error.TryGetInstanceWithoutInit=尝试在{0}初始化完成前获取其实例
+HKTool.Error.MissingFile=缺少{0}文件
 HKTool.MissingPreloadObjectException=未找到预加载对象("{0}", "{1}")
 HKTool.Menu.ButtonLabel=HKTool 选项
 HKTool.Menu.OnlyMainMenu=请在主菜单中使用

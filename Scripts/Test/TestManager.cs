@@ -7,10 +7,6 @@ static class TestManager
     public static Ref<string> TestRef = GetRefPointer(ref Test);
     public static IntPtr Pointer;
     public static (string name, Action onClick)[] tests = new(string name, Action onClick)[]{
-        ("CSFsm", () => {
-            var go = new GameObject("CSFsm Test");
-            CSFsmTest.Attach(go, "Test0");
-        }),
         ("ILTest", () => {
             string t = "Hello,world!" + Test;
             Pointer = GetRefPointer(ref t);

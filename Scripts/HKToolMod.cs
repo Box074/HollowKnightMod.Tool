@@ -66,11 +66,11 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
         {
             try
             {
-                foreach (var t in v.GetTypes().Where(x => x.IsSubclassOf(typeof(Mod)) && !x.IsAbstract))
+                foreach (var t in v.SafeGetTypes().Where(x => x.IsSubclassOf(typeof(Mod)) && !x.IsAbstract))
                 {
                     var getpreloadnames = t.GetMethod("GetPreloadNames", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
                     if (getpreloadnames is null) continue;
-                    if(table.Contains(getpreloadnames)) continue;
+                    if (table.Contains(getpreloadnames)) continue;
                     table.Add(getpreloadnames);
                     HookEndpointManager.Add(getpreloadnames, (Func<Mod, List<(string, string)>> orig, Mod self) =>
                     {
@@ -101,7 +101,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
                                 i--;
                                 modPreload = modPreload ?? new();
                                 Modding.Logger.LogWarn($"[API Compatibility]'{self.GetName()}' tries to preload '{objName}' using Preload Prefab, which was removed in Modding API 72");
-                                this.AddPreloadSharedAsset(sceneId, objName, typeof(GameObject), obj =>
+                                this.AddPreloadSharedAsset(sceneId, objName, typeof(GameObject), false, obj =>
                                 {
                                     modPreload.TryGetOrAddValue(sceneName, () => new())[objName] = (GameObject?)obj;
                                 });
@@ -111,6 +111,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
                             {
                                 ModManager.onLoadMod += (ModInstance mi, ref bool updateVer, ref PreloadObject preloads) =>
                                 {
+                                    if (mi.Mod is null || mi.Mod?.GetType() != t) return;
                                     preloads = preloads ?? new();
                                     if (!updateVer)
                                     {
@@ -209,6 +210,20 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
                 return orig;
             };
             UnityLogStackTrace();
+        }
+        if (AppDomain.CurrentDomain.GetAssemblies().Any(x => x.GetName().Name == "AlreadyEnoughPlayMaker"))
+        {
+            On.HutongGames.PlayMaker.FsmState.set_Actions += (orig, self, val) =>
+            {
+                orig(self, val);
+                if (val != null)
+                {
+                    foreach (var v in val)
+                    {
+                        v.Init(self);
+                    }
+                }
+            };
         }
     }
 

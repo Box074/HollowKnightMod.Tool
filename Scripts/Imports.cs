@@ -13,7 +13,11 @@ global using System.Text.RegularExpressions;
 global using System.Linq;
 global using UnityEngine;
 global using UnityEngine.UI;
+global using UnityEngine.Audio;
 global using UnityEngine.SceneManagement;
+global using Unity.Collections;
+global using Unity.Collections.LowLevel;
+global using Unity.Collections.LowLevel.Unsafe;
 global using Debug = UnityEngine.Debug;
 global using USceneManager = UnityEngine.SceneManagement.SceneManager;
 

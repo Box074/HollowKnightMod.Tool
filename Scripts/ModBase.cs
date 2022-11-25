@@ -16,6 +16,10 @@ public abstract class ModBase : Mod, IHKToolMod
             inResources = id == 0;
             this.id = id;
         }
+        public PreloadSharedAssetsAttribute(int id, string name, bool cloneOne, Type? type = null) : this(id, name, type)
+        {
+            this.cloneOne = cloneOne;
+        }
         [Obsolete]
         public PreloadSharedAssetsAttribute(string scene, string name, Type? type = null) : this(Array.IndexOf(sceneNames, scene), name, type)
         {
@@ -25,6 +29,7 @@ public abstract class ModBase : Mod, IHKToolMod
         public string name;
         public bool inResources;
         public int id;
+        public bool cloneOne;
     }
     public const string compileVersion = CompileInfo.MOD_VERSION;
     private static int _currentmapiver = (int)FindFieldInfo("Modding.ModHooks::_modVersion").GetValue(null);
@@ -172,58 +177,60 @@ public abstract class ModBase : Mod, IHKToolMod
     {
         return File.ReadAllBytes(GetType().Assembly.Location);
     }
-    private void LoadPreloadResource(List<(string, Type, Action<UObject?>)> table, Func<Type, UObject[]> fetch)
+    private void LoadPreloadResource(List<PreloadAssetInfo> table)
     {
-        var batch = new Dictionary<Type, List<(string, Action<UObject?>)>>();
+        var batch = new Dictionary<Type, List<PreloadAssetInfo>>();
         foreach (var v2 in table)
         {
-            if (!batch.TryGetValue(v2.Item2, out var v3))
+            if (!batch.TryGetValue(v2.targetType, out var v3))
             {
                 v3 = new();
-                batch.Add(v2.Item2, v3);
+                batch.Add(v2.targetType, v3);
             }
-            v3.Add((v2.Item1, v2.Item3));
-            LogFine($"Request {v2.Item1} ({v2.Item2.Name})");
+            v3.Add(v2);
+            LogFine($"Request {v2.name} ({v2.targetType.Name})");
         }
         foreach (var g in batch)
         {
             var type = g.Key;
-            var objects = fetch(type);
             var list = g.Value;
 
-            IEnumerable<UObject> matchobjects = objects;
-            if (type == typeof(GameObject)) matchobjects = matchobjects.OfType<GameObject>()
-                                                        .Where(x => !x.scene.IsValid())
-                                                        .Where(x => x.transform.parent == null);
-            if (type == typeof(Texture2D)) matchobjects = matchobjects.OfType<Texture2D>()
-                                                        .Where(x => !x.isReadable);
-            if (type == typeof(AudioClip)) matchobjects = matchobjects.OfType<AudioClip>()
-                                                        .Where(x => x.loadType == AudioClipLoadType.DecompressOnLoad);
-            foreach (var o in matchobjects)
+            HashSet<string> matchNames = new();
+            foreach (var v in list)
             {
-                if (o is null) continue;
-                var match = list.FirstOrDefault(x => x.Item1 == o.name);
-                if (match.Item2 is not null)
-                {
-                    try
-                    {
-                        LogFine($"Found {match.Item1} ({type.Name})");
-                        match.Item2.Invoke(o);
-                    }
-                    catch (Exception e)
-                    {
-                        LogError(e);
-                    }
-                    list.Remove(match);
-                }
-
+                matchNames.Add(v.name);
             }
-            foreach (var v4 in list)
+            var matchobjects = ResourcesUtils.FindAssets(matchNames, type);
+            foreach (var v in list)
             {
                 try
                 {
-                    LogFine($"{v4.Item1}({type.Name}) not found");
-                    v4.Item2.Invoke(null);
+                    if (!matchobjects.TryGetValue(v.name, out var obj))
+                    {
+
+                        LogError($"{v.name}({type.Name}) not found");
+                        v.cb.Invoke(null);
+                        continue;
+                    }
+                    var oin = obj;
+                    if (v.cloneOne)
+                    {
+                        if (v.targetType == typeof(GameObject))
+                        {
+                            oin = ((GameObject)oin).CloneAsPrefab();
+                        }
+                        else if (v.targetType.IsSubclassOf(typeof(Component)))
+                        {
+                            oin = ((Component)oin).CloneAsPrefab();
+                        }
+                        else
+                        {
+                            oin = UObject.Instantiate(oin);
+                            oin.name = obj.name;
+                        }
+                    }
+                    LogFine($"Found {v.name} ({type.Name})");
+                    v.cb.Invoke(oin);
                 }
                 catch (Exception e)
                 {
@@ -237,29 +244,34 @@ public abstract class ModBase : Mod, IHKToolMod
     {
         if (assetpreloads.TryGetValue(0, out var inresources))
         {
-            LoadPreloadResource(inresources, (type) => Resources.FindObjectsOfTypeAll(type));
+            LoadPreloadResource(inresources);
         }
         foreach (var v in preloads)
         {
             if (go is null)
             {
-                if (v.Value.Item3) throw new MissingPreloadObjectException(v.Value.Item1, v.Value.Item2);
+                if (v.Value.throwExceptionOnMissing) throw new MissingPreloadObjectException(v.Value.scene, v.Value.name);
                 continue;
             }
-            if (!go.TryGetValue(v.Value.Item1, out var scene))
+            if (!go.TryGetValue(v.Value.scene, out var scene))
             {
-                if (v.Value.Item3) throw new MissingPreloadObjectException(v.Value.Item1, v.Value.Item2);
-                LogWarn("Missing Scene: " + v.Value.Item1);
+                if (v.Value.throwExceptionOnMissing) throw new MissingPreloadObjectException(v.Value.scene, v.Value.name);
+                LogWarn("Missing Scene: " + v.Value.scene);
                 continue;
             }
-            if (!scene.TryGetValue(v.Value.Item2, out var obj))
+            if (!scene.TryGetValue(v.Value.name, out var obj))
             {
-                if (v.Value.Item3) throw new MissingPreloadObjectException(v.Value.Item1, v.Value.Item2);
-                LogWarn("Missing Object: " + v.Value.Item2);
+                if (v.Value.throwExceptionOnMissing) throw new MissingPreloadObjectException(v.Value.scene, v.Value.name);
+                LogWarn("Missing Object: " + v.Value.name);
                 continue;
             }
             try
             {
+                if (v.Value.cloneOne)
+                {
+                    obj = obj.CloneAsPrefab();
+                    UnityEngine.Object.Destroy(obj);
+                }
                 v.Key.Invoke(obj);
             }
             catch (Exception e)
@@ -271,30 +283,18 @@ public abstract class ModBase : Mod, IHKToolMod
     private List<(string, string)> HookGetPreloads(List<(string, string)> preloads)
     {
         preloads = preloads ?? new();
-        foreach (var v in this.preloads) preloads.Add((v.Value.Item1, v.Value.Item2));
+        foreach (var v in this.preloads) preloads.Add((v.Value.scene, v.Value.name));
         return preloads;
     }
+    internal record PreloadAssetInfo(string name, Type targetType, bool cloneOne, Action<UObject?> cb);
     public override (string, Func<IEnumerator>)[] PreloadSceneHooks()
     {
-        IEnumerator PreloadAssets(List<(string, System.Type, Action<UnityEngine.Object?>)> assets)
+        IEnumerator PreloadAssets(List<PreloadAssetInfo> assets)
         {
-            LoadPreloadResource(assets, t => Resources.FindObjectsOfTypeAll(t));
+            LoadPreloadResource(assets);
             yield break;
         }
-        return assetpreloads.Select(x => (sceneNames[x.Key],(Func<IEnumerator>)PreloadAssets(x.Value).AsEnumerable().GetEnumerator)).ToArray();
-    }
-    private List<(int, string, Type)> HookGetPreloadAssetNames(List<(int, string, Type)> preloads)
-    {
-        preloads = preloads ?? new();
-        foreach (var v in assetpreloads)
-        {
-            if(v.Key == 0) continue;
-            foreach (var v2 in v.Value)
-            {
-                preloads.Add((v.Key, v2.Item1, v2.Item2));
-            }
-        }
-        return preloads;
+        return assetpreloads.Select(x => (sceneNames[x.Key], (Func<IEnumerator>)PreloadAssets(x.Value).AsEnumerable().GetEnumerator)).ToArray();
     }
     private void CheckHookGetPreloads()
     {
@@ -320,9 +320,10 @@ public abstract class ModBase : Mod, IHKToolMod
         }
     }
     private bool needHookGetPreloads = false;
-    internal Dictionary<Action<GameObject?>, (string, string, bool)> preloads = new();
-    internal Dictionary<int, List<(string, Type, Action<UObject?>)>> assetpreloads = new();
-    protected void AddPreloadSharedAsset(int? id, string name, Type type, Action<UObject?> callback)
+    internal record PreloadGameObjectInfo(string scene, string name, bool throwExceptionOnMissing, bool cloneOne);
+    internal Dictionary<Action<GameObject?>, PreloadGameObjectInfo> preloads = new();
+    internal Dictionary<int, List<PreloadAssetInfo>> assetpreloads = new();
+    protected void AddPreloadSharedAsset(int? id, string name, Type type, bool cloneOne, Action<UObject?> callback)
     {
         if (ModLoaderHelper.modLoadState.HasFlag(ModLoadState.Preloaded)) throw new InvalidOperationException();
         if (!typeof(UObject).IsAssignableFrom(type)) return;
@@ -331,7 +332,7 @@ public abstract class ModBase : Mod, IHKToolMod
 
         var list = assetpreloads.TryGetOrAddValue(sceneId, () => new());
         needHookGetPreloads = true;
-        list.Add((name, type, callback));
+        list.Add(new(name, type, cloneOne, callback));
     }
     private void CheckPreloads()
     {
@@ -350,7 +351,7 @@ public abstract class ModBase : Mod, IHKToolMod
             var p = v.GetCustomAttribute<PreloadAttribute>();
             if (p is not null)
             {
-                preloads.Add(CreateSetter<GameObject?>(v), (p.sceneName, p.objPath, p.throwExceptionOnMissing));
+                preloads.Add(CreateSetter<GameObject?>(v), new(p.sceneName, p.objPath, p.throwExceptionOnMissing, p.setActive));
                 needHookGetPreloads = true;
                 continue;
             }
@@ -365,7 +366,7 @@ public abstract class ModBase : Mod, IHKToolMod
                     else if (v is PropertyInfo prop) targetType = prop.PropertyType;
                     else continue;
                 }
-                AddPreloadSharedAsset(pa.inResources ? null : pa.id, pa.name, targetType, CreateSetter<UObject?>(v));
+                AddPreloadSharedAsset(pa.inResources ? null : pa.id, pa.name, targetType, pa.cloneOne, CreateSetter<UObject?>(v));
             }
         }
     }

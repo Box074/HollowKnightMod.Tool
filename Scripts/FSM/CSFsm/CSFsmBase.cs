@@ -1,7 +1,7 @@
 
 namespace HKTool.FSM.CSFsm;
 
-[Serializable]
+[Serializable] //FIXME
 public abstract class CSFsmBase : MonoBehaviour, ISerializationCallbackReceiver
 {
     [AttributeUsage(AttributeTargets.Method)]
@@ -65,6 +65,7 @@ public abstract class CSFsmBase : MonoBehaviour, ISerializationCallbackReceiver
     protected static object StartActionContent { get; } = new object();
     private CSFsmAction? current = null;
     [field: SerializeField]
+    [field: SerializeReference]
     public PlayMakerFSM FsmComponent { get; private set; } = null!;
     private StateInfo? currentState;
     private FsmStateAction[]? _origActions;
@@ -432,6 +433,12 @@ public abstract class CSFsmBase : MonoBehaviour, ISerializationCallbackReceiver
                 if (result is string eventName)
                 {
                     Fsm.Event(FsmEvent.GetFsmEvent(eventName));
+                    result = null;
+                    return true;
+                }
+                else if(result is FsmEvent eve)
+                {
+                    Fsm.Event(eve);
                     result = null;
                     return true;
                 }
