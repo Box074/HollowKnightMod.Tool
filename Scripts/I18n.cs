@@ -62,7 +62,7 @@ public class I18n
                 int s = l2.IndexOf('=');
                 if (s == -1) continue;
                 var n = l2.Substring(0, s);
-                var val = l2.Substring(s + 1).Replace("\\n", "\n");
+                var val = l2.Substring(s + 1).Replace("\\n", "\n").Trim();
                 Current.Add(n, val);
                 HKToolMod.logger.LogFine($"I18n: {n} = {val}");
             }
