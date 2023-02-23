@@ -99,54 +99,6 @@ static class FastReflection
             return field.GetValue(@this);
         }
     }
-    internal static IntPtr GetFieldRefEx(object? @this, FieldInfo field, ref RT_GetFieldPtr cache)
-    {
-        if (cache is not null) return cache.Invoke(@this);
-        return GetFieldRef(@this, field, out cache);
-    }
-    internal static IntPtr GetFieldRef(object? @this, FieldInfo field, out RT_GetFieldPtr cache)
-    {
-        if (field is null) throw new ArgumentNullException(nameof(field));
-        if (frefgetter.TryGetValue(field, out var getter))
-        {
-            cache = getter;
-            return getter.Invoke(@this!);
-        }
-        if (field.IsStatic)
-        {
-            DynamicMethod dm = new("", MethodAttributes.Static | MethodAttributes.Public,
-        CallingConventions.Standard, typeof(IntPtr), new Type[]{
-                        typeof(object)
-            }, (Type)field.DeclaringType, true);
-            var il = dm.GetILGenerator();
-
-
-
-            if (!field.IsStatic)
-            {
-                il.Emit(OpCodes.Ldarg_0);
-                if (field.DeclaringType.IsValueType)
-                {
-                    il.Emit(OpCodes.Unbox_Any, field.DeclaringType);
-                }
-                il.Emit(OpCodes.Ldflda, field);
-            }
-            else
-            {
-                il.Emit(OpCodes.Ldsflda, field);
-            }
-            il.Emit(OpCodes.Ret);
-            getter = (RT_GetFieldPtr)dm.CreateDelegate(typeof(RT_GetFieldPtr));
-        }
-        else
-        {
-            int offset = UnsafeUtils.GetFieldOffset(field);
-            getter = obj => IntPtr.Add(obj!.ToPointer(), offset);
-        }
-        frefgetter[field] = getter;
-        cache = getter;
-        return getter.Invoke(@this!);
-    }
 
     internal static void SetField(object? @this, FieldInfo field, object? val)
     {

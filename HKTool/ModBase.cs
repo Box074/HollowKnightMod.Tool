@@ -31,8 +31,9 @@ public abstract class ModBase : Mod, IHKToolMod
         public int id;
         public bool cloneOne;
     }
-    public const string compileVersion = CompileInfo.MOD_VERSION;
-    private static int _currentmapiver = (int)FindFieldInfo("Modding.ModHooks::_modVersion").GetValue(null);
+    public const string compileVersion = "2.0.0";
+    private static int _currentmapiver = (int)(HReflectionHelper.FindType("Modding.ModHooks")!
+        .GetField("_modVersion", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null));
     public static int CurrentMAPIVersion => _currentmapiver;
     public static readonly string[] sceneNames;
     static ModBase()
@@ -370,8 +371,7 @@ public abstract class ModBase : Mod, IHKToolMod
             }
         }
     }
-    protected ModBase(string? name = null) : this(name ??
-        Regex.Replace(GetSelf().GetType().Name, "([A-Z])", " $1").Trim(), false)
+    protected ModBase(string? name = null) : this(name!, false)
     {
 
     }

@@ -2,7 +2,7 @@
 namespace HKTool.FSM.CSFsm;
 
 [Serializable] //FIXME
-public abstract class CSFsmBase : MonoBehaviour, ISerializationCallbackReceiver
+public abstract class CSFsmBase : MonoBehaviour
 {
     [AttributeUsage(AttributeTargets.Method)]
     protected class FsmStateAttribute : Attribute
@@ -36,31 +36,6 @@ public abstract class CSFsmBase : MonoBehaviour, ISerializationCallbackReceiver
     }
 
 
-    #region Clone
-    [Serializable]
-    private class OriginalStateInfo
-    {
-        public string name = "";
-        public ActionData? data = null;
-    }
-    [SerializeField]
-    private bool isClone = false;
-    private List<OriginalStateInfo> originalStates = new();
-    void ISerializationCallbackReceiver.OnAfterDeserialize()
-    {
-        isClone = true;
-    }
-    void ISerializationCallbackReceiver.OnBeforeSerialize()
-    {
-
-    }
-    private void Start() {
-        if(!isClone) return;
-        BindPlayMakerFSM(FsmComponent);
-    }
-    #endregion
-
-
     private Dictionary<MethodInfo, StateInfo> stateCache = new();
     protected static object StartActionContent { get; } = new object();
     private CSFsmAction? current = null;
@@ -91,13 +66,6 @@ public abstract class CSFsmBase : MonoBehaviour, ISerializationCallbackReceiver
             {
                 var state = OriginalState;
                 if(state == null) return _origActions = Array.Empty<FsmStateAction>();
-                if(isClone)
-                {
-                    var orig = originalStates.FirstOrDefault(x => x.name == state.Name);
-                    if(orig == null) return _origActions = Array.Empty<FsmStateAction>();
-                    state.private_actionData() = orig.data;
-                    state.LoadActions();
-                }
                 _origActions = state.Actions;
             }
             return _origActions;
@@ -346,17 +314,7 @@ public abstract class CSFsmBase : MonoBehaviour, ISerializationCallbackReceiver
                 state = new(fsm);
                 states.Add(state);
             }
-            else
-            {
-                if (!isClone)
-                {
-                    originalStates.Add(new()
-                    {
-                        name = state.Name,
-                        data = state.ActionData
-                    });
-                }
-            }
+
             state.Transitions = trans;
             state.Name = currentState.name;
 
@@ -514,7 +472,7 @@ public abstract class CSFsm<T> : CSFsmBase where T : CSFsm<T>, new()
     {
         
         var pm = go.AddComponent<PlayMakerFSM>();
-        pm.InitFsm();
+
         var t = Apply(pm);
         startState = string.IsNullOrEmpty(startState) ? t.InitState : startState;
         pm.Fsm.StartState = startState;

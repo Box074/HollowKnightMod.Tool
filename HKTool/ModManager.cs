@@ -57,9 +57,9 @@ static class ModManager
             }
             if (vd is not null) vd.drawString = sb.ToString();
         };
-        if(ModBase.CurrentMAPIVersion < 72) return;
+
         HookEndpointManager.Add(
-            FindType("Modding.ModLoader")!.GetMethod("LoadMod", HReflectionHelper.All),
+            HReflectionHelper.FindType("Modding.ModLoader")!.GetMethod("LoadMod", HReflectionHelper.All),
                 HookLoadMod
         );
         On.Modding.Mod.GetPreloadNames += (orig, self) =>
