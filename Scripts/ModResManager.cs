@@ -6,7 +6,7 @@ public static class ModResManager
     private static Dictionary<Assembly, byte[]> resFileData = new();
     internal static void Init()
     {
-        HKToolMod.logger.Log("Init ModResManager");
+        HKToolLegacyMod.logger.Log("Init ModResManager");
         On.System.Reflection.Assembly.GetManifestResourceStream_string += (orig, self, name) =>
         {
             var modResList = self.GetCustomAttribute<ModResourcesListAttribute>();

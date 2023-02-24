@@ -1,10 +1,10 @@
 ﻿
 namespace HKTool;
 
-class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMenuMod
+class HKToolLegacyMod : ModBase<HKToolLegacyMod>, IGlobalSettings<HKToolSettings>
 {
     public static List<WeakReference<FsmState>> ignoreLoadActionsState = new();
-    static HKToolMod()
+    static HKToolLegacyMod()
     {
         On.HutongGames.PlayMaker.FsmState.LoadActions += (orig, self) =>
         {
@@ -21,7 +21,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
     public static SimpleLogger logger = new("HKTool");
     public static bool IsDebugMode { get; private set; }
     public static ReflectionObject RModLoader => ModLoaderHelper.RModLoader;
-    public HKToolMod() : base("HKTool")
+    public HKToolLegacyMod() : base("HKTool Legacy")
     {
         I18n.AddLanguage(SupportedLanguages.EN, ModRes.LANGUAGE_EN);
         I18n.AddLanguage(SupportedLanguages.ZH, ModRes.LANGUAGE_ZH);
@@ -34,104 +34,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
 
         IsDebugMode = settings.DevMode;
 
-        try
-        {
-            Init();
-        }
-        catch (Exception e)
-        {
-            LogError(e);
-        }
 
-        On.HeroController.get_instance += (_) => HeroController.SilentInstance;
-        On.HutongGames.PlayMaker.ReflectionUtils.GetGlobalType += (orig, name) =>
-        {
-            return orig(name) ?? HReflectionHelper.FindType(name);
-        };
-        FakePreloadPrefab();
-        if (settings.DevMode)
-        {
-            DebugTools.DebugManager.Init();
-            DebugManager.Init();
-            if (settings.DebugConfig.DebugMods?.Count > 0)
-            {
-                DebugModsLoader.LoadMods(settings.DebugConfig.DebugMods);
-            }
-        }
-    }
-    private void FakePreloadPrefab()
-    {
-        HashSet<MethodInfo> table = new();
-        foreach (var v in AppDomain.CurrentDomain.GetAssemblies())
-        {
-            try
-            {
-                foreach (var t in v.SafeGetTypes().Where(x => x.IsSubclassOf(typeof(Mod)) && !x.IsAbstract))
-                {
-                    var getpreloadnames = t.GetMethod("GetPreloadNames", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-                    if (getpreloadnames is null) continue;
-                    if (table.Contains(getpreloadnames)) continue;
-                    table.Add(getpreloadnames);
-                    HookEndpointManager.Add(getpreloadnames, (Func<Mod, List<(string, string)>> orig, Mod self) =>
-                    {
-                        var list = orig(self);
-                        if (list is null) return list;
-                        Dictionary<string, Dictionary<string, GameObject?>>? modPreload = null;
-                        for (int i = 0; i < list.Count; i++)
-                        {
-                            (string sceneName, string objName) = list[i];
-                            if (sceneName.StartsWith("sharedassets", StringComparison.OrdinalIgnoreCase) ||
-                                sceneName.StartsWith("resources", StringComparison.OrdinalIgnoreCase))
-                            {
-                                var name = Path.GetFileNameWithoutExtension(sceneName).ToLower();
-                                int? sceneId = null;
-                                if (sceneName == "resources")
-                                {
-                                    sceneId = null;
-                                }
-                                else
-                                {
-                                    if (!int.TryParse(name.Substring(12), out var id))
-                                    {
-                                        continue;
-                                    }
-                                    sceneId = id;
-                                }
-                                list.RemoveAt(i);
-                                i--;
-                                modPreload = modPreload ?? new();
-                                Modding.Logger.LogWarn($"[API Compatibility]'{self.GetName()}' tries to preload '{objName}' using Preload Prefab, which was removed in Modding API 72");
-                                this.AddPreloadSharedAsset(sceneId, objName, typeof(GameObject), false, obj =>
-                                {
-                                    modPreload.TryGetOrAddValue(sceneName, () => new())[objName] = (GameObject?)obj;
-                                });
-
-                            }
-                            if (modPreload is not null)
-                            {
-                                ModManager.onLoadMod += (ModInstance mi, ref bool updateVer, ref PreloadObject preloads) =>
-                                {
-                                    if (mi.Mod is null || mi.Mod?.GetType() != t) return;
-                                    preloads = preloads ?? new();
-                                    if (!updateVer)
-                                    {
-                                        foreach (var v in modPreload)
-                                        {
-                                            preloads[v.Key] = v.Value!;
-                                        }
-                                    }
-                                };
-                            }
-                        }
-                        return list;
-                    });
-                }
-            }
-            catch (Exception)
-            {
-
-            }
-        }
     }
     private static void UnityLogStackTrace()
     {
@@ -199,46 +102,12 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
     }
     public static bool i18nShowOrig;
 
-    internal static void Init()
-    {
-        if (IsDebugMode)
-        {
-            Application.logMessageReceived += UnityLogHandler;
-            ModHooks.LanguageGetHook += (key, sheet, orig) =>
-            {
-                if (i18nShowOrig) return $"#{key}({sheet})";
-                return orig;
-            };
-            UnityLogStackTrace();
-        }
-        if (AppDomain.CurrentDomain.GetAssemblies().Any(x => x.GetName().Name == "AlreadyEnoughPlayMaker"))
-        {
-            On.HutongGames.PlayMaker.FsmState.set_Actions += (orig, self, val) =>
-            {
-                orig(self, val);
-                if (val != null)
-                {
-                    foreach (var v in val)
-                    {
-                        v.Init(self);
-                    }
-                }
-            };
-        }
-    }
-
     public override string MenuButtonName => "HKTool.Menu.ButtonLabel".Localize();
     public override Font MenuButtonLabelFont => MenuResources.Perpetua;
     public static HKToolSettings settings = HKToolSettings.TryLoad();
     public static HKToolDebugConfig devSettings => settings.DebugConfig;
     public bool ToggleButtonInsideMenu => true;
-    public static HKToolSettingsMenu? SettingsMenu;
     public void SaveSettings() => SaveGlobalSettings();
-    public MenuScreen GetMenuScreen(MenuScreen modListMenu, ModToggleDelegates? toggleDelegates)
-    {
-        SettingsMenu = new(modListMenu);
-        return SettingsMenu;
-    }
     public override string GetVersion()
     {
         return base.GetVersion() + (settings.DevMode ? "-DevMode" : "");

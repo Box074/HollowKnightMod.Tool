@@ -82,7 +82,7 @@ static class ModManager
         }
         catch (Exception e)
         {
-            HKToolMod.logger.LogError(e);
+            HKToolLegacyMod.logger.LogError(e);
         }
         if (mi.Error.HasValue) return;
         try
@@ -110,7 +110,7 @@ static class ModManager
                 catch (Exception e)
                 {
                     mi.Error = ModErrorState.Initialize;
-                    HKToolMod.logger.LogError(e);
+                    HKToolLegacyMod.logger.LogError(e);
                 }
 
             }
@@ -122,7 +122,7 @@ static class ModManager
         catch (Exception e)
         {
             mi.Error = ModErrorState.Initialize;
-            HKToolMod.logger.LogError(e);
+            HKToolLegacyMod.logger.LogError(e);
         }
     }
     private static void LoadModSelf(ModInstance modInst, bool updateModText)

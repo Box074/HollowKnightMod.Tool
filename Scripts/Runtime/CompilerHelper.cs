@@ -17,6 +17,6 @@ public static class CompilerHelper
         if(ex == null) return;
         var fsm = FsmExecutionStack.ExecutingFsm;
         var s = new StackTrace(2);
-        HKToolMod.logger.LogError($"{ex.ToString()}\n{s.ToString()}\n[Fsm: \"{fsm?.Name}\" State: \"{fsm?.ActiveState?.Name}\" GameObject: \"{fsm?.GameObject?.GetPath()}\"]");
+        HKToolLegacyMod.logger.LogError($"{ex.ToString()}\n{s.ToString()}\n[Fsm: \"{fsm?.Name}\" State: \"{fsm?.ActiveState?.Name}\" GameObject: \"{fsm?.GameObject?.GetPath()}\"]");
     }
 }

@@ -54,7 +54,7 @@ public class CoroutineInfo : CustomYieldInstruction
             }
             catch (Exception ex)
             {
-                HKToolMod.logger.LogError(ex);
+                HKToolLegacyMod.logger.LogError(ex);
             }
         }
     }
@@ -68,7 +68,7 @@ public class CoroutineInfo : CustomYieldInstruction
             }
             catch (Exception e)
             {
-                HKToolMod.logger.LogError(e);
+                HKToolLegacyMod.logger.LogError(e);
             }
         }
     }

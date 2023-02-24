@@ -40,7 +40,7 @@ public abstract class CustomMenu : BindI18n
                     }
                     catch (Exception e2)
                     {
-                        HKToolMod.logger.LogError(e2);
+                        HKToolLegacyMod.logger.LogError(e2);
                     }
                 }
             }
@@ -106,7 +106,7 @@ public abstract class CustomMenu : BindI18n
                 try
                 {
                     content = c1;
-                    HKToolMod.logger.Log("Build Menu: " + title);
+                    HKToolLegacyMod.logger.Log("Build Menu: " + title);
                     Build(c1);
                     var scrollPaneRt = content.ContentObject.GetComponent<RectTransform>();
                     RectTransformData.FromSizeAndPos(

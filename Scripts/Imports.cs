@@ -33,12 +33,10 @@ global using GlobalEnums;
 global using Language;
 
 global using HKTool;
-global using HKTool.DebugTools;
 global using HKTool.FSM;
 global using HKTool.FSM.CSFsm;
 global using HKTool.Reflection;
 global using HKTool.Menu;
-global using HKTool.ModMenu;
 global using HKTool.SpecialBehaviour;
 global using HKTool.Utils;
 global using HKTool.Utils.Compile;
@@ -50,7 +48,6 @@ global using HKTool.MAPI;
 global using HKTool.MAPI.Loader;
 global using HKTool.Patcher;
 global using HKTool.Unsafe;
-global using HKTool.Debugger;
 
 global using Mono.Cecil;
 global using Mono.Cecil.Cil;

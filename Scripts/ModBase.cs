@@ -78,7 +78,7 @@ public abstract class ModBase : Mod, IHKToolMod
     private void CheckHKToolVersion(string? name = null)
     {
         if (HKToolMinVersion is null) return;
-        var hkv = typeof(HKToolMod).Assembly.GetName().Version;
+        var hkv = typeof(HKToolLegacyMod).Assembly.GetName().Version;
         if (hkv < HKToolMinVersion)
         {
             TooOldDependency("HKTool", HKToolMinVersion);
@@ -86,8 +86,7 @@ public abstract class ModBase : Mod, IHKToolMod
     }
     public override string GetVersion()
     {
-        return GetType().Assembly.GetName().Version.ToString() + "-" + sha1 +
-            (DebugManager.IsDebug(this) ? "-Dev" : "");
+        return GetType().Assembly.GetName().Version.ToString() + "-" + sha1;
     }
     public void HideButtonInModListMenu()
     {
@@ -403,10 +402,6 @@ public abstract class ModBase : Mod, IHKToolMod
             };
         }
 
-        if (this is IDebugViewBase @base && ShowDebugView)
-        {
-            DebugView.debugViews.Add(@base);
-        }
         foreach (var v in GetType().GetMethods(HReflectionHelper.All))
         {
             if (v.ReturnType != typeof(void) || v.GetParameters().Length != 1) continue;
