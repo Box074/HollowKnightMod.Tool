@@ -9,7 +9,7 @@ public static class ReflectionHelperEx
     [PatchCaller(typeof(InternalPatcher), nameof(InternalPatcher.Patch_FindType))]
     public static Type? FindType(string fullname)
     {
-        var parts = fullname.Split('+');
+        var parts = fullname.Trim().Split('+');
         var parent = HReflectionHelper.FindType(parts[0]);
         if(parent == null) return null;
         for(int i = 1; i < parts.Length ; i++)
@@ -43,10 +43,16 @@ public static class ReflectionHelperEx
     [PatchCaller(typeof(InternalPatcher), nameof(InternalPatcher.Patch_FindMethodBase))]
     public static MethodBase FindMethodBase(string name)
     {
-        var tn = name.Substring(0, name.IndexOf(':'));
-        var fn = name.Substring(name.LastIndexOf(':') + 1);
+        var tn = name.Substring(0, name.IndexOf(':')).Trim();
+        var fn = name.Substring(name.LastIndexOf(':') + 1).Trim();
         var type = FindType(tn);
-        if(type == null) throw new MissingMethodException(tn, fn);
+        if(type == null) throw new MissingMemberException(tn, fn);
+
+        if(fn == ".ctor" || fn == ".cctor")
+        {
+            return type.GetConstructors(HReflectionHelper.All)
+                .FirstOrDefault(x => (fn == ".ctor" && !x.IsStatic) || (fn == ".cctor" && x.IsStatic)) ?? throw new MissingMethodException(tn, fn);
+        }
         return type.GetMethod(fn, HReflectionHelper.All) ?? throw new MissingMethodException(tn, fn);
     }
 

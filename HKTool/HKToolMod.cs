@@ -23,8 +23,8 @@ class HKToolMod2 : ModBase<HKToolMod2>, IGlobalSettings<HKToolSettings>, ICustom
     public static ReflectionObject RModLoader => ModLoaderHelper.RModLoader;
     protected override List<(SupportedLanguages, string)>? LanguagesEx => new()
     {
-        (SupportedLanguages.ZH, "Resources.Languages.lang_zh.txt"),
-        (SupportedLanguages.EN, "Resources.Languages.lang_en.txt"),
+        (SupportedLanguages.ZH, "HKTool.Resources.Languages.lang_zh.txt"),
+        (SupportedLanguages.EN, "HKTool.Resources.Languages.lang_en.txt"),
     };
     public HKToolMod2() : base("HKTool")
     {

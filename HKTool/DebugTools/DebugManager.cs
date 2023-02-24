@@ -7,7 +7,6 @@ class DebugManager
         DebugView.Init();
         AddDebugView(new HKDebug.Menu.MenuShow());
         HKDebug.Tool.Init();
-        HKDebug.FakeDebug.Init();
     }
 
     public static void AddDebugView(IDebugViewBase view)

@@ -7,7 +7,10 @@ public static class ModResManager
     internal static void Init()
     {
         HKToolMod2.logger.Log("Init ModResManager");
-        On.System.Reflection.Assembly.GetManifestResourceStream_string += (orig, self, name) =>
+        HookEndpointManager.Add(typeof(Assembly).GetMethod("GetManifestResourceStream", HReflectionHelper.All, null, new[]
+        {
+            typeof(string)
+        }, null), (Func<Assembly, string, Stream> orig, Assembly self, string name) =>
         {
             var modResList = self.GetCustomAttribute<ModResourcesListAttribute>();
             var isCompression = self.IsDefined(typeof(EmbeddedResourceCompressionAttribute));
@@ -81,7 +84,7 @@ public static class ModResManager
                 }
             }
             return st;
-        };
+        });
     }
     public static byte[]? GetManifestResourceBytes(this Assembly ass, string name)
     {
