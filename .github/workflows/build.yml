@@ -15,7 +15,7 @@ jobs:
       run: |
         dotnet build -c=Release
     - name: Upload
-    - uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v3
       with:
         name: Publish Output
         path: ./HKTool/bin/Publish
