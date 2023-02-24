@@ -5,7 +5,7 @@ class HKToolSettingsMenu : CustomMenu
 {
     public static bool init = false;
     public override Font titleFont => MenuResources.Perpetua;
-    public static HKToolSettings settings => HKToolMod.settings;
+    public static HKToolSettings settings => HKToolMod2.settings;
     public override bool DelayBuild => true;
     private DebugModuleMenu debugModule;
     public HKToolSettingsMenu(MenuScreen returnScreen) : base(returnScreen, "HKTool")
@@ -17,7 +17,7 @@ class HKToolSettingsMenu : CustomMenu
     protected override void Back()
     {
         base.Back();
-        HKToolMod.Instance.SaveSettings();
+        HKToolMod2.Instance.SaveSettings();
     }
     private void DebugOptions()
     {
@@ -44,7 +44,7 @@ class HKToolSettingsMenu : CustomMenu
         }, MenuResources.Perpetua);
         AddBoolOption("HKTool.I18n.ShowOrigin".Localize(),
             "HKTool.Desc.NeverSave".Localize(),
-            ref HKToolMod.i18nShowOrig, null, MenuResources.Perpetua);
+            new FieldRefHolder<bool>(HKToolMod2.Instance, nameof(HKToolMod2.i18nShowOrig)), null, MenuResources.Perpetua);
         AddButton("HKTool.Menu.RebuildMenu".Localize(), "",
             () =>
             {
@@ -56,7 +56,7 @@ class HKToolSettingsMenu : CustomMenu
                     }
                     catch (Exception e)
                     {
-                        HKToolMod.logger.LogError(e);
+                        HKToolMod2.logger.LogError(e);
                     }
                     Back();
                 }
@@ -76,7 +76,7 @@ class HKToolSettingsMenu : CustomMenu
             (id) =>
             {
                 settings.DevMode = id == 1;
-                HKToolMod.Instance.SaveSettings();
+                HKToolMod2.Instance.SaveSettings();
             }, () =>
             {
                 return settings.DevMode ? 1 : 0;
@@ -107,13 +107,13 @@ class HKToolSettingsMenu : CustomMenu
                     }
                     catch (Exception e)
                     {
-                        HKToolMod.logger.LogError(e);
+                        HKToolMod2.logger.LogError(e);
                     }
                     Back();
                 }
             }, MenuResources.Perpetua);
 
-        if (HKToolMod.IsDebugMode)
+        if (HKToolMod2.IsDebugMode)
         {
             DebugOptions();
         }

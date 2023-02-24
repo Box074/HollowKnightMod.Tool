@@ -49,7 +49,6 @@ global using HKTool.Runtime;
 global using HKTool.MAPI;
 global using HKTool.MAPI.Loader;
 global using HKTool.Patcher;
-global using HKTool.Unsafe;
 global using HKTool.Debugger;
 
 global using Mono.Cecil;

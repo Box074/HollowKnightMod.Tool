@@ -1,10 +1,10 @@
 ﻿
 namespace HKTool;
 
-class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMenuMod
+class HKToolMod2 : ModBase<HKToolMod2>, IGlobalSettings<HKToolSettings>, ICustomMenuMod
 {
     public static List<WeakReference<FsmState>> ignoreLoadActionsState = new();
-    static HKToolMod()
+    static HKToolMod2()
     {
         On.HutongGames.PlayMaker.FsmState.LoadActions += (orig, self) =>
         {
@@ -21,10 +21,15 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
     public static SimpleLogger logger = new("HKTool");
     public static bool IsDebugMode { get; private set; }
     public static ReflectionObject RModLoader => ModLoaderHelper.RModLoader;
-    public HKToolMod() : base("HKTool")
+    protected override List<(SupportedLanguages, string)>? LanguagesEx => new()
     {
-        I18n.AddLanguage(SupportedLanguages.EN, ModRes.LANGUAGE_EN);
-        I18n.AddLanguage(SupportedLanguages.ZH, ModRes.LANGUAGE_ZH);
+        (SupportedLanguages.ZH, "Resources.Languages.lang_zh.txt"),
+        (SupportedLanguages.EN, "Resources.Languages.lang_en.txt"),
+    };
+    public HKToolMod2() : base("HKTool")
+    {
+        //I18n.AddLanguage(SupportedLanguages.EN, ModResources.LANG_EN);
+        //I18n.AddLanguage(SupportedLanguages.ZH, ModResources.LANG_ZH);
         I18n.UseGameLanguage(SupportedLanguages.EN, true);
 
         if (CurrentMAPIVersion < 72)
@@ -42,8 +47,7 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
         {
             LogError(e);
         }
-
-        On.HeroController.get_instance += (_) => HeroController.SilentInstance;
+        new NativeDetour(FindMethodBase("HeroController::get_instance"), FindMethodBase("HeroController::get_SilentInstance"));
         On.HutongGames.PlayMaker.ReflectionUtils.GetGlobalType += (orig, name) =>
         {
             return orig(name) ?? HReflectionHelper.FindType(name);
@@ -213,17 +217,18 @@ class HKToolMod : ModBase<HKToolMod>, IGlobalSettings<HKToolSettings>, ICustomMe
         }
         if (AppDomain.CurrentDomain.GetAssemblies().Any(x => x.GetName().Name == "AlreadyEnoughPlayMaker"))
         {
-            On.HutongGames.PlayMaker.FsmState.set_Actions += (orig, self, val) =>
-            {
-                orig(self, val);
-                if (val != null)
+            HookEndpointManager.Add(FindMethodBase("HutongGames.PlayMaker.FsmState::set_Actions"),
+                (Action<FsmState, FsmStateAction[]> orig, FsmState self, FsmStateAction[] val) =>
                 {
-                    foreach (var v in val)
+                    orig(self, val);
+                    if (val != null)
                     {
-                        v.Init(self);
+                        foreach (var v in val)
+                        {
+                            v.Init(self);
+                        }
                     }
-                }
-            };
+                });
         }
     }
 

@@ -8,7 +8,7 @@ public class FSMPatch : IPatch
         TargetFSM = fsm;
         States = fsm.States.ToList();
         EditState(fsm.StartState);
-        HKToolMod.logger.Log($"[FSMPatch]State Count:  {States.Count} Name: { fsm.GameObject.name }");
+        HKToolMod2.logger.Log($"[FSMPatch]State Count:  {States.Count} Name: { fsm.GameObject.name }");
     }
     public Fsm TargetFSM { get; private set; }
     public FsmState? CurrentState { get; private set; }

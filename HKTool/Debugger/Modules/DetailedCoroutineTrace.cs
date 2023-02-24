@@ -75,7 +75,7 @@ internal class DetailedCoroutineTrace : DebugModule
                     }));
                     }catch(Exception e)
                     {
-                        HKToolMod.logger.LogError(e);
+                        HKToolMod2.logger.LogError(e);
                     }
                 }
             }

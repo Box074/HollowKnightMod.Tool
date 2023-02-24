@@ -4,24 +4,26 @@ on: [push, pull_request]
 
 jobs:
   release:
-    runs-on: windows-latest
+    runs-on: ub
     steps:
     - uses: actions/checkout@v2
-    - name: Setup .NET 5
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 5.0.x
     - name: Setup .NET 7
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 7
     - name: Build
       run: |
-        dotnet build
+        dotnet build -c=Release
+    - name: Upload
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Publish Output
+        path: ./HKTool/bin/Publish
     - name: Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
+        body_path: ./HKTool/bin/Publish/SHA.txt
         files: |
-          ./Output.zip
+          ./HKTool/bin/Publish/HKTool2.zip
 

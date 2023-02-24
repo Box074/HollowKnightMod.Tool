@@ -95,7 +95,7 @@ static class FastReflection
         }
         catch (Exception e)
         {
-            HKToolMod.logger.LogError(e);
+            HKToolMod2.logger.LogError(e);
             return field.GetValue(@this);
         }
     }
@@ -109,7 +109,7 @@ static class FastReflection
         }
         catch (Exception e)
         {
-            HKToolMod.logger.LogError(e);
+            HKToolMod2.logger.LogError(e);
             field.SetValue(@this, val);
         }
     }

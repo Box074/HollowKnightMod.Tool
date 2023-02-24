@@ -2,7 +2,7 @@
 namespace HKTool;
 public static class DebugManager
 {
-    public static bool IsDebugMode => HKToolMod.IsDebugMode;
+    public static bool IsDebugMode => HKToolMod2.IsDebugMode;
     public static bool IsDebug(Mod mod) => DebugModsLoader.DebugMods.Contains(mod);
     internal static Mod[] DebugMods => DebugModsLoader.DebugMods.ToArray();
     internal static int? DebugPort { get; private set; } = null;
@@ -28,7 +28,7 @@ public static class DebugManager
         bool isInputFile = false;
         foreach (var v in cmds.Skip(1))
         {
-            HKToolMod.logger.Log("Parse Command: " + v);
+            HKToolMod2.logger.Log("Parse Command: " + v);
             if (v.Equals("--hktool-debug-mods", StringComparison.OrdinalIgnoreCase))
             {
                 isInputFile = true;
@@ -49,13 +49,13 @@ public static class DebugManager
                     var split = v.Split('=');
                     if (split.Length == 1)
                     {
-                        HKToolMod.logger.Log("Debug Mod: " + split[0]);
+                        HKToolMod2.logger.Log("Debug Mod: " + split[0]);
                         debugFiles.Add(split[0]);
                     }
                     else
                     {
                         var p = split[1];
-                        HKToolMod.logger.Log($"Library Mod({split[0]}): {p}");
+                        HKToolMod2.logger.Log($"Library Mod({split[0]}): {p}");
                         libraryMods.Add(split[0], p);
                         if (File.Exists(p))
                         {
@@ -66,7 +66,7 @@ public static class DebugManager
                             }
                             catch (Exception e)
                             {
-                                HKToolMod.logger.LogError(e);
+                                HKToolMod2.logger.LogError(e);
                             }
                         }
                     }

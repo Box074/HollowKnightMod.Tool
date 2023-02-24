@@ -40,7 +40,7 @@ public abstract class CustomMenu : BindI18n
                     }
                     catch (Exception e2)
                     {
-                        HKToolMod.logger.LogError(e2);
+                        HKToolMod2.logger.LogError(e2);
                     }
                 }
             }
@@ -106,7 +106,7 @@ public abstract class CustomMenu : BindI18n
                 try
                 {
                     content = c1;
-                    HKToolMod.logger.Log("Build Menu: " + title);
+                    HKToolMod2.logger.Log("Build Menu: " + title);
                     Build(c1);
                     var scrollPaneRt = content.ContentObject.GetComponent<RectTransform>();
                     RectTransformData.FromSizeAndPos(
@@ -283,13 +283,12 @@ public abstract class CustomMenu : BindI18n
         Action<MenuSetting, int> onChange, Func<MenuSetting, int> onRefresh,
         Font? font = null, params string[] values) => AddOption(label, desc, values, onChange, onRefresh, font);
     protected MenuOptionHorizontal AddBoolOption(string label, string desc,
-        ref bool settings, Action? onChange = null, Font? font = null)
+        FieldRefHolder<bool> settings, Action? onChange = null, Font? font = null)
     {
-        Ref<bool> refs = GetRefPointer(ref settings);
         return AddBoolOptionR(label, desc, x => {
-            refs.Value = x;
+            settings.Value = x;
             onChange?.Invoke();
-        }, () => refs.Value, font);
+        }, () => settings.Value, font);
     }
     protected virtual void Back() => GoToMenu(returnScreen);
     protected void GoToMenu(MenuScreen menu)

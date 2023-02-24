@@ -1,4 +1,6 @@
 
+using Steamworks;
+
 namespace HKTool;
 
 public static class InitManager
@@ -14,7 +16,7 @@ public static class InitManager
         if (init.root.Any(x => x.assemblyName == "HKTool" && x.nameSpace == "HKTool" && x.className == "InitManager" && x.methodName == nameof(CheckInit))) return;
         init.root.Add(new()
         {
-            assemblyName = "HKTool",
+            assemblyName = "HKTool2",
             nameSpace = "HKTool",
             className = "InitManager",
             methodName = nameof(CheckInit)
@@ -28,18 +30,19 @@ public static class InitManager
         ass.Save();
 
         var init = RuntimeInitializeOnLoads.Load();
-        init.root.RemoveAll(x => x.assemblyName == "HKTool");
+        init.root.RemoveAll(x => x.assemblyName == "HKTool2");
         init.Save();
     }
     private static void ExperimentalFeat()
     {
-        if (HKToolMod.settings.ExperimentalConfig.allow_start_without_steam)
+        if (HKToolMod2.settings.ExperimentalConfig.allow_start_without_steam)
         {
-            On.Steamworks.SteamAPI.RestartAppIfNecessary += (orig, id) =>
-            {
-                if (id.m_AppId == 367520U) return false;
-                return orig(id);
-            };
+            HookEndpointManager.Add(FindMethodBase("Steamworks.SteamAPI::RestartAppIfNecessary"),
+                (Func<AppId_t, bool> orig, AppId_t id) =>
+                {
+                    if (id.m_AppId == 367520U) return false;
+                    return orig(id);
+                });
         }
     }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]

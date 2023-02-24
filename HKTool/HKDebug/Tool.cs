@@ -108,7 +108,7 @@ static class Tool
         
     }
     static bool canDamage = true;
-    private static void HeroController_TakeDamage(On.HeroController.orig_TakeDamage orig, global::HeroController self, object go,
+    private static void HeroController_TakeDamage(On.HeroController.orig_TakeDamage orig, HeroController self, GameObject go,
         CollisionSide damageSide, int damageAmount, int hazardType)
     {
         if (canDamage)

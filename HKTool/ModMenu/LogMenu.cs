@@ -4,7 +4,7 @@ namespace HKTool.ModMenu;
 class LogMenu : CustomMenu
 {
     public override Font titleFont => MenuResources.Perpetua;
-    public static HKToolSettings settings => HKToolMod.settings;
+    public static HKToolSettings settings => HKToolMod2.settings;
     #pragma warning disable CS8618
     public static LogMenu? instance;
     #pragma warning restore CS8618
@@ -34,8 +34,8 @@ class LogMenu : CustomMenu
             (int val) =>
             {
                 Application.SetStackTraceLogType((LogType)id, (StackTraceLogType)val);
-                if(HKToolMod.devSettings.UnityLogStackTraceType is not null)
-                    HKToolMod.devSettings.UnityLogStackTraceType[id] = (StackTraceLogType)val;
+                if(HKToolMod2.devSettings.UnityLogStackTraceType is not null)
+                    HKToolMod2.devSettings.UnityLogStackTraceType[id] = (StackTraceLogType)val;
             },
             () =>
             {
@@ -43,14 +43,14 @@ class LogMenu : CustomMenu
             }, MenuResources.Perpetua);
         }
         AddBoolOption("HKTool.LogMenu.RLogLabel".LocalizeFormat("Assert"), "",
-                ref settings.DebugConfig.rUnityAssert, null, MenuResources.Perpetua);
+                new FieldRefHolder<bool>(settings.DebugConfig, "rUnityAssert")  , null, MenuResources.Perpetua);
         AddBoolOption("HKTool.LogMenu.RLogLabel".LocalizeFormat("Error"), "",
-                ref settings.DebugConfig.rUnityError, null, MenuResources.Perpetua);
+                new FieldRefHolder<bool>(settings.DebugConfig, "rUnityError"), null, MenuResources.Perpetua);
         AddBoolOption("HKTool.LogMenu.RLogLabel".LocalizeFormat("Exception"), "",
-                ref settings.DebugConfig.rUnityException, null, MenuResources.Perpetua);
+                new FieldRefHolder<bool>(settings.DebugConfig, "rUnityException"), null, MenuResources.Perpetua);
         AddBoolOption("HKTool.LogMenu.RLogLabel".LocalizeFormat("Log"), "",
-                ref settings.DebugConfig.rUnityLog, null, MenuResources.Perpetua);
+                new FieldRefHolder<bool>(settings.DebugConfig, "rUnityLog"), null, MenuResources.Perpetua);
         AddBoolOption("HKTool.LogMenu.RLogLabel".LocalizeFormat("Warn"), "",
-                ref settings.DebugConfig.rUnityWarn, null, MenuResources.Perpetua);
+                new FieldRefHolder<bool>(settings.DebugConfig, "rUnityWarn"), null, MenuResources.Perpetua);
     }
 }

@@ -12,64 +12,69 @@ static class ModManager
     public static Dictionary<Mod, Func<List<(string, string)>, List<(string, string)>>> hookGetPreloads = new();
     public static event OnLoadModHandler onLoadMod = null!;
     public delegate void OnLoadModHandler(ModInstance mi,ref bool updateVer, ref PreloadObject preloads);
-    private static Ref<ModVersionDraw> ref_ModVersionDraw = GetFieldRefPointer(null, FindFieldInfo("Modding.ModLoader::modVersionDraw"));
+    private static FieldInfo field_modVersionDraw = FindFieldInfo("Modding.ModLoader::modVersionDraw");
     static ModManager()
     {
-        
-        On.Modding.ModLoader.UpdateModText += (orig) =>
-        {
-            orig();
-            var vd = ref_ModVersionDraw.Value;
-            var ds = vd?.drawString ?? "";
-            var lines = ds.Split('\n');
-            var sb = new StringBuilder();
-            var displayNames = mods.Select(x => (x.GetName().Trim(), x.DisplayName.Trim())).Where(x => x.Item1 != x.Item2)
-                .ToDictionary(x => x.Item1, x => x.Item2);
-            foreach (var v in lines)
+        HookEndpointManager.Add(
+            HReflectionHelper.FindType("Modding.ModLoader")!.GetMethod("UpdateModText", HReflectionHelper.All),
+            (Action orig) =>
             {
-                int pos = v.IndexOf(':');
-                if (pos == -1)
+                orig();
+                var vd = (ModVersionDraw)field_modVersionDraw.GetValue(null);
+                var ds = vd?.drawString ?? "";
+                var lines = ds.Split('\n');
+                var sb = new StringBuilder();
+                var displayNames = mods.Select(x => (x.GetName().Trim(), x.DisplayName.Trim())).Where(x => x.Item1 != x.Item2)
+                    .ToDictionary(x => x.Item1, x => x.Item2);
+                foreach (var v in lines)
                 {
-                    sb.AppendLine(v);
-                    continue;
+                    int pos = v.IndexOf(':');
+                    if (pos == -1)
+                    {
+                        sb.AppendLine(v);
+                        continue;
+                    }
+                    var name = v.Substring(0, pos).Trim();
+                    if (displayNames.TryGetValue(name, out var displayName))
+                    {
+                        sb.AppendLine(displayName + " " + v.Substring(pos));
+                    }
+                    else
+                    {
+                        sb.AppendLine(v);
+                    }
                 }
-                var name = v.Substring(0, pos).Trim();
-                if (displayNames.TryGetValue(name, out var displayName))
+                if (modErrors.Count > 0)
                 {
-                    sb.AppendLine(displayName + " " + v.Substring(pos));
+                    sb.AppendLine();
+                    foreach (var v in modErrors)
+                    {
+                        sb.Append("<color=" + ModHooks.GlobalSettings.ConsoleSettings.ErrorColor + ">");
+                        sb.Append(v.Item1);
+                        sb.Append(" : ");
+                        sb.Append(v.Item2);
+                        sb.AppendLine("</color>");
+                    }
                 }
-                else
-                {
-                    sb.AppendLine(v);
-                }
+                if (vd is not null) vd.drawString = sb.ToString();
             }
-            if (modErrors.Count > 0)
-            {
-                sb.AppendLine();
-                foreach (var v in modErrors)
-                {
-                    sb.Append("<color=" + ModHooks.GlobalSettings.ConsoleSettings.ErrorColor + ">");
-                    sb.Append(v.Item1);
-                    sb.Append(" : ");
-                    sb.Append(v.Item2);
-                    sb.AppendLine("</color>");
-                }
-            }
-            if (vd is not null) vd.drawString = sb.ToString();
-        };
+            );
 
         HookEndpointManager.Add(
             HReflectionHelper.FindType("Modding.ModLoader")!.GetMethod("LoadMod", HReflectionHelper.All),
                 HookLoadMod
         );
-        On.Modding.Mod.GetPreloadNames += (orig, self) =>
-            {
-                var list = orig(self);
-                if (!hookGetPreloads.TryGetValue(self, out var mod)) return list;
-                if (list is null) list = new();
-                list = mod.Invoke(list);
-                return list;
-            };
+        HookEndpointManager.Add(
+            HReflectionHelper.FindType("Modding.Mod")!.GetMethod("GetPreloadNames", HReflectionHelper.All),
+                (Func<Mod, List<(string, string)>> orig, Mod self) =>
+                {
+                    var list = orig(self);
+                    if (!hookGetPreloads.TryGetValue(self, out var mod)) return list;
+                    if (list is null) list = new();
+                    list = mod.Invoke(list);
+                    return list;
+                }
+        );
     }
     private static void HookLoadMod(Action<object, bool, PreloadObject> orig,
                     object mod, bool updateVer, PreloadObject objs)
@@ -82,7 +87,7 @@ static class ModManager
         }
         catch (Exception e)
         {
-            HKToolMod.logger.LogError(e);
+            HKToolMod2.logger.LogError(e);
         }
         if (mi.Error.HasValue) return;
         try
@@ -110,7 +115,7 @@ static class ModManager
                 catch (Exception e)
                 {
                     mi.Error = ModErrorState.Initialize;
-                    HKToolMod.logger.LogError(e);
+                    HKToolMod2.logger.LogError(e);
                 }
 
             }
@@ -122,7 +127,7 @@ static class ModManager
         catch (Exception e)
         {
             mi.Error = ModErrorState.Initialize;
-            HKToolMod.logger.LogError(e);
+            HKToolMod2.logger.LogError(e);
         }
     }
     private static void LoadModSelf(ModInstance modInst, bool updateModText)

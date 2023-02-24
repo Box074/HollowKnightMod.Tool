@@ -379,12 +379,12 @@ public abstract class CSFsmBase : MonoBehaviour
             currentEx.onFinished += (_) =>
             {
                 if(currentEx is null) return;
-                HKToolMod.logger.LogFine($"Finished State: {ActionMethod}");
+                HKToolMod2.logger.LogFine($"Finished State: {ActionMethod}");
                 Fsm.Event(FsmEvent.Finished);
             };
             currentEx.onException += (_, e) =>
             {
-                HKToolMod.logger.LogError(e);
+                HKToolMod2.logger.LogError(e);
             };
             currentEx.customResult = (ref object? result) =>
             {

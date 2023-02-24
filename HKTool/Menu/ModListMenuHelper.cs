@@ -49,7 +49,7 @@ public static class ModListMenuHelper
                 }
                 catch (Exception e)
                 {
-                    HKToolMod.logger.LogError(e);
+                    HKToolMod2.logger.LogError(e);
                 }
             }
         }
@@ -111,11 +111,13 @@ public static class ModListMenuHelper
     }
     internal static void Init()
     {
-        On.Modding.ModListMenu.ctor += (orig, self) =>
-        {
-            modListMenu = self.CreateReflectionObject();
-            orig(self);
-        };
+        HookEndpointManager.Add(FindMethodBase("Modding.ModListMenu::.ctor"),
+            (Action<object> orig, object self) =>
+            {
+                modListMenu = self.CreateReflectionObject();
+                orig(self);
+            });
+
         HookEndpointManager.Add(
             //typeof(UIManager).GetMethod("add_EditMenus"),
             FindMethodBase("UIManager::add_EditMenus"),

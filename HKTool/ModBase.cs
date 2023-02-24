@@ -79,7 +79,7 @@ public abstract class ModBase : Mod, IHKToolMod
     private void CheckHKToolVersion(string? name = null)
     {
         if (HKToolMinVersion is null) return;
-        var hkv = typeof(HKToolMod).Assembly.GetName().Version;
+        var hkv = typeof(HKToolMod2).Assembly.GetName().Version;
         if (hkv < HKToolMinVersion)
         {
             TooOldDependency("HKTool", HKToolMinVersion);
