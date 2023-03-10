@@ -10,9 +10,9 @@ public static class RendererUtils
         cacheCamera = camGO.AddComponent<Camera>();
         cacheCamera.orthographic = true;
         cacheCamera.clearFlags = CameraClearFlags.Nothing;
-        UnityEngine.Object.DontDestroyOnLoad(camGO);
+        UObject.DontDestroyOnLoad(camGO);
     }
-    private static void BuildCamera(UnityEngine.Bounds bounds)
+    public static void BuildCamera(UnityEngine.Bounds bounds)
     {
         if (cacheCamera == null) PrepareCamera();
 
@@ -33,7 +33,6 @@ public static class RendererUtils
         Renderer[] enabled = go.GetComponentsInChildren<Renderer>(false).Where(x => x.enabled && x.gameObject.activeInHierarchy).ToArray();
         if (!includeChildren)
         {
-            
             go.transform.position = go.transform.position.With((ref Vector3 x) => x.z = -999999);
             foreach (var v in enabled) v.enabled = false;
         }

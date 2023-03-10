@@ -3,7 +3,7 @@ namespace HKTool;
 
 public static class ResourcesUtils
 {
-    private static Dictionary<Type, Dictionary<string, UObject>> cache = new();
+    private static Dictionary<Type, Dictionary<string, WeakReference<UObject>>> cache = new();
     public static string GetMatchName(UObject obj)
     {
         {
@@ -29,40 +29,35 @@ public static class ResourcesUtils
             return ox.name;
         }
     }
-    public static Dictionary<string, UObject> FindAssets(IEnumerable<string> names, Type type)
+    public static Dictionary<string, UObject?> FindAssets(IEnumerable<string> names, Type type)
     {
-        Dictionary<string, UObject> dict = new();
-        List<string> missingAssets = new();
-        var cacheT = cache.TryGetOrAddValue(type, () => new());
-        foreach (var v in names)
+        Dictionary<string, UObject?> dict = new();
+        foreach(var name in names)
         {
-            if (cacheT.TryGetValue(v, out var obj) && obj != null) dict[v] = obj;
-            else missingAssets.Add(v);
-        }
-        if (missingAssets.Count > 0)
-        {
-            IEnumerable<(UObject obj, string matchname)> assets = UnityEngine.Resources.FindObjectsOfTypeAll(type)
-                                                                            .Where(x => (x?.GetInstanceID() ?? 0) > 0)
-                                                                            .Select(x => (x, ResourcesUtils.GetMatchName(x)));
-            foreach (var v in assets)
-            {
-                if (v.obj is GameObject go && go.scene.IsValid()) continue;
-                if (missingAssets.Contains(v.matchname))
-                {
-                    dict[v.matchname] = v.obj;
-                    cacheT[v.matchname] = v.obj;
-                }
-            }
+            var result = FindAsset(name, type);
+            dict[name] = result;
         }
         return dict;
     }
     public static UObject? FindAsset(string name, Type type)
     {
         var cacheT = cache.TryGetOrAddValue(type, () => new());
-        if (cacheT.TryGetValue(name, out var obj) && obj != null) return obj;
-        obj = Resources.FindObjectsOfTypeAll(type).FirstOrDefault(x => x.GetInstanceID() > 0 && GetMatchName(x) == name);
-        if (obj != null) cacheT[name] = obj;
-        return obj;
+        UObject? result = null;
+        if (cacheT.TryGetValue(name, out var objr) && (objr?.TryGetTarget(out result) ?? false)) return result;
+
+        IEnumerable<(UObject obj, string matchname)> assets = Resources.FindObjectsOfTypeAll(type)
+                                                                            .Where(x => (x?.GetInstanceID() ?? 0) > 0)
+                                                                            .Select(x => (x, GetMatchName(x)));
+        foreach (var (obj, matchname) in assets)
+        {
+            if (obj is GameObject go && go.scene.IsValid()) continue;
+            cacheT[matchname] = new(obj);
+            if(GetMatchName(obj) == name)
+            {
+                result = obj;
+            }
+        }
+        return result;
     }
     public static T? FindAsset<T>(string name) where T : UObject => (T?)FindAsset(name, typeof(T));
 }

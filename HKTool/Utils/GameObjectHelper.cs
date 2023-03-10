@@ -6,7 +6,7 @@ public static class GameObjectHelper
 {
     private static Lazy<GameObject> prefabHolder = new(() => {
         var go = new GameObject("HKTool Prefab Holder");
-        UnityEngine.Object.DontDestroyOnLoad(go);
+        UObject.DontDestroyOnLoad(go);
         go.SetActive(false);
         return go;
     });

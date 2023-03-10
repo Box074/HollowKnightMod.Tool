@@ -14,7 +14,7 @@ class TestMenu : CustomMenu
     
     protected override void Build(ContentArea contentArea)
     {
-        foreach(var v in HKTool.Test.TestManager.tests)
+        foreach(var v in Test.TestManager.tests)
         {
             AddButton(v.name, "", () =>
             {

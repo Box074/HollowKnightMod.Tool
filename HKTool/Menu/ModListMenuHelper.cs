@@ -111,38 +111,35 @@ public static class ModListMenuHelper
     }
     internal static void Init()
     {
-        HookEndpointManager.Add(FindMethodBase("Modding.ModListMenu::.ctor"),
-            (Action<object> orig, object self) =>
-            {
-                modListMenu = self.CreateReflectionObject();
-                orig(self);
-            });
+        On.Modding.ModListMenu.ctor += (orig, self) =>
+        {
+            modListMenu = self.CreateReflectionObject();
+            orig(self);
+        };
+        On.UIManager.add_EditMenus += UIManager_add_EditMenus;
+    }
 
-        HookEndpointManager.Add(
-            //typeof(UIManager).GetMethod("add_EditMenus"),
-            FindMethodBase("UIManager::add_EditMenus"),
-            (Action<Action> orig, Action action) =>
-            {
-                orig(action);
-                if (action == null) return;
-                if (action.Method.DeclaringType.FullName != "Modding.ModListMenu") return;
-                if (Modding.ReflectionHelper.GetField<UIManager, bool>(UIManager.instance,
-                    "hasCalledEditMenus"))
+    private static void UIManager_add_EditMenus(On.UIManager.orig_add_EditMenus orig, Action value)
+    {
+        orig(value);
+        if (value == null) return;
+        if (value.Method.DeclaringType.FullName != "Modding.ModListMenu") return;
+        if (Modding.ReflectionHelper.GetField<UIManager, bool>(UIManager.instance,
+            "hasCalledEditMenus"))
+        {
+            AfterBuildModListMenuComplete();
+        }
+        else
+        {
+            HookEndpointManager.Add(
+                value.Method,
+                (Action<object> orig, object self) =>
                 {
+                    orig(self);
                     AfterBuildModListMenuComplete();
                 }
-                else
-                {
-                    HookEndpointManager.Add(
-                        action.Method,
-                        (Action<object> orig, object self) =>
-                        {
-                            orig(self);
-                            AfterBuildModListMenuComplete();
-                        }
-                    );
-                }
-            }
-        );
+            );
+        }
     }
 }
+

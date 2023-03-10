@@ -31,7 +31,7 @@ public abstract class ModBase : Mod, IHKToolMod
         public int id;
         public bool cloneOne;
     }
-    public const string compileVersion = "2.0.0";
+    public const string compileVersion = "2.1.0";
     private static int _currentmapiver = (int)(HReflectionHelper.FindType("Modding.ModHooks")!
         .GetField("_modVersion", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null));
     public static int CurrentMAPIVersion => _currentmapiver;
@@ -41,7 +41,7 @@ public abstract class ModBase : Mod, IHKToolMod
         InitManager.CheckInit();
 
         var sceneNames = new List<string>();
-        var sceneCount = UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings;
+        var sceneCount = USceneManager.sceneCountInBuildSettings;
         for (int i = 0; i < sceneCount; i++)
         {
             sceneNames.Add(Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(i)));
@@ -206,7 +206,7 @@ public abstract class ModBase : Mod, IHKToolMod
             {
                 try
                 {
-                    if (!matchobjects.TryGetValue(v.name, out var obj))
+                    if (!matchobjects.TryGetValue(v.name, out var obj) || obj == null)
                     {
 
                         LogError($"{v.name}({type.Name}) not found");
@@ -271,7 +271,7 @@ public abstract class ModBase : Mod, IHKToolMod
                 if (v.Value.cloneOne)
                 {
                     obj = obj.CloneAsPrefab();
-                    UnityEngine.Object.Destroy(obj);
+                    UObject.Destroy(obj);
                 }
                 v.Key.Invoke(obj);
             }
@@ -326,7 +326,7 @@ public abstract class ModBase : Mod, IHKToolMod
     internal Dictionary<int, List<PreloadAssetInfo>> assetpreloads = new();
     protected void AddPreloadSharedAsset(int? id, string name, Type type, bool cloneOne, Action<UObject?> callback)
     {
-        if (ModLoaderHelper.modLoadState.HasFlag(ModLoadState.Preloaded)) throw new InvalidOperationException();
+        if (ModLoaderR.LoadState.HasFlag(ModLoadStateR.Preloaded)) throw new InvalidOperationException();
         if (!typeof(UObject).IsAssignableFrom(type)) return;
 
         var sceneId = id ?? 0;

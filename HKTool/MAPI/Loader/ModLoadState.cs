@@ -2,6 +2,7 @@
 namespace HKTool.MAPI.Loader;
 
 [Flags]
+[Obsolete]
 public enum ModLoadState
 {
     NotStarted = 0,

@@ -11,7 +11,7 @@ public static class SpriteUtils
         {
             var renderGO = new GameObject("Sprite Renderer");
             renderGO.transform.position = new(0, 0, 55555);
-            UnityEngine.Object.DontDestroyOnLoad(renderGO);
+            UObject.DontDestroyOnLoad(renderGO);
             cacheSpriteR = renderGO.AddComponent<SpriteRenderer>();
         }
         cacheSpriteR.sprite = sprite;
@@ -27,12 +27,12 @@ public static class SpriteUtils
     public static Texture2D ExtractTk2dSprite(tk2dSpriteCollectionData def, int id)
     {
         var sdef = def.spriteDefinitions[id];
-
+        
         if (cacheTk2d == null)
         {
             var renderGO = new GameObject("Tk2d Renderer", typeof(MeshRenderer), typeof(MeshFilter));
             renderGO.transform.position = new(0, 0, 55555);
-            UnityEngine.Object.DontDestroyOnLoad(renderGO);
+            UObject.DontDestroyOnLoad(renderGO);
             cacheTk2d = tk2dSprite.AddComponent(renderGO, def, id);
         }
         cacheTk2d.SetSprite(def, id);

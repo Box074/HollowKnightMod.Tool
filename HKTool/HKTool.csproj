@@ -1,52 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <RootNamespace>HKTool</RootNamespace>
-        <AssemblyName>HKTool2</AssemblyName>
-        <TargetFramework>net472</TargetFramework>
-        <AssemblyTitle>HKTool</AssemblyTitle>
-        <Product>HKTool</Product>
-        <Copyright>Copyright © HKLab 2023</Copyright>
-        <Authors>HKLab</Authors>
-        <NoWarn>7035</NoWarn>
-        <AssemblyVersion>2.0.0.*</AssemblyVersion>
-        <Deterministic>false</Deterministic>
-        <OutputPath>bin\$(Configuration)\</OutputPath>
-        <LangVersion>latest</LangVersion>
-        <Nullable>enable</Nullable>
-        <ExportDir>bin\Publish</ExportDir>
-      
+      <RootNamespace>HKTool</RootNamespace>
+      <AssemblyName>HKTool2</AssemblyName>
+      <TargetFramework>net472</TargetFramework>
+      <AssemblyTitle>HKTool</AssemblyTitle>
+      <Product>HKTool</Product>
+      <Copyright>Copyright © HKLab 2023</Copyright>
+      <Authors>HKLab</Authors>
+      <NoWarn>7035</NoWarn>
+      <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      <ModName>HKTool</ModName>
+      <LangVersion>11</LangVersion>
+      <Nullable>enable</Nullable>
+      <ModName>HKTool</ModName>
     </PropertyGroup>
-    
-    <Target Name="CopyMod" AfterTargets="PostBuildEvent">
-        <RemoveDir Directories="$(ExportDir)/" />
-        <MakeDir Directories="$(ExportDir)/" />
-        <MakeDir Directories="$(ExportDir)/zip/"/>
-      
-        <MakeDir Condition="!Exists('$(HollowKnightRefs)/Mods/$(TargetName)/') and $(Configuration) != 'Release'"
-                 Directories="$(HollowKnightRefs)/Mods/$(TargetName)/"/>
-      
-        <Copy SourceFiles="$(TargetPath);$(TargetDir)/$(TargetName).pdb"
-              DestinationFolder="$(HollowKnightRefs)/Mods/$(TargetName)/" Condition="$(Configuration) != 'Release'"/>
-      
-        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ExportDir)/" />
-        <Copy SourceFiles="$(SolutionDir)/README.md;$(TargetPath);$(TargetDir)/$(TargetName).pdb" DestinationFolder="$(ExportDir)/zip/" />
-        <ZipDirectory SourceDirectory="$(ExportDir)/zip/" DestinationFile="$(ExportDir)/$(TargetName).zip" />
-        <RemoveDir Directories="$(ExportDir)/zip/" />
-
-        <GetFileHash Files="$(ExportDir)/$(TargetName).zip" Algorithm="SHA256">
-            <Output TaskParameter="Items" ItemName="FilesWithHashes" />
-        </GetFileHash>
-        <WriteLinesToFile File="$(ExportDir)/SHA.txt" Lines="@(FilesWithHashes->'%(FileHash)')" Overwrite="true" Encoding="UTF-8" />
-
-        <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
-            <Output TaskParameter="Assemblies" ItemName="Targets" />
-        </GetAssemblyIdentity>
-        <ItemGroup>
-            <VersionNumber Include="@(Targets->'%(Version)')" />
-        </ItemGroup>
-        <WriteLinesToFile File="$(ExportDir)/VERSION.txt" Lines="@(VersionNumber)" Overwrite="true" Encoding="UTF-8" />
-    </Target>
 
     <ItemGroup>
       <None Remove="build.yml" />
@@ -56,10 +24,21 @@
       <None Remove="Resources\Languages\lang_zh.txt" />
 
       <ModResource Include="./Resources/Languages/*.txt" />
+    
+      <MonoModHook Include="Assembly-CSharp" />
+      <MonoModHook Include="mscorlib" />
+      <MonoModHook Include="PlayMaker" />
+      
+      <ReflectHelper Include="Assembly-CSharp" />
+      <ReflectHelper Include="mscorlib" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="HKBuildUtils" Version="0.3.16">
+      <PackageReference Include="Fody" Version="6.6.4">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="HKBuildUtils" Version="0.5.53">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>

@@ -64,11 +64,11 @@ class HKToolDebugConfig
 {
     public List<string> DebugMods { get; set; } = new List<string>();
     public StackTraceLogType[]? UnityLogStackTraceType { get; set; } = null;
-    public bool rUnityLog;
-    public bool rUnityWarn;
-    public bool rUnityError;
-    public bool rUnityException;
-    public bool rUnityAssert;
+    public bool rUnityLog = false;
+    public bool rUnityWarn = false;
+    public bool rUnityError = false ;
+    public bool rUnityException = false;
+    public bool rUnityAssert = false;
     public List<string> disabledModules { get; set; } = new();
 }
 

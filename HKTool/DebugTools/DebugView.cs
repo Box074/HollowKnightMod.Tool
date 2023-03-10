@@ -25,9 +25,9 @@ class DebugView : MonoBehaviour
     public static void Init()
     {
         TestInstance();
-        Modding.ModHooks.HeroUpdateHook += TestInstance;
-        Modding.ModHooks.CursorHook += ModHooks_CursorHook;
-        UnityEngine.SceneManagement.SceneManager.activeSceneChanged += SceneManager_activeSceneChanged;
+        ModHooks.HeroUpdateHook += TestInstance;
+        ModHooks.CursorHook += ModHooks_CursorHook;
+        USceneManager.activeSceneChanged += SceneManager_activeSceneChanged;
     }
 
     private static void ModHooks_CursorHook()

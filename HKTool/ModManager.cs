@@ -3,87 +3,81 @@ namespace HKTool;
 
 static class ModManager
 {
-    public static readonly bool SupportPreloadAssets = FindType("Modding.ModLoader")!.GetMethod("LoadMod", HReflectionHelper.All).GetParameters().Length == 4;
-    public static bool modLoaded => ModLoaderHelper.modLoadState.HasFlag(ModLoadState.Loaded);
+    public static readonly bool SupportPreloadAssets = true;
+    public static bool modLoaded => ModLoaderR.LoadState.HasFlag(ModLoadStateR.Loaded);
     public static List<ModBase> mods = new();
     public static Dictionary<Type, ModBase> instanceMap = new();
     public static List<(string, string)> modErrors = new();
     public static Dictionary<Mod, Func<PreloadObject, bool>> hookInits = new();
     public static Dictionary<Mod, Func<List<(string, string)>, List<(string, string)>>> hookGetPreloads = new();
     public static event OnLoadModHandler onLoadMod = null!;
-    public delegate void OnLoadModHandler(ModInstance mi,ref bool updateVer, ref PreloadObject preloads);
-    private static FieldInfo field_modVersionDraw = FindFieldInfo("Modding.ModLoader::modVersionDraw");
+    public delegate void OnLoadModHandler(ModInstanceR mi,ref bool updateVer, ref PreloadObject preloads);
     static ModManager()
     {
-        HookEndpointManager.Add(
-            HReflectionHelper.FindType("Modding.ModLoader")!.GetMethod("UpdateModText", HReflectionHelper.All),
-            (Action orig) =>
-            {
-                orig();
-                var vd = (ModVersionDraw)field_modVersionDraw.GetValue(null);
-                var ds = vd?.drawString ?? "";
-                var lines = ds.Split('\n');
-                var sb = new StringBuilder();
-                var displayNames = mods.Select(x => (x.GetName().Trim(), x.DisplayName.Trim())).Where(x => x.Item1 != x.Item2)
-                    .ToDictionary(x => x.Item1, x => x.Item2);
-                foreach (var v in lines)
-                {
-                    int pos = v.IndexOf(':');
-                    if (pos == -1)
-                    {
-                        sb.AppendLine(v);
-                        continue;
-                    }
-                    var name = v.Substring(0, pos).Trim();
-                    if (displayNames.TryGetValue(name, out var displayName))
-                    {
-                        sb.AppendLine(displayName + " " + v.Substring(pos));
-                    }
-                    else
-                    {
-                        sb.AppendLine(v);
-                    }
-                }
-                if (modErrors.Count > 0)
-                {
-                    sb.AppendLine();
-                    foreach (var v in modErrors)
-                    {
-                        sb.Append("<color=" + ModHooks.GlobalSettings.ConsoleSettings.ErrorColor + ">");
-                        sb.Append(v.Item1);
-                        sb.Append(" : ");
-                        sb.Append(v.Item2);
-                        sb.AppendLine("</color>");
-                    }
-                }
-                if (vd is not null) vd.drawString = sb.ToString();
-            }
-            );
-
-        HookEndpointManager.Add(
-            HReflectionHelper.FindType("Modding.ModLoader")!.GetMethod("LoadMod", HReflectionHelper.All),
-                HookLoadMod
-        );
-        HookEndpointManager.Add(
-            HReflectionHelper.FindType("Modding.Mod")!.GetMethod("GetPreloadNames", HReflectionHelper.All),
-                (Func<Mod, List<(string, string)>> orig, Mod self) =>
-                {
-                    var list = orig(self);
-                    if (!hookGetPreloads.TryGetValue(self, out var mod)) return list;
-                    if (list is null) list = new();
-                    list = mod.Invoke(list);
-                    return list;
-                }
-        );
+        On.Modding.ModLoader.UpdateModText += ModLoader_UpdateModText;
+        On.Modding.ModLoader.LoadMod += HookLoadMod;
+        On.Modding.Mod.GetPreloadNames += Mod_GetPreloadNames;
     }
-    private static void HookLoadMod(Action<object, bool, PreloadObject> orig,
-                    object mod, bool updateVer, PreloadObject objs)
+
+    private static List<(string, string)> Mod_GetPreloadNames(On.Modding.Mod.orig_GetPreloadNames orig, Mod self)
+    {
+        var list = orig(self);
+        if (!hookGetPreloads.TryGetValue(self, out var mod)) return list;
+        if (list is null) list = new();
+        list = mod.Invoke(list);
+        return list;
+    }
+
+    private static void ModLoader_UpdateModText(On.Modding.ModLoader.orig_UpdateModText orig)
+    {
+        orig();
+        var vd = ModLoaderR.modVersionDraw;
+        var ds = vd?.drawString ?? "";
+        var lines = ds.Split('\n');
+        var sb = new StringBuilder();
+        var displayNames = mods.Select(x => (x.GetName().Trim(), x.DisplayName.Trim())).Where(x => x.Item1 != x.Item2)
+            .ToDictionary(x => x.Item1, x => x.Item2);
+        foreach (var v in lines)
+        {
+            int pos = v.IndexOf(':');
+            if (pos == -1)
+            {
+                sb.AppendLine(v);
+                continue;
+            }
+            var name = v.Substring(0, pos).Trim();
+            if (displayNames.TryGetValue(name, out var displayName))
+            {
+                sb.AppendLine(displayName + " " + v.Substring(pos));
+            }
+            else
+            {
+                sb.AppendLine(v);
+            }
+        }
+        if (modErrors.Count > 0)
+        {
+            sb.AppendLine();
+            foreach (var v in modErrors)
+            {
+                sb.Append("<color=" + ModHooks.GlobalSettings.ConsoleSettings.ErrorColor + ">");
+                sb.Append(v.Item1);
+                sb.Append(" : ");
+                sb.Append(v.Item2);
+                sb.AppendLine("</color>");
+            }
+        }
+        if (vd is not null) vd.drawString = sb.ToString();
+    }
+
+    private static void HookLoadMod(On.Modding.ModLoader.orig_LoadMod orig,
+        object mod, bool updateModText, PreloadObject preloadedObjects)
     {
         if (mod is null) return;
-        var mi = new ModInstance(mod);
+        var mi = (ModInstanceR)mod;
         try
         {
-            onLoadMod?.Invoke(mi, ref updateVer, ref objs);
+            onLoadMod?.Invoke(mi, ref updateModText, ref preloadedObjects);
         }
         catch (Exception e)
         {
@@ -93,13 +87,14 @@ static class ModManager
         try
         {
             var ms = mi.Mod;
-            if (ms is IHKToolMod hmod && !modLoaded)
-            {
-                hmod.HookInit(objs);
-            }
+            
             if (!modLoaded)
             {
-                orig(mod, updateVer, objs);
+                if (ms is IHKToolMod hmod)
+                {
+                    hmod.HookInit(preloadedObjects);
+                }
+                orig(mod, updateModText, preloadedObjects);
             }
             if (ms is ITogglableModBase thmod)
             {
@@ -108,29 +103,29 @@ static class ModManager
                     thmod.OnLoad();
                     if (modLoaded)
                     {
-                        LoadModSelf(mi, updateVer);
+                        LoadModSelf(mi, updateModText);
                         return;
                     }
                 }
                 catch (Exception e)
                 {
-                    mi.Error = ModErrorState.Initialize;
+                    mi.Error = ModErrorStateR.Initialize;
                     HKToolMod2.logger.LogError(e);
                 }
 
             }
             else if (modLoaded)
             {
-                orig(mod, updateVer, objs);
+                orig(mod, updateModText, preloadedObjects);
             }
         }
         catch (Exception e)
         {
-            mi.Error = ModErrorState.Initialize;
+            mi.Error = ModErrorStateR.Initialize;
             HKToolMod2.logger.LogError(e);
         }
     }
-    private static void LoadModSelf(ModInstance modInst, bool updateModText)
+    private static void LoadModSelf(ModInstanceR modInst, bool updateModText)
     {
 
         if (modInst is not null && !modInst.Enabled)
@@ -143,7 +138,7 @@ static class ModManager
 
         if (updateModText)
         {
-            ((MethodInfo)FindMethodBase("Modding.ModLoader::UpdateModText")).FastInvoke(null);
+            ModLoaderR.UpdateModText();
         }
     }
     public static void NewMod(ModBase mod, string? name = null)
@@ -156,7 +151,7 @@ static class ModManager
             var err = "HKTool.Error.ModMultiInstance"
                 .LocalizeFormat(name ?? mod.GetType().Name, mod.GetType().Assembly.Location);
             mod.LogError(err);
-            ModManager.modErrors.Add((name ?? mod.GetType().Name, "HKTool.ErrorShow.ModMultiInstance"
+            modErrors.Add((name ?? mod.GetType().Name, "HKTool.ErrorShow.ModMultiInstance"
                 .LocalizeFormat(mod.GetType().Assembly.Location)));
             throw new InvalidOperationException(err);
         }

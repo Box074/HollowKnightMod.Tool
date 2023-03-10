@@ -36,7 +36,7 @@ internal class FsmExceptionTrace : DebugModule
                     ilp.InsertBefore(next, catchEnd);
                 }));
             }
-            hooks.Add(new(FindMethodBase("HutongGames.PlayMaker.FsmState::ActivateActions"), il =>
+            IL.HutongGames.PlayMaker.FsmState.ActivateActions += il =>
             {
                 var call = il.Body.Instructions.First(x =>
                 {
@@ -62,7 +62,7 @@ internal class FsmExceptionTrace : DebugModule
                 ilp.InsertAfter(leave, catchStart);
                 ilp.InsertAfter(catchStart, Instruction.Create(MOpCodes.Call, il.Import(fsmThrowCatch)));
                 ilp.InsertBefore(next, catchEnd);
-            }));
+            };
         }
         else
         {

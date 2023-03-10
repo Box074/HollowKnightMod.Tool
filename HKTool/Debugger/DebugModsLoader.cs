@@ -20,9 +20,9 @@ class DebugModsLoader
                         if ((constructor?.Invoke(new object[0])) is Mod mod)
                         {
                             DebugMods.Add(mod);
-                            ModLoaderHelper.AddModInstance(type, new()
+                            ModLoaderR.TryAddModInstance(type, new()
                             {
-                                Mod = mod,
+                                Mod = mod.Reflect(),
                                 Enabled = false,
                                 Error = null,
                                 Name = mod.GetName()
@@ -32,11 +32,11 @@ class DebugModsLoader
                     catch (Exception e)
                     {
                         LogError(e);
-                        ModLoaderHelper.AddModInstance(type, new()
+                        ModLoaderR.TryAddModInstance(type, new()
                         {
                             Mod = null,
                             Enabled = false,
-                            Error = ModErrorState.Construct,
+                            Error = ModErrorStateR.Construct,
                             Name = type.Name
                         });
                     }

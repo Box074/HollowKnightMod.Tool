@@ -10,7 +10,7 @@ static class Tool
     {
 
         gates.buttons.Clear();
-        var gs = UnityEngine.Object.FindObjectsOfType<TransitionPoint>(true);
+        var gs = UObject.FindObjectsOfType<TransitionPoint>(true);
         if (gs.Length == 1)
         {
             GameManager.instance.BeginSceneTransition(new GameManager.SceneLoadInfo()
@@ -75,7 +75,7 @@ static class Tool
             label = "允许移动",
             submit = (_) =>
             {
-                HeroController.instance.hero_state = GlobalEnums.ActorStates.idle;
+                HeroController.instance.hero_state = ActorStates.idle;
                 HeroController.instance.AcceptInput();
             }
         });
@@ -91,8 +91,8 @@ static class Tool
         MenuManager.AddButton(new ButtonInfo()
         {
             label = "返回菜单",
-            submit = (_) => UnityEngine.SceneManagement.SceneManager.LoadScene("Quit_To_Menu",
-            UnityEngine.SceneManagement.LoadSceneMode.Single)
+            submit = (_) => USceneManager.LoadScene("Quit_To_Menu",
+            LoadSceneMode.Single)
         });
         MenuManager.AddButton(new ButtonInfo()
         {
@@ -119,8 +119,8 @@ static class Tool
 
     static void ReloadScene()
     {
-        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,
-            UnityEngine.SceneManagement.LoadSceneMode.Single);
+        USceneManager.LoadScene(USceneManager.GetActiveScene().name,
+            LoadSceneMode.Single);
     }
 }
 

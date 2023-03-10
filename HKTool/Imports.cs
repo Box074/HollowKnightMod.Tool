@@ -42,13 +42,9 @@ global using HKTool.ModMenu;
 global using HKTool.SpecialBehaviour;
 global using HKTool.Utils;
 global using HKTool.Utils.Compile;
-global using static HKTool.Utils.Compile.ReflectionHelperEx;
 global using HKTool.Unity;
 global using HKTool.Attributes;
 global using HKTool.Runtime;
-global using HKTool.MAPI;
-global using HKTool.MAPI.Loader;
-global using HKTool.Patcher;
 global using HKTool.Debugger;
 
 global using Mono.Cecil;

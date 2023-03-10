@@ -32,10 +32,10 @@ public class I18n
     {
         set
         {
-            Modding.ModHooks.LanguageGetHook -= ModHooks_LanguageGetHook;
+            ModHooks.LanguageGetHook -= ModHooks_LanguageGetHook;
             if (value)
             {
-                Modding.ModHooks.LanguageGetHook += ModHooks_LanguageGetHook;
+                ModHooks.LanguageGetHook += ModHooks_LanguageGetHook;
             }
         }
     }

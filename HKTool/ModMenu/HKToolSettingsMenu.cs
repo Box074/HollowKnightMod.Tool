@@ -25,7 +25,7 @@ class HKToolSettingsMenu : CustomMenu
         AddButton("HKTool.Settings.DebugView".Localize(), "HKTool.Settings.DebugView.Desc".Localize(),
             () =>
             {
-                DebugTools.DebugView.IsEnable = !DebugTools.DebugView.IsEnable;
+                DebugView.IsEnable = !DebugView.IsEnable;
             }, MenuResources.Perpetua);
 
         AddButton("Debug Modules", "",
@@ -48,7 +48,7 @@ class HKToolSettingsMenu : CustomMenu
         AddButton("HKTool.Menu.RebuildMenu".Localize(), "",
             () =>
             {
-                foreach (var v in CustomMenu.menus)
+                foreach (var v in menus)
                 {
                     try
                     {
@@ -99,7 +99,7 @@ class HKToolSettingsMenu : CustomMenu
                 {
                     v.TrySwitch();
                 }
-                foreach (var v in CustomMenu.menus)
+                foreach (var v in menus)
                 {
                     try
                     {

@@ -5,7 +5,7 @@ public class GameObjectWatcher : WatcherBase<GameObjectWatcher, GameObject>
 {
     static GameObjectWatcher()
     {
-        UnityEngine.SceneManagement.SceneManager.activeSceneChanged += SceneManager_sceneLoaded;
+        USceneManager.activeSceneChanged += SceneManager_sceneLoaded;
     }
 
     private static void SceneManager_sceneLoaded(Scene arg0, Scene arg1)

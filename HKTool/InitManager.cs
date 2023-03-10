@@ -37,12 +37,13 @@ public static class InitManager
     {
         if (HKToolMod2.settings.ExperimentalConfig.allow_start_without_steam)
         {
-            HookEndpointManager.Add(FindMethodBase("Steamworks.SteamAPI::RestartAppIfNecessary"),
+            
+            /*HookEndpointManager.Add(FindMethodBase("Steamworks.SteamAPI::RestartAppIfNecessary"),
                 (Func<AppId_t, bool> orig, AppId_t id) =>
                 {
                     if (id.m_AppId == 367520U) return false;
                     return orig(id);
-                });
+                });*/
         }
     }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]

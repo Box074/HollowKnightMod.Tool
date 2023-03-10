@@ -5,7 +5,7 @@ namespace HKTool.Utils;
 public static class Helper
 {
     public delegate void WithDelegate<T>(ref T self);
-    public static T MemberwiseClone<T>(this T self) => Modding.ReflectionHelper.CallMethod<T>(typeof(object), "MemberwiseClone", self);
+    public static T MemberwiseClone<T>(this T self) => (T)self.Reflect().MemberwiseClone();
     
     public static T With<T>(this T self, Action<T> action)
     {

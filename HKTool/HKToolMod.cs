@@ -20,7 +20,6 @@ class HKToolMod2 : ModBase<HKToolMod2>, IGlobalSettings<HKToolSettings>, ICustom
     public static SimpleLogger unityLogger = new("UNITY");
     public static SimpleLogger logger = new("HKTool");
     public static bool IsDebugMode { get; private set; }
-    public static ReflectionObject RModLoader => ModLoaderHelper.RModLoader;
     protected override List<(SupportedLanguages, string)>? LanguagesEx => new()
     {
         (SupportedLanguages.ZH, "HKTool.Resources.Languages.lang_zh.txt"),
@@ -47,7 +46,8 @@ class HKToolMod2 : ModBase<HKToolMod2>, IGlobalSettings<HKToolSettings>, ICustom
         {
             LogError(e);
         }
-        new NativeDetour(FindMethodBase("HeroController::get_instance"), FindMethodBase("HeroController::get_SilentInstance"));
+        On.HeroController.get_instance += HeroController_get_instance;
+        //new NativeDetour(FindMethodBase("HeroController::get_instance"), FindMethodBase("HeroController::get_SilentInstance"));
         On.HutongGames.PlayMaker.ReflectionUtils.GetGlobalType += (orig, name) =>
         {
             return orig(name) ?? HReflectionHelper.FindType(name);
@@ -63,6 +63,12 @@ class HKToolMod2 : ModBase<HKToolMod2>, IGlobalSettings<HKToolSettings>, ICustom
             }
         }
     }
+
+    private HeroController HeroController_get_instance(On.HeroController.orig_get_instance orig)
+    {
+        return HeroController.SilentInstance;
+    }
+
     private void FakePreloadPrefab()
     {
         HashSet<MethodInfo> table = new();
@@ -80,7 +86,7 @@ class HKToolMod2 : ModBase<HKToolMod2>, IGlobalSettings<HKToolSettings>, ICustom
                     {
                         var list = orig(self);
                         if (list is null) return list;
-                        Dictionary<string, Dictionary<string, GameObject?>>? modPreload = null;
+                        PreloadObject? modPreload = null;
                         for (int i = 0; i < list.Count; i++)
                         {
                             (string sceneName, string objName) = list[i];
@@ -103,20 +109,20 @@ class HKToolMod2 : ModBase<HKToolMod2>, IGlobalSettings<HKToolSettings>, ICustom
                                 }
                                 list.RemoveAt(i);
                                 i--;
-                                modPreload = modPreload ?? new();
+                                modPreload ??= new();
                                 Modding.Logger.LogWarn($"[API Compatibility]'{self.GetName()}' tries to preload '{objName}' using Preload Prefab, which was removed in Modding API 72");
                                 this.AddPreloadSharedAsset(sceneId, objName, typeof(GameObject), false, obj =>
                                 {
-                                    modPreload.TryGetOrAddValue(sceneName, () => new())[objName] = (GameObject?)obj;
+                                    modPreload.TryGetOrAddValue(sceneName, () => new())[objName] = (GameObject)obj!;
                                 });
 
                             }
                             if (modPreload is not null)
                             {
-                                ModManager.onLoadMod += (ModInstance mi, ref bool updateVer, ref PreloadObject preloads) =>
+                                ModManager.onLoadMod += (ModInstanceR mi, ref bool updateVer, ref PreloadObject preloads) =>
                                 {
                                     if (mi.Mod is null || mi.Mod?.GetType() != t) return;
-                                    preloads = preloads ?? new();
+                                    preloads ??= new();
                                     if (!updateVer)
                                     {
                                         foreach (var v in modPreload)
@@ -201,7 +207,7 @@ class HKToolMod2 : ModBase<HKToolMod2>, IGlobalSettings<HKToolSettings>, ICustom
             unityLogger.LogError($"[ASSERT]{msg}\n{GetUnityLogStackTrace(logType, stackTrace)}");
         }
     }
-    public static bool i18nShowOrig;
+    public static bool i18nShowOrig = false;
 
     internal static void Init()
     {
@@ -217,18 +223,20 @@ class HKToolMod2 : ModBase<HKToolMod2>, IGlobalSettings<HKToolSettings>, ICustom
         }
         if (AppDomain.CurrentDomain.GetAssemblies().Any(x => x.GetName().Name == "AlreadyEnoughPlayMaker"))
         {
-            HookEndpointManager.Add(FindMethodBase("HutongGames.PlayMaker.FsmState::set_Actions"),
-                (Action<FsmState, FsmStateAction[]> orig, FsmState self, FsmStateAction[] val) =>
-                {
-                    orig(self, val);
-                    if (val != null)
-                    {
-                        foreach (var v in val)
-                        {
-                            v.Init(self);
-                        }
-                    }
-                });
+            On.HutongGames.PlayMaker.FsmState.set_Actions += FsmState_set_Actions;
+        }
+    }
+
+    private static void FsmState_set_Actions(On.HutongGames.PlayMaker.FsmState.orig_set_Actions orig, 
+        FsmState self, FsmStateAction[] value)
+    {
+        orig(self, value);
+        if (value != null)
+        {
+            foreach (var v in value)
+            {
+                v.Init(self);
+            }
         }
     }
 

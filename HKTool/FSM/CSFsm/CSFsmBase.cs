@@ -1,7 +1,6 @@
 
 namespace HKTool.FSM.CSFsm;
 
-[Serializable] //FIXME
 public abstract class CSFsmBase : MonoBehaviour
 {
     [AttributeUsage(AttributeTargets.Method)]
