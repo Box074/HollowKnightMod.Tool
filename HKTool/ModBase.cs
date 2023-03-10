@@ -31,6 +31,29 @@ public abstract class ModBase : Mod, IHKToolMod
         public int id;
         public bool cloneOne;
     }
+
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]
+    public class PreloadAttribute : Attribute
+    {
+        public PreloadAttribute(string scene, string obj)
+        {
+            sceneName = scene;
+            objPath = obj;
+        }
+        public PreloadAttribute(string scene, string obj, bool throwExceptionOnMissing) : this(scene, obj)
+        {
+            this.throwExceptionOnMissing = throwExceptionOnMissing;
+        }
+        public PreloadAttribute(string scene, string obj, bool throwExceptionOnMissing, bool setActive) : this(scene, obj, throwExceptionOnMissing)
+        {
+            this.setActive = setActive;
+        }
+        public bool setActive;
+        public string sceneName;
+        public string objPath;
+        public bool throwExceptionOnMissing = false;
+    }
+
     public const string compileVersion = "2.1.0";
     private static int _currentmapiver = (int)(HReflectionHelper.FindType("Modding.ModHooks")!
         .GetField("_modVersion", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null));

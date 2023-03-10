@@ -124,8 +124,7 @@ public static class ModListMenuHelper
         orig(value);
         if (value == null) return;
         if (value.Method.DeclaringType.FullName != "Modding.ModListMenu") return;
-        if (Modding.ReflectionHelper.GetField<UIManager, bool>(UIManager.instance,
-            "hasCalledEditMenus"))
+        if (UIManagerR.instance.hasCalledEditMenus)
         {
             AfterBuildModListMenuComplete();
         }
