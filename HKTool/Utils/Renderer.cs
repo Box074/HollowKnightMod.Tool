@@ -26,6 +26,9 @@ public static class RendererUtils
     }
     public static Texture2D? Render(this GameObject go, int width, int height, bool includeChildren)
     {
+        width = width > 0 ? width : 1;
+        height = height > 0 ? height : 1;
+
         var render = go.GetComponent<Renderer>();
         if (render == null) return null;
         var origPos = go.transform.position;
