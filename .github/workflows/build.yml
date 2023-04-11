@@ -23,7 +23,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        body_path: ./HKTool/bin/Publish/SHA.txt
+        body_path: ./HKTool/bin/Publish/ReleaseInfo.txt
         files: |
-          ./HKTool/bin/Publish/HKTool2.zip
+          ./HKTool/bin/Publish/Publish.zip
 
