@@ -26,6 +26,16 @@ public abstract class CSFsmBase : MonoBehaviour
         }
     }
 
+    [AttributeUsage(AttributeTargets.Field)]
+    protected class ComponentBinding : Attribute
+    {
+        public string childName;
+        public ComponentBinding(string childName = "")
+        {
+            this.childName = childName;
+        }
+    }
+
     private class StateInfo
     {
         public Fsm? fsm = null;
@@ -258,6 +268,24 @@ public abstract class CSFsmBase : MonoBehaviour
 
     private void BindVar(Fsm fsm)
     {
+        foreach(var v in GetType().GetFields(HReflectionHelper.All))
+        {
+            if (!v.FieldType.IsSubclassOf(typeof(UObject))) continue;
+            var d = v.GetCustomAttribute<ComponentBinding>();
+            if (d is null) continue;
+            GameObject? go;
+            if(string.IsNullOrEmpty(d.childName))
+            {
+                go = fsm.GameObject;
+            }
+            else
+            {
+                go = fsm.GameObject.FindChildWithPath(d.childName.Split('/'));
+            }
+            if(go == null) continue;
+            UObject result = v.FieldType == typeof(GameObject) ? go : go.GetComponent(v.FieldType);
+            v.SetValue(this, result);
+        }
         foreach (var v in GetType().GetFields(HReflectionHelper.All))
         {
             if (!v.FieldType.IsSubclassOf(typeof(NamedVariable))) continue;
