@@ -9,7 +9,7 @@
       <Copyright>Copyright © HKLab 2023</Copyright>
       <Authors>HKLab</Authors>
       <NoWarn>7035</NoWarn>
-      <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      <AssemblyVersion>2.2.0.0</AssemblyVersion>
       <ModName>HKTool</ModName>
       <LangVersion>11</LangVersion>
       <Nullable>enable</Nullable>
