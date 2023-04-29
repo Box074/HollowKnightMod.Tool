@@ -78,6 +78,9 @@ namespace HKTool.Test
         {
             yield return null;
             HKToolMod2.logger.Log("I'm Test_Start1!");
+            yield return null;
+            HKToolMod2.logger.Log("I'm Test_Start2!");
+            yield return r0;
         }
 
         [FsmState]
@@ -100,9 +103,9 @@ namespace HKTool.Test
             [FsmTransition(nameof(Test_3))] FsmEvent r1
             )
         {
-            int count = 0;
-            yield return null;
-            HKToolMod2.logger.Log($"I'm Test_3! {count++}");
+            Holder<int> count = new();
+            yield return token;
+            HKToolMod2.logger.Log($"I'm Test_3! {count.value++}");
 
             yield return r0;
         }

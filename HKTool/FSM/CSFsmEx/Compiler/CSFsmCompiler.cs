@@ -172,10 +172,9 @@ namespace HKTool.FSM.CSFsmEx.Compiler
 
                     il.Emit(OpCodes.Dup); //Stack: Array
 
-                    il.Emit(OpCodes.Ldloc, host);
-                    il.Emit(OpCodes.Ldloc, l_fsmVar);
-                    il.Emit(OpCodes.Ldstr, varName);
-                    il.Emit(OpCodes.Call, info_fsmvar_getvar);
+                    il.Emit(OpCodes.Ldloc, l_fsmVar); //S: Array, Vars
+                    il.Emit(OpCodes.Ldstr, varName); //S: Array, Vars, VarName
+                    il.Emit(OpCodes.Call, info_fsmvar_getvar); //S: Array, FsmVar
                     il.Emit(OpCodes.Castclass, type); //Stack: Array, FsmVar
 
                     var tl = AllocTempLocal(f.FieldType);

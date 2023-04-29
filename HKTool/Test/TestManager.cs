@@ -22,7 +22,7 @@ static class TestManager
         ("CSFsm Host Test1", () =>
         {
             var go = new GameObject();
-            CSFsmProxy.Attach<TCSFsmCompiler>(go, out _, "");
+            CSFsmProxy.Attach<TCSFsmCompiler>(go, out _, "Test_Start1");
         })
     };
 }

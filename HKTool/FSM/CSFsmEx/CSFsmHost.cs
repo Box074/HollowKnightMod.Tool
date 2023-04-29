@@ -112,9 +112,10 @@ namespace HKTool.FSM.CSFsmEx
                 var md = new DynamicMethodDefinition($"$CSFsmHostBuilder<{GetType().FullName}>", typeof(void), new Type[] { typeof(CSFsmBuildContext) });
                 var compiler = new CSFsmCompiler();
                 compiler.Compile(GetType(), md.Definition);
-                md.Module.Assembly.Write(@"C:\Users\29676\Desktop\A2.dll"); ////FIX ME!!!!!!!!!!!!!!!!!!!!!!!!!
+                //md.Module.Assembly.Write(@"C:\Users\29676\Desktop\A2.dll"); ////FIX ME!!!!!!!!!!!!!!!!!!!!!!!!!
                 var mi = DMDCecilGenerator.Generate(md);
                 builder = mi.CreateDelegate<Action<CSFsmBuildContext>>();
+                builders[GetType()] = builder;
             }
 
             builder(new()
@@ -140,6 +141,8 @@ namespace HKTool.FSM.CSFsmEx
             state ??= new(Fsm.Fsm);
 
             state.Name = stateName;
+
+            Fsm.Fsm.InsertFSMState(state);
 
             FsmStateAction[] originalActions;
             if(original != null && original.ActionData != null)
