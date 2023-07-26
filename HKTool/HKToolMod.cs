@@ -211,6 +211,7 @@ class HKToolMod2 : ModBase<HKToolMod2>, IGlobalSettings<HKToolSettings>, ICustom
 
     internal static void Init()
     {
+        //Environment.SetEnvironmentVariable("MONOMOD_DMD_TYPE", "cecil");
         if (IsDebugMode)
         {
             Application.logMessageReceived += UnityLogHandler;

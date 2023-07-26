@@ -396,7 +396,7 @@ public abstract class ModBase : Mod, IHKToolMod
     }
     protected ModBase(string? name = null) : this(name!, false)
     {
-
+        
     }
     private ModBase(string name, bool _) : base(name)
     {
